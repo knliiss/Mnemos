@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { PageHeader } from "../shared/Primitives"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
 import { GUIDE_DUMP_LOCATIONS } from "./guideLocationDumpData"
 import {
@@ -8,6 +9,7 @@ import {
 } from "./guideLocalization"
 import { mechanicMatchesQuery, verifiedGuideMechanics } from "./guideMechanics"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
+import { GuideSearch } from "./GuideSearch"
 import { guideUiText } from "./guideUiText"
 
 export type GuideHubSection = "locations" | "dungeons" | "mechanics"
@@ -177,38 +179,31 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
   ])
 
   return (
-    <div className="screen guides-screen guides-hub-screen guides-hub-screen--rebuild">
-      <GuideHubHeader title={ui.title} back={back} backLabel={ui.back} />
+    <div className="screen guides-screen guides-hub-screen guides-hub-screen--redesign">
+      <PageHeader title={ui.title} eyebrow={ui.eyebrow} back={back} />
 
-      <section className="guides-hub-intro guides-hub-intro--rebuild">
-        <small>{ui.eyebrow}</small>
-        <strong>{ui.heroTitle}</strong>
-        <p>{ui.heroCopy}</p>
+      <section className="guides-hub-intro guides-hub-intro--redesign">
+        <div className="guides-hub-intro__art" aria-hidden="true">
+          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--outer" />
+          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--inner" />
+          <img src="/ui-illustrations/account-guides.svg" alt="" />
+        </div>
+        <span>
+          <small>{ui.eyebrow}</small>
+          <strong>{ui.heroTitle}</strong>
+          <p>{ui.heroCopy}</p>
+        </span>
       </section>
 
-      <label className="guides-search guides-search--hub guides-search--rebuild">
-        <span className="guides-search__mark" aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onInput={(event) => setQuery(event.currentTarget.value)}
-          placeholder={ui.searchPlaceholder}
-          aria-label={ui.searchPlaceholder}
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          enterKeyHint="search"
-        />
-        {query ? (
-          <button type="button" onClick={() => setQuery("")} aria-label={ui.clearSearch}>
-            ×
-          </button>
-        ) : null}
-      </label>
+      <GuideSearch
+        value={query}
+        placeholder={ui.searchPlaceholder}
+        clearLabel={ui.clearSearch}
+        onChange={setQuery}
+      />
 
       {normalizedQuery ? (
-        <section className="guide-hub-search-results guide-hub-search-results--rebuild">
+        <section className="guide-hub-search-results guide-hub-search-results--redesign">
           {searchResults.map((result) => (
             <button key={result.key} type="button" onClick={result.onOpen}>
               <span className="guide-hub-search-results__kind">{result.kind}</span>
@@ -218,16 +213,18 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           ))}
 
           {!searchResults.length ? (
-            <div className="guide-hub-search-results__empty">
+            <div className="guides-empty guides-empty--search">
+              <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
               <strong>{ui.noResults}</strong>
               <small>{ui.noResultsCopy}</small>
             </div>
           ) : null}
         </section>
       ) : (
-        <section className="guide-hub-grid guide-hub-grid--location-centric">
+        <section className="guide-hub-grid guide-hub-grid--redesign">
           <GuideHubCard
             tone="locations"
+            illustration="/ui-illustrations/guides-cartographer.svg"
             title={ui.locations}
             copy={ui.locationsCopy}
             meta={`${GUIDE_LOCATIONS.length}`}
@@ -235,6 +232,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           />
           <GuideHubCard
             tone="dungeons"
+            illustration="/ui-illustrations/guides-explorer.svg"
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta={`${DUNGEONS.length}`}
@@ -243,6 +241,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           {verifiedMechanics.length ? (
             <GuideHubCard
               tone="mechanics"
+              illustration="/ui-illustrations/mnemos-mascot-cat.svg"
               title={ui.mechanics}
               copy={ui.mechanicsCopy}
               meta={`${verifiedMechanics.length}`}
@@ -257,12 +256,14 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
 
 function GuideHubCard({
   tone,
+  illustration,
   title,
   copy,
   meta,
   onClick,
 }: {
   tone: GuideHubSection
+  illustration: string
   title: string
   copy: string
   meta: string
@@ -271,47 +272,19 @@ function GuideHubCard({
   return (
     <button
       type="button"
-      className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--rebuild`}
+      className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--redesign`}
       onClick={onClick}
     >
-      <span
-        className={`guide-hub-card__diagram guide-hub-card__diagram--${tone}`}
-        aria-hidden="true"
-      >
-        <i />
-        <i />
-        <i />
-        <i />
+      <span className="guide-hub-card__illustration" aria-hidden="true">
+        <img src={illustration} alt="" />
       </span>
       <span className="guide-hub-card__copy">
         <strong>{title}</strong>
         <small>{copy}</small>
       </span>
       <span className="guide-hub-card__meta">{meta}</span>
-      <span className="guide-hub-card__open" aria-hidden="true">
-        ›
-      </span>
+      <span className="guide-hub-card__open" aria-hidden="true" />
     </button>
-  )
-}
-
-function GuideHubHeader({
-  title,
-  back,
-  backLabel,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-}) {
-  return (
-    <header className="guides-page-header guides-page-header--plain">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span aria-hidden="true" />
-    </header>
   )
 }
 

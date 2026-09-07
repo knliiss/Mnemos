@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { PageHeader } from "../shared/Primitives"
 import { GUIDE_LOCATIONS, type GuideLocation } from "./guideCatalog"
 import { GuideLocationDetail } from "./GuideLocationDetail"
 import { GUIDE_DUMP_LOCATION_BY_ID } from "./guideLocationDumpData"
@@ -9,6 +10,7 @@ import {
   locationMatchesQuery,
   type SaoCatalogs,
 } from "./guideLocalization"
+import { GuideSearch } from "./GuideSearch"
 import { guideUiText } from "./guideUiText"
 
 type GuideUi = ReturnType<typeof guideUiText>
@@ -48,37 +50,32 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
   }
 
   return (
-    <div className="screen guides-screen guide-locations-screen guide-locations-screen--rebuild">
-      <GuideLocationsHeader title={locationUi.locationArchive} back={back} backLabel={ui.back} />
+    <div className="screen guides-screen guide-locations-screen guide-locations-screen--redesign">
+      <PageHeader title={locationUi.locationArchive} eyebrow={ui.locations} back={back} />
 
-      <section className="guide-locations-intro">
-        <strong>{locationUi.locationArchive}</strong>
-        <p>{locationUi.locationArchiveCopy}</p>
+      <section className="guide-context-hero guide-context-hero--locations">
+        <div className="guide-context-hero__mascot" aria-hidden="true">
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
+        </div>
+        <span>
+          <strong>{locationUi.locationArchive}</strong>
+          <p>{locationUi.locationArchiveCopy}</p>
+        </span>
+        <b>{GUIDE_LOCATIONS.length}</b>
       </section>
 
-      <label className="guides-search guides-search--location-rebuild">
-        <span className="guides-search__mark" aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onInput={(event) => setQuery(event.currentTarget.value)}
-          placeholder={locationUi.searchPlaceholder}
-          aria-label={locationUi.searchPlaceholder}
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          enterKeyHint="search"
-        />
-        {query ? (
-          <button type="button" onClick={() => setQuery("")} aria-label={ui.clearSearch}>
-            ×
-          </button>
-        ) : null}
-      </label>
+      <GuideSearch
+        value={query}
+        placeholder={locationUi.searchPlaceholder}
+        clearLabel={ui.clearSearch}
+        onChange={setQuery}
+      />
 
       {locations.length ? (
-        <section className="guide-location-index" aria-label={locationUi.locationArchive}>
+        <section
+          className="guide-location-index guide-location-index--redesign"
+          aria-label={locationUi.locationArchive}
+        >
           {locations.map((location) => (
             <GuideLocationIndexCard
               key={location.id}
@@ -90,11 +87,8 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
           ))}
         </section>
       ) : (
-        <section className="guide-location-no-results">
-          <span aria-hidden="true">
-            <i />
-            <b />
-          </span>
+        <section className="guides-empty guides-empty--locations">
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" aria-hidden="true" />
           <strong>{ui.noResults}</strong>
           <small>{ui.noResultsCopy}</small>
         </section>
@@ -118,7 +112,11 @@ function GuideLocationIndexCard({
   const detailsAvailable = dump?.detailsAvailable ?? false
 
   return (
-    <button type="button" className="guide-location-index-card" onClick={onOpen}>
+    <button
+      type="button"
+      className="guide-location-index-card guide-location-index-card--redesign"
+      onClick={onOpen}
+    >
       <span className="guide-location-index-card__banner">
         <img src={location.artworkUrl} alt="" loading="lazy" aria-hidden="true" />
         <span>{location.id > 0 ? `#${location.id}` : locationUi.specialZone}</span>
@@ -148,26 +146,6 @@ function GuideLocationIndexCard({
 
       <span className="guide-location-index-card__chevron" aria-hidden="true" />
     </button>
-  )
-}
-
-function GuideLocationsHeader({
-  title,
-  back,
-  backLabel,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-}) {
-  return (
-    <header className="guides-page-header guides-page-header--plain">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span aria-hidden="true" />
-    </header>
   )
 }
 

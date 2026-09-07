@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Glyph } from "../shared/MnemosIcon"
 
 type Props = {
   label: string
@@ -112,12 +113,12 @@ export function GuideRankPicker({
                 </strong>
               </span>
               <button type="button" onClick={closePicker} aria-label={closeLabel}>
-                <span aria-hidden="true">×</span>
+                <Glyph name="close" size={16} />
               </button>
             </header>
 
             <label className="guide-rank-picker__search">
-              <span className="guides-search__mark" aria-hidden="true" />
+              <Glyph name="search" size={17} />
               <input
                 ref={searchRef}
                 type="search"
