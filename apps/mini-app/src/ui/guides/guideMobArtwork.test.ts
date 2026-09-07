@@ -2,36 +2,40 @@ import { describe, expect, it } from "vitest"
 import { guideMobArtworkStyle } from "./guideMobArtwork"
 
 describe("Guide mob artwork", () => {
-  it("maps early dump mobs to the verified source artwork", () => {
+  it("uses the bundled source-model atlases instead of an external runtime host", () => {
     expect(guideMobArtworkStyle("sao.mob.mob1_1.name")).toMatchObject({
-      backgroundImage: "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob1_1.png)",
-      backgroundPosition: "center",
-      backgroundSize: "contain",
+      backgroundImage: "url(/guides/entities/mob-model-atlas-1.webp)",
+      backgroundPosition: "0px 0px",
+      backgroundSize: "896px 128px",
     })
   })
 
-  it("keeps source-specific artwork overrides from the dump", () => {
-    expect(guideMobArtworkStyle("sao.mob.mob13_2.name")?.backgroundImage).toBe(
-      "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob12_2.png)",
-    )
+  it("keeps the source-pack model ordering when a location has more models than the dump", () => {
+    expect(guideMobArtworkStyle("sao.mob.mob9_1.name")).toMatchObject({
+      backgroundImage: "url(/guides/entities/mob-model-atlas-2.webp)",
+      backgroundPosition: "-448px 0px",
+    })
   })
 
-  it("covers source-backed mobs on locations 26 and 27", () => {
-    expect(guideMobArtworkStyle("sao.mob.mob26_1.name")?.backgroundImage).toBe(
-      "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob26_1.png)",
-    )
-    expect(guideMobArtworkStyle("sao.mob.mob27_7.name")?.backgroundImage).toBe(
-      "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob27_7.png)",
-    )
+  it("renders the verified source model for the seventh mob on location 17", () => {
+    expect(guideMobArtworkStyle("sao.mob.mob17_7.name")).toMatchObject({
+      backgroundImage: "url(/guides/entities/mob-model-atlas-4.webp)",
+      backgroundPosition: "-832px 0px",
+    })
   })
 
-  it("does not invent the broken Oceanid source portrait", () => {
-    expect(guideMobArtworkStyle("sao.mob.mob17_7.name")).toBeUndefined()
+  it("maps the final bundled source model to the compact last atlas", () => {
+    expect(guideMobArtworkStyle("sao.mob.mob25_7.name")).toMatchObject({
+      backgroundImage: "url(/guides/entities/mob-model-atlas-6.webp)",
+      backgroundPosition: "-832px 0px",
+      backgroundSize: "896px 64px",
+    })
   })
 
-  it("rejects non-mob and out-of-range keys", () => {
+  it("rejects non-mob, unavailable late-location and out-of-range keys", () => {
     expect(guideMobArtworkStyle("sao.item.l1_1.name")).toBeUndefined()
-    expect(guideMobArtworkStyle("sao.mob.mob1_5.name")).toBeUndefined()
-    expect(guideMobArtworkStyle("sao.mob.mob28_1.name")).toBeUndefined()
+    expect(guideMobArtworkStyle("sao.mob.mob8_8.name")).toBeUndefined()
+    expect(guideMobArtworkStyle("sao.mob.mob26_1.name")).toBeUndefined()
+    expect(guideMobArtworkStyle("sao.mob.mob27_1.name")).toBeUndefined()
   })
 })
