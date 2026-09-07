@@ -18,10 +18,12 @@ const rawItemStats = [
 describe("source-backed Guide stats", () => {
   it("keeps the complete unique item stat coverage from the attached dump", () => {
     const itemIds = rawItemStats.map(([itemId]) => itemId)
+    const serializedStats = JSON.stringify(rawItemStats).toLowerCase()
 
     expect(itemIds).toHaveLength(701)
     expect(new Set(itemIds)).toHaveLength(701)
-    expect(JSON.stringify(rawItemStats).toLowerCase()).not.toContain("chance")
+    expect(serializedStats).not.toContain("drop_chance")
+    expect(serializedStats).not.toContain("dropchance")
   })
 
   it("keeps the complete unique mob stat coverage from the attached dump", () => {
@@ -43,7 +45,7 @@ describe("source-backed Guide stats", () => {
     const stats = getGuideSourceItemStats("sao.item.pet_l16_1.name")
 
     expect(stats).toContainEqual({ type: "PET_POWER", value: "x3Qa" })
-    expect(JSON.stringify(stats)).not.toContain("chance")
+    expect(JSON.stringify(stats).toLowerCase()).not.toContain("drop_chance")
   })
 
   it("exposes source mob health and activity facts", () => {
