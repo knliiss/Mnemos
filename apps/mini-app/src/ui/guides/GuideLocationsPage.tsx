@@ -72,7 +72,10 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
       />
 
       {locations.length ? (
-        <section className="guide-location-index guide-location-index--redesign" aria-label={locationUi.locationArchive}>
+        <section
+          className="guide-location-index guide-location-index--redesign"
+          aria-label={locationUi.locationArchive}
+        >
           {locations.map((location) => (
             <GuideLocationIndexCard
               key={location.id}
@@ -109,7 +112,11 @@ function GuideLocationIndexCard({
   const detailsAvailable = dump?.detailsAvailable ?? false
 
   return (
-    <button type="button" className="guide-location-index-card guide-location-index-card--redesign" onClick={onOpen}>
+    <button
+      type="button"
+      className="guide-location-index-card guide-location-index-card--redesign"
+      onClick={onOpen}
+    >
       <span className="guide-location-index-card__banner">
         <img src={location.artworkUrl} alt="" loading="lazy" aria-hidden="true" />
         <span>{location.id > 0 ? `#${location.id}` : locationUi.specialZone}</span>
