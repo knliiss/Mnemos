@@ -1,0 +1,114 @@
+name: Probe Guide Atlas History
+
+on:
+  push:
+    branches:
+      - fix/guides-atlas-integrity
+    paths:
+      - .github/workflows/probe-guide-atlas-history.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install WebP decoder
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq webp
+
+      - name: Probe historical Guide atlases
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          paths = [
+              "apps/mini-app/public/guides/entities/npc-atlas.webp",
+              "apps/mini-app/public/guides/entities/weapon-atlas.webp",
+          ]
+
+          def commits_for(path: str) -> list[str]:
+              result = subprocess.check_output(
+                  ["git", "log", "--all", "--format=%H", "--", path],
+                  text=True,
+              )
+              return list(dict.fromkeys(line for line in result.splitlines() if line))
+
+          def structural_status(data: bytes) -> tuple[bool, str]:
+              if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+                  return False, "missing RIFF/WEBP header"
+
+              declared = int.from_bytes(data[4:8], "little") + 8
+              if declared != len(data):
+                  return False, f"RIFF size mismatch declared={declared} actual={len(data)}"
+
+              offset = 12
+              chunks = []
+              while offset < len(data):
+                  if offset + 8 > len(data):
+                      return False, f"truncated chunk header at {offset}"
+                  kind = data[offset : offset + 4].decode("ascii", errors="replace")
+                  size = int.from_bytes(data[offset + 4 : offset + 8], "little")
+                  end = offset + 8 + size + (size & 1)
+                  if end > len(data):
+                      return False, f"truncated {kind} chunk size={size} at {offset}"
+                  chunks.append(kind)
+                  offset = end
+
+              return offset == len(data), ",".join(chunks)
+
+          for path in paths:
+              print(f"=== {path} ===")
+              seen_blobs = set()
+              for commit in commits_for(path):
+                  spec = f"{commit}:{path}"
+                  try:
+                      blob = subprocess.check_output(["git", "rev-parse", spec], text=True).strip()
+                      if blob in seen_blobs:
+                          continue
+                      seen_blobs.add(blob)
+                      data = subprocess.check_output(["git", "show", spec])
+                  except subprocess.CalledProcessError:
+                      continue
+
+                  ok, detail = structural_status(data)
+                  tmp = Path(f"/tmp/{path.rsplit('/', 1)[-1]}.{blob[:10]}.webp")
+                  tmp.write_bytes(data)
+                  decoded = subprocess.run(
+                      ["dwebp", str(tmp), "-o", "/tmp/probe.ppm"],
+                      stdout=subprocess.DEVNULL,
+                      stderr=subprocess.PIPE,
+                      text=True,
+                  )
+                  print(
+                      f"commit={commit} blob={blob} bytes={len(data)} "
+                      f"structural={'OK' if ok else 'BAD'} decode={'OK' if decoded.returncode == 0 else 'BAD'} "
+                      f"detail={detail} decoder={decoded.stderr.strip()[:180]}"
+                  )
+
+          print("=== historical atlas/source-like filenames ===")
+          names = subprocess.check_output(
+              [
+                  "git", "log", "--all", "--format=", "--name-only", "--",
+                  "apps/mini-app/public/guides/entities",
+              ],
+              text=True,
+          )
+          for name in sorted(set(names.splitlines())):
+              lower = name.lower()
+              if any(token in lower for token in ("npc-atlas", "weapon-atlas", "raid_", "quest_")):
+                  print(name)
+          PY
