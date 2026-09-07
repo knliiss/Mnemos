@@ -1,8 +1,7 @@
 .guide-location-index-card--redesign .guide-location-index-card__banner,
 .guide-location-hero--redesign {
   background:
-    radial-gradient(circle at 50% 50%, rgba(203, 255, 45, 0.035), transparent 70%),
-    #090d09;
+    radial-gradient(circle at 50% 50%, rgba(203, 255, 45, 0.035), transparent 70%), #090d09;
 }
 
 .guide-location-index-card--redesign .guide-location-index-card__banner img,
