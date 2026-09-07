@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { PageHeader } from "../shared/Primitives"
 import {
   GUIDE_MECHANIC_CHAPTER_KEYS,
   mechanicMatchesQuery,
@@ -47,21 +48,19 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
 
   return (
     <div className="screen guides-screen guide-mechanics-screen">
-      <GuideHeader title={ui.mechanics} back={back} backLabel={ui.back} />
+      <PageHeader title={ui.mechanics} eyebrow={ui.mechanicsEyebrow} back={back} />
 
       <section className="guide-context-hero guide-context-hero--mechanics">
         <div className="guide-context-hero__mascot" aria-hidden="true">
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
-          <i>FIELD</i>
         </div>
         <span>
-          <small>{ui.mechanicsEyebrow}</small>
           <strong>{ui.mechanics}</strong>
           <p>{ui.mechanicsCopy}</p>
         </span>
       </section>
 
-      <label className="guides-search">
+      <label className="guides-search guides-search--app-pattern">
         <span className="guides-search__mark" aria-hidden="true" />
         <input
           type="search"
@@ -87,7 +86,7 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
           {grouped.map(({ chapter, mechanics: chapterMechanics }) => (
             <section key={chapter} className="guide-mechanics-chapter">
               <header>
-                <small>SAO FIELD NOTES</small>
+                <small>{ui.mechanicsEyebrow}</small>
                 <strong>{text(GUIDE_MECHANIC_CHAPTER_KEYS[chapter])}</strong>
                 <b>{chapterMechanics.length}</b>
               </header>
@@ -121,12 +120,7 @@ function GuideMechanicCard({
   ui: ReturnType<typeof guideUiText>
 }) {
   return (
-    <article className="guide-mechanic-card">
-      <span className="guide-mechanic-card__marker" aria-hidden="true">
-        <i />
-        <b>{mechanic.id.slice(0, 2).toUpperCase()}</b>
-      </span>
-
+    <article className="guide-mechanic-card guide-mechanic-card--content-first">
       <div className="guide-mechanic-card__body">
         <strong>{text(mechanic.titleKey)}</strong>
         <p>{text(mechanic.textKey)}</p>
@@ -143,27 +137,5 @@ function GuideMechanicCard({
         </dl>
       </div>
     </article>
-  )
-}
-
-function GuideHeader({
-  title,
-  back,
-  backLabel,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-}) {
-  return (
-    <header className="guides-page-header">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span className="guides-page-header__sigil" aria-hidden="true">
-        DOC
-      </span>
-    </header>
   )
 }
