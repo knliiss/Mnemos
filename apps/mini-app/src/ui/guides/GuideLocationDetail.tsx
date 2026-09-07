@@ -452,8 +452,6 @@ function GuideDropSheet({
             <strong>×{selection.drop.quantity}</strong>
           </span>
         </div>
-
-        <p className="guide-drop-sheet__chance-note">{locationUi.noChance}</p>
       </div>
     </BottomSheet>
   )
