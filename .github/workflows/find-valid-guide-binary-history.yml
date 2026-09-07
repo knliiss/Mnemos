@@ -1,0 +1,95 @@
+name: Find valid Guide binaries in history
+
+on:
+  push:
+    branches:
+      - fix/guides-full-location-atlas
+    paths:
+      - .github/workflows/find-valid-guide-binary-history.yml
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/guides-full-location-atlas
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Scan binary history
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          import subprocess
+          from PIL import Image
+
+          targets = {
+              "apps/mini-app/public/guides/locations/location-dungeon-hall.webp": lambda size: size == (504, 176),
+              "apps/mini-app/public/guides/locations/location-03-shinobi.webp": lambda size: size == (504, 176),
+              "apps/mini-app/public/guides/locations/location-05-aether-city.webp": lambda size: size == (504, 176),
+              "apps/mini-app/public/guides/locations/location-07-ancient-sands.webp": lambda size: size == (504, 176),
+              "apps/mini-app/public/guides/entities/npc-atlas.webp": lambda size: size[0] % 2 == 0 and size[1] % 28 == 0 and size[0] // 2 == size[1] // 28,
+              "apps/mini-app/public/guides/entities/weapon-atlas.webp": lambda size: size[0] % 12 == 0 and size[1] % 28 == 0 and size[0] // 12 == size[1] // 28,
+          }
+
+          def git_bytes(sha: str, path: str) -> bytes:
+              result = subprocess.run(
+                  ["git", "show", f"{sha}:{path}"],
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.DEVNULL,
+                  check=False,
+              )
+              return result.stdout if result.returncode == 0 else b""
+
+          def inspect(data: bytes):
+              if len(data) < 20 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+                  return None
+              declared = int.from_bytes(data[4:8], "little") + 8
+              if declared != len(data):
+                  return None
+              try:
+                  with Image.open(BytesIO(data)) as image:
+                      image.load()
+                      return image.size
+              except Exception:
+                  return None
+
+          missing = []
+          for path, expected in targets.items():
+              commits = subprocess.check_output(
+                  ["git", "rev-list", "--all", "--", path], text=True
+              ).splitlines()
+              print(f"TARGET {path}: history_commits={len(commits)}")
+              matches = []
+              decoded = []
+              for sha in commits:
+                  data = git_bytes(sha, path)
+                  size = inspect(data)
+                  if size is None:
+                      continue
+                  decoded.append((sha, len(data), size))
+                  if expected(size):
+                      matches.append((sha, len(data), size))
+
+              for sha, length, size in decoded[:10]:
+                  print(f"  DECODED {sha} bytes={length} size={size}")
+              if matches:
+                  sha, length, size = matches[0]
+                  print(f"  MATCH   {sha} bytes={length} size={size}")
+              else:
+                  print("  NO EXPECTED MATCH")
+                  missing.append(path)
+
+          if missing:
+              print("MISSING_EXPECTED=" + ",".join(missing))
+          PY
