@@ -183,16 +183,26 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
       <PageHeader title={ui.title} eyebrow={ui.eyebrow} back={back} />
 
       <section className="guides-hub-intro guides-hub-intro--redesign">
-        <div className="guides-hub-intro__art" aria-hidden="true">
-          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--outer" />
-          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--inner" />
-          <img src="/ui-illustrations/account-guides.svg" alt="" />
-        </div>
-        <span>
+        <span className="guides-hub-intro__copy">
           <small>{ui.eyebrow}</small>
           <strong>{ui.heroTitle}</strong>
           <p>{ui.heroCopy}</p>
         </span>
+
+        <div className="guides-hub-intro__facts">
+          <span>
+            <b>{GUIDE_LOCATIONS.length}</b>
+            <small>{ui.locations}</small>
+          </span>
+          <span>
+            <b>{DUNGEONS.length}</b>
+            <small>{ui.dungeons}</small>
+          </span>
+          <span>
+            <b>{verifiedMechanics.length}</b>
+            <small>{ui.mechanics}</small>
+          </span>
+        </div>
       </section>
 
       <GuideSearch
@@ -214,7 +224,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
 
           {!searchResults.length ? (
             <div className="guides-empty guides-empty--search">
-              <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
               <strong>{ui.noResults}</strong>
               <small>{ui.noResultsCopy}</small>
             </div>
@@ -224,7 +233,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
         <section className="guide-hub-grid guide-hub-grid--redesign">
           <GuideHubCard
             tone="locations"
-            illustration="/ui-illustrations/guides-cartographer.svg"
             title={ui.locations}
             copy={ui.locationsCopy}
             meta={`${GUIDE_LOCATIONS.length}`}
@@ -232,7 +240,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           />
           <GuideHubCard
             tone="dungeons"
-            illustration="/ui-illustrations/guides-explorer.svg"
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta={`${DUNGEONS.length}`}
@@ -241,7 +248,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           {verifiedMechanics.length ? (
             <GuideHubCard
               tone="mechanics"
-              illustration="/ui-illustrations/mnemos-mascot-cat.svg"
               title={ui.mechanics}
               copy={ui.mechanicsCopy}
               meta={`${verifiedMechanics.length}`}
@@ -256,14 +262,12 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
 
 function GuideHubCard({
   tone,
-  illustration,
   title,
   copy,
   meta,
   onClick,
 }: {
   tone: GuideHubSection
-  illustration: string
   title: string
   copy: string
   meta: string
@@ -275,14 +279,11 @@ function GuideHubCard({
       className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--redesign`}
       onClick={onClick}
     >
-      <span className="guide-hub-card__illustration" aria-hidden="true">
-        <img src={illustration} alt="" />
-      </span>
+      <span className="guide-hub-card__meta">{meta}</span>
       <span className="guide-hub-card__copy">
         <strong>{title}</strong>
         <small>{copy}</small>
       </span>
-      <span className="guide-hub-card__meta">{meta}</span>
       <span className="guide-hub-card__open" aria-hidden="true" />
     </button>
   )
