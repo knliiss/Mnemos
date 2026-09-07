@@ -69,7 +69,10 @@ function GuideDungeonsPage({
         <b>{DUNGEONS.length}</b>
       </section>
 
-      <section className="guide-dungeon-selector guide-dungeon-selector--redesign" aria-label={ui.dungeons}>
+      <section
+        className="guide-dungeon-selector guide-dungeon-selector--redesign"
+        aria-label={ui.dungeons}
+      >
         {DUNGEONS.map((dungeon) => {
           const selected = dungeon.type === activeType
 
@@ -94,7 +97,9 @@ function GuideDungeonsPage({
         })}
       </section>
 
-      <section className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone} guide-dungeon-detail--redesign`}>
+      <section
+        className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone} guide-dungeon-detail--redesign`}
+      >
         <header className="guide-dungeon-detail__header">
           <span className="guide-dungeon-detail__illustration" aria-hidden="true">
             <img src="/ui-illustrations/guides-explorer.svg" alt="" />
@@ -108,7 +113,10 @@ function GuideDungeonsPage({
 
         <div className="guide-milestone-list guide-milestone-list--redesign">
           {milestones.map((milestone) => (
-            <article key={milestone.stage} className="guide-milestone-row guide-milestone-row--redesign">
+            <article
+              key={milestone.stage}
+              className="guide-milestone-row guide-milestone-row--redesign"
+            >
               <span className="guide-milestone-row__stage">
                 <small>{ui.stage}</small>
                 <b>{milestone.stage}</b>
@@ -145,7 +153,10 @@ function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
 
       <section className="guide-case-timeline guide-case-timeline--redesign">
         {GUIDE_CASE_MILESTONES.map((milestone) => (
-          <article key={milestone.opened} className="guide-case-milestone guide-case-milestone--redesign">
+          <article
+            key={milestone.opened}
+            className="guide-case-milestone guide-case-milestone--redesign"
+          >
             <span className="guide-case-milestone__count">
               <b>{compactNumber(milestone.opened)}</b>
               <small>{ui.caseOpened}</small>
