@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type CSSProperties } from "react"
 import { PageHeader } from "../shared/Primitives"
 import { GuideRankPicker } from "./GuideRankPicker"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
@@ -94,7 +94,9 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         {steps.map((step) => (
           <article key={step.rank} className="guide-rank-step guide-rank-step--redesign">
             <header>
-              <span className="guide-rank-step__number">RB {step.rank}</span>
+              <span className="guide-rank-step__number" style={rebirthEmblemStyle(step.rank)}>
+                RB {step.rank}
+              </span>
               <span className="guide-rank-step__title">
                 <strong>{rankName(step.rank)}</strong>
                 <small>→ {rankName(step.nextRank)}</small>
@@ -134,6 +136,14 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
       </section>
     </div>
   )
+}
+
+function rebirthEmblemStyle(rank: number): CSSProperties {
+  const atlasCell = (rank - 1) % 15
+
+  return {
+    "--guide-rebirth-offset": `${-atlasCell * 40}px`,
+  } as CSSProperties
 }
 
 function boostLabel(boost: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
