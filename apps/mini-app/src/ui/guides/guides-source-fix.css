@@ -1,0 +1,425 @@
+.guides-screen > .page-header {
+  position: sticky;
+  z-index: 50;
+  top: 0;
+  margin: 0 0 8px;
+  padding: 5px 0 9px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 12, 8, 0.97) 0%,
+    rgba(8, 12, 8, 0.84) 58%,
+    rgba(8, 12, 8, 0) 100%
+  );
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+.guides-screen > .page-header .page-header__lead {
+  min-width: 0;
+  gap: 8px;
+}
+
+.guides-screen > .page-header .page-header__copy {
+  min-width: 0;
+  gap: 1px;
+}
+
+.guides-screen > .page-header .page-header__copy .eyebrow {
+  font-size: 8px;
+  line-height: 1.1;
+}
+
+.guides-screen > .page-header .page-header__copy h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guides-screen > .page-header .icon-button--back {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid rgba(204, 255, 47, 0.12);
+  border-radius: 10px;
+  background: rgba(10, 15, 10, 0.88);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.guide-section-intro__art {
+  width: clamp(66px, 11vw, 92px);
+  height: 62px;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.24));
+}
+
+.guide-section-intro--cases > b {
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: transparent;
+  background:
+    url("/guides/entities/case-icon.webp") center / 38px 38px no-repeat,
+    radial-gradient(circle at 50% 50%, rgba(204, 255, 47, 0.08), transparent 72%);
+  font-size: 0;
+  image-rendering: pixelated;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+.guide-dungeon-selector__copy {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__copy strong {
+  overflow: visible;
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header > span:first-child {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header small {
+  display: block;
+  line-height: 1.5;
+}
+
+.guide-rank-step--redesign > header {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.guide-location-rebirth-card--redesign > header {
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+}
+
+.guide-rank-step__number,
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__rank {
+  display: block;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  color: transparent;
+  background-color: transparent;
+  background-image: url("/guides/entities/rebirth-emblem-atlas.webp");
+  background-position: var(--guide-rebirth-offset, 0) 0;
+  background-repeat: no-repeat;
+  background-size: 600px 40px;
+  font-size: 0;
+  line-height: 0;
+  text-indent: -9999px;
+  white-space: nowrap;
+  image-rendering: pixelated;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 1) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 1) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: 0;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 2) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 2) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -40px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 3) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 3) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -80px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 4) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 4) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -120px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 5) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 5) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -160px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 6) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 6) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -200px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 7) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 7) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -240px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 8) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 8) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -280px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 9) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 9) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -320px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 10) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 10) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -360px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 11) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 11) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -400px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 12) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 12) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -440px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 13) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 13) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -480px;
+}
+
+.guide-rank-step--redesign:nth-child(15n + 14) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n + 14) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -520px;
+}
+
+.guide-rank-step--redesign:nth-child(15n) .guide-rank-step__number,
+.guide-location-rebirth-card--redesign:nth-child(15n) .guide-location-rebirth-card__rank {
+  --guide-rebirth-offset: -560px;
+}
+
+.guide-location-index-card--redesign > img.guide-location-index-card__banner {
+  display: block;
+  width: 100%;
+  height: 132px;
+  min-height: 132px;
+  box-sizing: border-box;
+  padding: 5px;
+  border: 0;
+  background-color: rgba(7, 11, 7, 0.75);
+  object-fit: contain;
+  object-position: center;
+}
+
+.guide-location-hero--redesign > img {
+  box-sizing: border-box;
+  padding: 8px;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Final source-backed visual pass. Keep the guide chrome compact and let content breathe. */
+.guides-screen > .page-header {
+  min-height: 38px;
+  margin-bottom: 5px;
+  padding: 3px 2px 6px;
+  background: linear-gradient(
+    180deg,
+    rgba(7, 11, 7, 0.96) 0%,
+    rgba(7, 11, 7, 0.72) 76%,
+    transparent 100%
+  );
+}
+
+.guides-screen > .page-header .icon-button--back {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+}
+
+.guides-screen > .page-header .page-header__lead {
+  gap: 7px;
+}
+
+.guides-screen > .page-header .page-header__copy .eyebrow {
+  opacity: 0.62;
+  font-size: 7px;
+  letter-spacing: 0.09em;
+}
+
+.guides-screen > .page-header .page-header__copy h1 {
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.guide-dungeon-selector--redesign {
+  gap: 7px;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+  min-width: 0;
+  padding: 9px 8px;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__copy strong,
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header strong,
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header small,
+.guide-milestone-row--redesign strong,
+.guide-milestone-row--redesign small {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header {
+  padding-bottom: 12px;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header > span:first-child {
+  gap: 8px;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header strong {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header small {
+  max-width: 70ch;
+  line-height: 1.6;
+}
+
+.guide-milestone-row--redesign {
+  column-gap: 12px;
+  row-gap: 7px;
+}
+
+/* Do not present section counts as square UI plaques. */
+.guide-location-section--redesign > header > b,
+.guide-location-index-card__location-number {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.guide-location-section--redesign > header > b {
+  opacity: 0.58;
+  padding: 0 !important;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.guide-location-index-card__location-number {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  opacity: 0.62;
+}
+
+/* The RB marker is artwork, never a visible boxed number. */
+.guide-rank-step__number,
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__rank {
+  border-radius: 10px;
+  background-color: rgba(204, 255, 47, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(204, 255, 47, 0.06);
+}
+
+/* Location source images are banners: fill the card instead of leaving a plaque-like matte. */
+.guide-location-index-card--redesign > img.guide-location-index-card__banner,
+.guide-location-hero--redesign > img {
+  padding: 0;
+  background: transparent;
+  object-fit: cover;
+}
+
+.guide-location-index-card--redesign > img.guide-location-index-card__banner {
+  height: 136px;
+  min-height: 136px;
+}
+
+.guide-location-hero--redesign > img {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 560px) {
+  .guides-screen > .page-header {
+    top: 0;
+    margin: 0 0 7px;
+    padding: 4px 0 8px;
+  }
+
+  .guide-section-intro__art {
+    width: 68px;
+    height: 54px;
+  }
+
+  .guide-section-intro--cases > b {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    background-size:
+      34px 34px,
+      auto;
+  }
+
+  .guide-rank-step--redesign > header {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .guide-rank-step__location {
+    grid-column: 2;
+  }
+
+  .guide-location-index-card--redesign > img.guide-location-index-card__banner {
+    height: 122px;
+    min-height: 122px;
+  }
+
+  .guides-screen > .page-header {
+    min-height: 36px;
+    margin-bottom: 4px;
+    padding: 2px 2px 5px;
+  }
+
+  .guides-screen > .page-header .icon-button--back {
+    width: 29px;
+    min-width: 29px;
+    height: 29px;
+  }
+
+  .guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+    padding: 8px 6px;
+  }
+
+  .guide-dungeon-detail--redesign .guide-dungeon-detail__header small {
+    line-height: 1.55;
+  }
+}

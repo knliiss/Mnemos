@@ -58,7 +58,6 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
           <strong>{locationUi.locationArchive}</strong>
           <p>{locationUi.locationArchiveCopy}</p>
         </span>
-        <b>{GUIDE_LOCATIONS.length}</b>
       </section>
 
       <GuideSearch
@@ -113,13 +112,20 @@ function GuideLocationIndexCard({
       className="guide-location-index-card guide-location-index-card--redesign"
       onClick={onOpen}
     >
-      <span className="guide-location-index-card__banner">
-        <img src={location.artworkUrl} alt="" loading="lazy" aria-hidden="true" />
-        <span>{location.id > 0 ? `#${location.id}` : locationUi.specialZone}</span>
-      </span>
+      <img
+        className="guide-location-index-card__banner"
+        src={location.artworkUrl}
+        alt=""
+        loading="eager"
+        decoding="async"
+        aria-hidden="true"
+      />
 
       <span className="guide-location-index-card__body">
         <span className="guide-location-index-card__copy">
+          <small className="guide-location-index-card__location-number">
+            {location.id > 0 ? `#${location.id}` : locationUi.specialZone}
+          </small>
           <strong>{text(location.nameKey)}</strong>
           <small>{text(location.descriptionKey)}</small>
         </span>

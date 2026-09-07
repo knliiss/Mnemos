@@ -5,7 +5,7 @@ import { resolveSaoText } from "./guideLocalization"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 
 describe("guide source-backed artwork", () => {
-  it("maps only NPC portraits that exist in the resource pack", () => {
+  it("maps every location NPC to a source-backed atlas portrait", () => {
     expect(guideNpcArtworkStyle(1, "RAID_JOIN")).toMatchObject({
       backgroundImage: "url(/guides/entities/npc-atlas.webp)",
       backgroundPosition: "0px 0px",
@@ -17,8 +17,12 @@ describe("guide source-backed artwork", () => {
     expect(guideNpcArtworkStyle(26, "QUEST")).toMatchObject({
       backgroundPosition: "-76px -1900px",
     })
-    expect(guideNpcArtworkStyle(27, "QUEST")).toBeUndefined()
-    expect(guideNpcArtworkStyle(28, "QUEST")).toBeUndefined()
+    expect(guideNpcArtworkStyle(27, "QUEST")).toMatchObject({
+      backgroundPosition: "-76px -1976px",
+    })
+    expect(guideNpcArtworkStyle(28, "QUEST")).toMatchObject({
+      backgroundPosition: "-76px -2052px",
+    })
     expect(guideNpcArtworkStyle(28, "RAID_JOIN")).toMatchObject({
       backgroundPosition: "0px -2052px",
     })

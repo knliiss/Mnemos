@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type CSSProperties } from "react"
 import { PageHeader } from "../shared/Primitives"
 import { GuideRankPicker } from "./GuideRankPicker"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
@@ -38,7 +38,12 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
           <strong>{ui.rebirth}</strong>
           <p>{ui.calculatorCopy}</p>
         </span>
-        <b>{steps.length}</b>
+        <img
+          className="guide-section-intro__art"
+          src="/ui-illustrations/guides-trainer.svg"
+          alt=""
+          aria-hidden="true"
+        />
       </section>
 
       <section
@@ -80,7 +85,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
           <small>{ui.locationsUsed}</small>
         </span>
         <span>
-          <b>#{targetRank}</b>
+          <b>RB {targetRank}</b>
           <small>{rankName(targetRank)}</small>
         </span>
       </section>
@@ -89,7 +94,9 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         {steps.map((step) => (
           <article key={step.rank} className="guide-rank-step guide-rank-step--redesign">
             <header>
-              <span className="guide-rank-step__number">#{step.rank}</span>
+              <span className="guide-rank-step__number" style={rebirthEmblemStyle(step.rank)}>
+                RB {step.rank}
+              </span>
               <span className="guide-rank-step__title">
                 <strong>{rankName(step.rank)}</strong>
                 <small>→ {rankName(step.nextRank)}</small>
@@ -131,7 +138,15 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
   )
 }
 
-function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
+function rebirthEmblemStyle(rank: number): CSSProperties {
+  const atlasCell = (rank - 1) % 15
+
+  return {
+    "--guide-rebirth-offset": `${-atlasCell * 40}px`,
+  } as CSSProperties
+}
+
+function boostLabel(boost: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
   const labels: Record<GuideRebirthBoostStat, string> = {
     POWER: ui.boostPower,
     DAMAGE: ui.boostDamage,
@@ -141,5 +156,5 @@ function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiTe
     RELIC_EXP: ui.boostRelicExp,
   }
 
-  return labels[stat]
+  return labels[boost]
 }
