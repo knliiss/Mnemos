@@ -44,7 +44,10 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         <b>{steps.length}</b>
       </section>
 
-      <section className="guide-rank-calculator guide-rank-calculator--redesign" aria-label={ui.calculator}>
+      <section
+        className="guide-rank-calculator guide-rank-calculator--redesign"
+        aria-label={ui.calculator}
+      >
         <GuideRankPicker
           label={ui.currentRank}
           value={currentRank}
