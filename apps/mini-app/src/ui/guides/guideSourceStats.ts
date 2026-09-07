@@ -1,4 +1,8 @@
-import rawItemStats from "./data/guideSourceItemStats.generated.json"
+import rawItemStats1 from "./data/guideSourceItemStats1.generated.json"
+import rawItemStats2 from "./data/guideSourceItemStats2.generated.json"
+import rawItemStats3 from "./data/guideSourceItemStats3.generated.json"
+import rawItemStats4 from "./data/guideSourceItemStats4.generated.json"
+import rawItemStats5 from "./data/guideSourceItemStats5.generated.json"
 import rawMobStats from "./data/guideSourceMobStats.generated.json"
 
 export type GuideSourceItemStatType =
@@ -40,8 +44,16 @@ type RawMobRow = [
   kills: string,
 ]
 
+const rawItemStats = [
+  ...(rawItemStats1 as RawItemRow[]),
+  ...(rawItemStats2 as RawItemRow[]),
+  ...(rawItemStats3 as RawItemRow[]),
+  ...(rawItemStats4 as RawItemRow[]),
+  ...(rawItemStats5 as RawItemRow[]),
+]
+
 const ITEM_STATS = new Map(
-  (rawItemStats as RawItemRow[]).map(([itemId, stats]) => [
+  rawItemStats.map(([itemId, stats]) => [
     itemId,
     stats.map(([type, value]) => ({ type, value })),
   ]),

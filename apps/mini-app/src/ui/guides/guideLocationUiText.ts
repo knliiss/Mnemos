@@ -40,10 +40,35 @@ const TEXT = {
     sourceMob: "Drops from mob",
     rarity: "Rarity",
     quantity: "Quantity",
+    itemStats: "Stats",
+    spawnType: "Spawn",
+    health: "Health",
+    moneyDrop: "Money drop",
+    killTime: "Kill time",
+    kills: "Kills",
+    itemStat: {
+      POWER: "Power",
+      SELL_PRICE: "Sell price",
+      LEVEL: "Level",
+      SATIETY: "Satiety",
+      SATIETY_LEVEL: "Satiety level",
+      PET_POWER: "Pet power",
+      DAMAGE_BOOST: "Damage boost",
+      POWER_BOOST: "Power boost",
+      MONEY_BOOST: "Money boost",
+      CRIT_CHANCE: "Critical chance",
+      MULTICRIT: "Multicrit",
+    },
+    mobSpawn: {
+      ALWAYS: "Always",
+      DARKNESS: "Darkness",
+      BLOOD_MOON: "Blood Moon",
+    },
     specialZone: "Special zone",
     locationNumber: (id: number) => `Location #${id}`,
     caseIndex: (index: number) => `Case ${index}`,
     count: (value: number) => String(value),
+    formatKillTime: (value: string) => formatGuideKillTime(value, "en"),
   },
   ru: {
     locationArchive: "Локации",
@@ -84,10 +109,35 @@ const TEXT = {
     sourceMob: "Выпадает из моба",
     rarity: "Редкость",
     quantity: "Количество",
+    itemStats: "Характеристики",
+    spawnType: "Спавн",
+    health: "Здоровье",
+    moneyDrop: "Дроп денег",
+    killTime: "Время убийства",
+    kills: "Убийств",
+    itemStat: {
+      POWER: "Сила",
+      SELL_PRICE: "Цена продажи",
+      LEVEL: "Уровень",
+      SATIETY: "Сытость",
+      SATIETY_LEVEL: "Уровень сытости",
+      PET_POWER: "Мощь",
+      DAMAGE_BOOST: "Бустер урона",
+      POWER_BOOST: "Бустер силы",
+      MONEY_BOOST: "Бустер денег",
+      CRIT_CHANCE: "Шанс крита",
+      MULTICRIT: "Мультикрит",
+    },
+    mobSpawn: {
+      ALWAYS: "Всегда",
+      DARKNESS: "Тьма",
+      BLOOD_MOON: "Кровавая луна",
+    },
     specialZone: "Особая зона",
     locationNumber: (id: number) => `Локация #${id}`,
     caseIndex: (index: number) => `Кейс ${index}`,
     count: (value: number) => String(value),
+    formatKillTime: (value: string) => formatGuideKillTime(value, "ru"),
   },
   uk: {
     locationArchive: "Локації",
@@ -128,10 +178,35 @@ const TEXT = {
     sourceMob: "Випадає з моба",
     rarity: "Рідкість",
     quantity: "Кількість",
+    itemStats: "Характеристики",
+    spawnType: "Спавн",
+    health: "Здоров'я",
+    moneyDrop: "Дроп грошей",
+    killTime: "Час убивства",
+    kills: "Убивств",
+    itemStat: {
+      POWER: "Сила",
+      SELL_PRICE: "Ціна продажу",
+      LEVEL: "Рівень",
+      SATIETY: "Ситість",
+      SATIETY_LEVEL: "Рівень ситості",
+      PET_POWER: "Міць",
+      DAMAGE_BOOST: "Бустер шкоди",
+      POWER_BOOST: "Бустер сили",
+      MONEY_BOOST: "Бустер грошей",
+      CRIT_CHANCE: "Шанс криту",
+      MULTICRIT: "Мультикрит",
+    },
+    mobSpawn: {
+      ALWAYS: "Завжди",
+      DARKNESS: "Темрява",
+      BLOOD_MOON: "Кривавий місяць",
+    },
     specialZone: "Особлива зона",
     locationNumber: (id: number) => `Локація #${id}`,
     caseIndex: (index: number) => `Кейс ${index}`,
     count: (value: number) => String(value),
+    formatKillTime: (value: string) => formatGuideKillTime(value, "uk"),
   },
 } as const
 
@@ -151,4 +226,21 @@ function guideLocationUiLanguage(language: string | undefined): GuideLocationUiL
   }
 
   return "en"
+}
+
+function formatGuideKillTime(value: string, language: GuideLocationUiLanguage) {
+  if (language === "ru") {
+    return value
+  }
+
+  const units =
+    language === "uk"
+      ? { day: "д", hour: "год", minute: "хв", second: "с" }
+      : { day: "d", hour: "h", minute: "m", second: "s" }
+
+  return value
+    .replace(/(\d+)д/g, `$1${units.day}`)
+    .replace(/(\d+)ч/g, `$1${units.hour}`)
+    .replace(/(\d+)м/g, `$1${units.minute}`)
+    .replace(/(\d+)с/g, `$1${units.second}`)
 }

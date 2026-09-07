@@ -7,22 +7,20 @@ import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 describe("guide source-backed artwork", () => {
   it("maps only NPC portraits that exist in the resource pack", () => {
     expect(guideNpcArtworkStyle(1, "RAID_JOIN")).toMatchObject({
-      backgroundImage: "url(/guides/entities/npc-atlas-1.webp)",
+      backgroundImage: "url(/guides/entities/npc-atlas.webp)",
       backgroundPosition: "0px 0px",
-      backgroundSize: "152px 532px",
+      backgroundSize: "152px 2128px",
     })
     expect(guideNpcArtworkStyle(1, "QUEST")).toMatchObject({
       backgroundPosition: "-76px 0px",
     })
     expect(guideNpcArtworkStyle(26, "QUEST")).toMatchObject({
-      backgroundImage: "url(/guides/entities/npc-atlas-4.webp)",
-      backgroundPosition: "-76px -304px",
+      backgroundPosition: "-76px -1900px",
     })
     expect(guideNpcArtworkStyle(27, "QUEST")).toBeUndefined()
     expect(guideNpcArtworkStyle(28, "QUEST")).toBeUndefined()
     expect(guideNpcArtworkStyle(28, "RAID_JOIN")).toMatchObject({
-      backgroundImage: "url(/guides/entities/npc-atlas-4.webp)",
-      backgroundPosition: "0px -456px",
+      backgroundPosition: "0px -2052px",
     })
     expect(guideNpcArtworkStyle(0, "QUEST")).toBeUndefined()
     expect(guideNpcArtworkStyle(29, "RAID_JOIN")).toBeUndefined()
