@@ -1,0 +1,460 @@
+.guides-screen > .page-header {
+  position: sticky;
+  z-index: 40;
+  top: 0;
+  margin: -2px -2px 2px;
+  padding: 8px 2px 10px;
+  background: linear-gradient(180deg, rgba(8, 12, 8, 0.985) 74%, rgba(8, 12, 8, 0));
+  backdrop-filter: blur(14px);
+}
+
+.guide-section-intro,
+.guides-hub-intro--redesign {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--guide-border);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(203, 255, 45, 0.035), transparent 56%),
+    var(--guide-surface);
+}
+
+.guide-section-intro > span,
+.guides-hub-intro__copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.guide-section-intro small,
+.guides-hub-intro__copy small {
+  color: #a4bd61;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guide-section-intro strong,
+.guides-hub-intro__copy strong {
+  color: var(--guide-text);
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.guide-section-intro p,
+.guides-hub-intro__copy p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--guide-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.guide-section-intro > b {
+  display: grid;
+  min-width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0 9px;
+  border: 1px solid rgba(203, 255, 45, 0.11);
+  border-radius: 11px;
+  color: #bdd970;
+  background: rgba(203, 255, 45, 0.035);
+  font-family: var(--font-meta);
+  font-size: 12px;
+}
+
+.guides-hub-intro__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(62px, 1fr));
+  gap: 7px;
+}
+
+.guides-hub-intro__facts > span {
+  display: grid;
+  gap: 2px;
+  min-width: 62px;
+  padding: 8px 9px;
+  border: 1px solid rgba(203, 255, 45, 0.08);
+  border-radius: 10px;
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.guides-hub-intro__facts b {
+  color: #d8e7b4;
+  font-family: var(--font-meta);
+  font-size: 12px;
+}
+
+.guides-hub-intro__facts small {
+  overflow: hidden;
+  color: #7e8977;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-hub-grid--redesign {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.guide-hub-card--redesign {
+  grid-template-columns: auto minmax(0, 1fr) 12px;
+  grid-template-rows: auto;
+  gap: 13px;
+  align-items: center;
+  min-height: 82px;
+  padding: 13px 14px;
+  border-radius: 15px;
+}
+
+.guide-hub-card--redesign .guide-hub-card__meta {
+  display: grid;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 0;
+  border-radius: 11px;
+  font-size: 11px;
+}
+
+.guide-hub-card--redesign .guide-hub-card__copy {
+  gap: 4px;
+}
+
+.guide-hub-card--redesign .guide-hub-card__copy strong {
+  font-size: 14px;
+}
+
+.guide-hub-card--redesign .guide-hub-card__copy small {
+  display: block;
+  overflow: visible;
+  font-size: 10px;
+  line-height: 1.45;
+  -webkit-line-clamp: unset;
+}
+
+.guide-hub-card--redesign .guide-hub-card__open {
+  position: static;
+  justify-self: end;
+}
+
+.guides-empty {
+  min-height: 132px;
+  padding: 20px;
+}
+
+.guide-location-index--redesign {
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+
+.guide-location-index-card--redesign {
+  grid-template-columns: 156px minmax(0, 1fr) 14px;
+  min-height: 132px;
+  border-radius: 15px;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner {
+  min-height: 132px;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner img {
+  min-height: 132px;
+  padding: 5px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner::after {
+  background: linear-gradient(90deg, transparent 72%, rgba(8, 12, 8, 0.76));
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__body {
+  gap: 10px;
+  padding: 12px 9px 12px 13px;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__copy strong {
+  font-size: 13px;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__copy small {
+  font-size: 9px;
+  line-height: 1.42;
+  -webkit-line-clamp: 2;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__facts {
+  gap: 5px;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__facts i {
+  min-width: 0;
+  padding: 5px 7px;
+}
+
+.guide-location-hero--redesign {
+  min-height: clamp(210px, 30vw, 310px);
+}
+
+.guide-location-hero--redesign > img {
+  padding: 8px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.guide-location-hero--redesign .guide-location-hero__shade {
+  background: linear-gradient(0deg, rgba(7, 10, 7, 0.97), rgba(7, 10, 7, 0.28) 58%, transparent 82%);
+}
+
+.guide-location-npc-card--redesign,
+.guide-mob-card--redesign,
+.guide-case-card--redesign,
+.guide-location-rebirth-card--redesign {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.guide-location-npc-card__portrait,
+.guide-mob-card__portrait--model,
+.guide-drop-art {
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+}
+
+.guide-location-npc-card__fallback,
+.guide-mob-card__fallback,
+.guide-drop-art--missing {
+  display: none;
+}
+
+.guide-mob-card__summary--no-art {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.guide-drop-card--redesign,
+.guide-mob-card__summary,
+.guide-location-npc-card--redesign {
+  min-width: 0;
+}
+
+.guide-drop-card--redesign strong,
+.guide-mob-card__copy strong,
+.guide-location-npc-card--redesign strong {
+  overflow-wrap: anywhere;
+}
+
+.guide-dungeon-selector--redesign {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 9px 10px;
+  overflow: hidden;
+  border-radius: 13px;
+}
+
+.guide-dungeon-selector__copy {
+  min-width: 0;
+}
+
+.guide-dungeon-selector__copy strong {
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__item > b {
+  min-width: 25px;
+  height: 25px;
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 8px;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  min-width: 0;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header > span:first-child {
+  min-width: 0;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header strong,
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header small {
+  overflow-wrap: anywhere;
+}
+
+.guide-milestone-row--redesign {
+  min-width: 0;
+}
+
+.guide-rank-route--redesign {
+  gap: 8px;
+}
+
+.guide-rank-step--redesign {
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 14px;
+}
+
+.guide-rank-step--redesign > header {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 9px;
+}
+
+.guide-rank-step__number {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(203, 255, 45, 0.1);
+  border-radius: 10px;
+  color: #c8dc8f;
+  background: rgba(203, 255, 45, 0.025);
+  font-family: var(--font-meta);
+  font-size: 10px;
+}
+
+.guide-rank-step__title strong {
+  font-size: 12px;
+}
+
+.guide-rank-step__title small,
+.guide-rank-step__location {
+  font-size: 9px;
+}
+
+.guide-rank-step__facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.guide-rank-step__facts > span {
+  min-height: 50px;
+  padding: 8px 9px;
+}
+
+.guide-rank-step__boosts {
+  gap: 6px;
+}
+
+.guide-rank-step__boosts > span {
+  gap: 5px;
+}
+
+.guide-rank-step__boosts i {
+  padding: 4px 7px;
+  font-size: 8px;
+}
+
+@media (max-width: 760px) {
+  .guide-dungeon-selector--redesign {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guides-hub-intro--redesign {
+    grid-template-columns: 1fr;
+  }
+
+  .guides-hub-intro__facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .guides-screen > .page-header {
+    margin-right: -4px;
+    margin-left: -4px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .guide-section-intro,
+  .guides-hub-intro--redesign {
+    gap: 10px;
+    padding: 13px 14px;
+  }
+
+  .guide-section-intro strong,
+  .guides-hub-intro__copy strong {
+    font-size: 15px;
+  }
+
+  .guide-section-intro p,
+  .guides-hub-intro__copy p {
+    font-size: 10px;
+  }
+
+  .guides-hub-intro__facts {
+    gap: 5px;
+  }
+
+  .guides-hub-intro__facts > span {
+    min-width: 0;
+    padding: 7px;
+  }
+
+  .guide-location-index-card--redesign {
+    grid-template-columns: 112px minmax(0, 1fr) 10px;
+    min-height: 122px;
+  }
+
+  .guide-location-index-card--redesign .guide-location-index-card__banner,
+  .guide-location-index-card--redesign .guide-location-index-card__banner img {
+    min-height: 122px;
+  }
+
+  .guide-location-index-card--redesign .guide-location-index-card__facts i:nth-child(n + 3) {
+    display: none;
+  }
+
+  .guide-location-index-card--redesign .guide-location-index-card__chevron {
+    margin-right: 8px;
+  }
+
+  .guide-location-hero--redesign {
+    min-height: 220px;
+  }
+
+  .guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+    min-height: 54px;
+  }
+
+  .guide-dungeon-detail--redesign .guide-dungeon-detail__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .guide-rank-step--redesign > header {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .guide-rank-step__number {
+    width: 36px;
+    height: 36px;
+  }
+
+  .guide-rank-step__location {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
