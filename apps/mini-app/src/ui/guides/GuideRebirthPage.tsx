@@ -38,7 +38,12 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
           <strong>{ui.rebirth}</strong>
           <p>{ui.calculatorCopy}</p>
         </span>
-        <b>{steps.length}</b>
+        <img
+          className="guide-section-intro__art"
+          src="/ui-illustrations/guides-trainer.svg"
+          alt=""
+          aria-hidden="true"
+        />
       </section>
 
       <section
@@ -80,7 +85,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
           <small>{ui.locationsUsed}</small>
         </span>
         <span>
-          <b>#{targetRank}</b>
+          <b>RB {targetRank}</b>
           <small>{rankName(targetRank)}</small>
         </span>
       </section>
@@ -89,7 +94,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         {steps.map((step) => (
           <article key={step.rank} className="guide-rank-step guide-rank-step--redesign">
             <header>
-              <span className="guide-rank-step__number">#{step.rank}</span>
+              <span className="guide-rank-step__number">RB {step.rank}</span>
               <span className="guide-rank-step__title">
                 <strong>{rankName(step.rank)}</strong>
                 <small>→ {rankName(step.nextRank)}</small>
@@ -131,7 +136,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
   )
 }
 
-function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
+function boostLabel(boost: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
   const labels: Record<GuideRebirthBoostStat, string> = {
     POWER: ui.boostPower,
     DAMAGE: ui.boostDamage,
@@ -141,5 +146,5 @@ function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiTe
     RELIC_EXP: ui.boostRelicExp,
   }
 
-  return labels[stat]
+  return labels[boost]
 }
