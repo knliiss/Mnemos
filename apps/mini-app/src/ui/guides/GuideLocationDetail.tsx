@@ -404,7 +404,10 @@ function GuideMobFacts({
       <GuideSourceFact label={locationUi.spawnType} value={locationUi.mobSpawn[stats.spawn]} />
       <GuideSourceFact label={locationUi.health} value={stats.health} />
       <GuideSourceFact label={locationUi.moneyDrop} value={stats.moneyDrop} />
-      <GuideSourceFact label={locationUi.killTime} value={locationUi.formatKillTime(stats.killTime)} />
+      <GuideSourceFact
+        label={locationUi.killTime}
+        value={locationUi.formatKillTime(stats.killTime)}
+      />
       <GuideSourceFact label={locationUi.kills} value={stats.kills} />
     </div>
   )
