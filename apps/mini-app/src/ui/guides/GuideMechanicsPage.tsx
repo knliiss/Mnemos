@@ -73,7 +73,10 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
       {grouped.length ? (
         <div className="guide-mechanics-chapters guide-mechanics-chapters--redesign">
           {grouped.map(({ chapter, mechanics: chapterMechanics }) => (
-            <section key={chapter} className="guide-mechanics-chapter guide-mechanics-chapter--redesign">
+            <section
+              key={chapter}
+              className="guide-mechanics-chapter guide-mechanics-chapter--redesign"
+            >
               <header>
                 <span>
                   <small>{ui.mechanicsEyebrow}</small>
