@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PetInventoryArt } from "./PetInventoryArt"
 
 const mocks = vi.hoisted(() => ({
-  renderMinecraftHead: vi.fn(() => true),
+  renderMinecraftHead: vi.fn<
+    (canvas: HTMLCanvasElement, image: CanvasImageSource, textureScale: number) => boolean
+  >(() => true),
 }))
 
 vi.mock("../../shared/minecraftHeadRenderer", () => ({
