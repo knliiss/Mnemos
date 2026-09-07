@@ -49,7 +49,7 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
     )
   }
 
-  const weaponStyle = guideWeaponArtworkStyle(localizationKey)
+  const weaponStyle = guideWeaponArtworkStyle(localizationKey, displayCellSize)
 
   if (weaponStyle) {
     return <GuideAtlasArtwork style={weaponStyle} size={size} type="weapon" />
