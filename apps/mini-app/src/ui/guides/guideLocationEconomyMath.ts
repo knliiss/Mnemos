@@ -107,7 +107,7 @@ function formatCompactNumber(value: number) {
     suffixIndex += 1
   }
 
-  const decimals = normalized >= 100 ? 0 : normalized >= 10 ? 1 : 2
+  const decimals = normalized >= 10 ? 1 : 2
   const rounded = normalized.toFixed(decimals).replace(/\.0+$|(?<=\.[0-9])0+$/, "")
 
   return `${rounded}${SUFFIXES[suffixIndex]}`
