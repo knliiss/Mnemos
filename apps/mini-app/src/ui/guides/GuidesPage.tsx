@@ -14,6 +14,8 @@ import "./guides-accessibility.css"
 import "./guides-redesign.css"
 import "./guides-location-rebuild.css"
 import "./guides-hub-rebuild.css"
+import "./guides-visual-redesign.css"
+import "./guides-visual-audit.css"
 
 type Props = {
   back: () => void
