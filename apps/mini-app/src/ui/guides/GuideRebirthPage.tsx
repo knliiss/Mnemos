@@ -32,10 +32,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
     <div className="screen guides-screen guide-rebirth-screen guide-rebirth-screen--redesign">
       <PageHeader title={ui.rebirth} eyebrow={ui.calculator} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--trainer">
-        <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/guides-trainer.svg" alt="" />
-        </div>
+      <section className="guide-section-intro guide-section-intro--rebirth">
         <span>
           <small>{ui.calculator}</small>
           <strong>{ui.rebirth}</strong>

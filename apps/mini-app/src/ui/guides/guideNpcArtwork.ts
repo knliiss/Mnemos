@@ -29,5 +29,6 @@ export function guideNpcArtworkStyle(
     backgroundPosition: `${-column * DISPLAY_CELL_SIZE}px ${-row * DISPLAY_CELL_SIZE}px`,
     backgroundRepeat: "no-repeat",
     backgroundSize: `${ATLAS_COLUMNS * DISPLAY_CELL_SIZE}px ${ATLAS_ROWS * DISPLAY_CELL_SIZE}px`,
+    imageRendering: "pixelated",
   }
 }

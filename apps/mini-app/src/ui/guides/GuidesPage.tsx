@@ -16,6 +16,7 @@ import "./guides-location-rebuild.css"
 import "./guides-hub-rebuild.css"
 import "./guides-visual-redesign.css"
 import "./guides-visual-audit.css"
+import "./guides-final-polish.css"
 
 type Props = {
   back: () => void

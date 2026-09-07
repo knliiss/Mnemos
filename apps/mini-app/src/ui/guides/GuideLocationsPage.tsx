@@ -53,10 +53,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
     <div className="screen guides-screen guide-locations-screen guide-locations-screen--redesign">
       <PageHeader title={locationUi.locationArchive} eyebrow={ui.locations} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--locations">
-        <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
-        </div>
+      <section className="guide-section-intro guide-section-intro--locations">
         <span>
           <strong>{locationUi.locationArchive}</strong>
           <p>{locationUi.locationArchiveCopy}</p>
@@ -88,7 +85,6 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
         </section>
       ) : (
         <section className="guides-empty guides-empty--locations">
-          <img src="/ui-illustrations/guides-cartographer.svg" alt="" aria-hidden="true" />
           <strong>{ui.noResults}</strong>
           <small>{ui.noResultsCopy}</small>
         </section>

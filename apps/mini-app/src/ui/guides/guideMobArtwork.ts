@@ -1,13 +1,13 @@
 import type { CSSProperties } from "react"
 
 const MOB_KEY_PATTERN = /^sao\.mob\.mob(\d+)_(\d+)\.name$/
-const MOB_SOURCE_BASE_URL = "https://storage.c7x.dev/butowka/sao/global/img/mob"
-const MISSING_SOURCE_ARTWORK = new Set(["17_7"])
-const SOURCE_URL_OVERRIDES: Record<string, string> = {
-  "13_2": `${MOB_SOURCE_BASE_URL}/mob12_2.png`,
-}
+const ATLAS_COLUMNS = 14
+const CELLS_PER_FULL_SHEET = 28
+const DISPLAY_CELL_SIZE = 64
+const FIRST_LOCATION = 1
+const LAST_LOCATION = 25
 
-const MOB_COUNTS: Record<number, number> = {
+const SOURCE_MOB_COUNTS: Record<number, number> = {
   1: 4,
   2: 4,
   3: 4,
@@ -15,7 +15,7 @@ const MOB_COUNTS: Record<number, number> = {
   5: 4,
   6: 4,
   7: 4,
-  8: 5,
+  8: 7,
   9: 6,
   10: 7,
   11: 7,
@@ -33,9 +33,12 @@ const MOB_COUNTS: Record<number, number> = {
   23: 7,
   24: 7,
   25: 7,
-  26: 7,
-  27: 7,
 }
+
+const TOTAL_SOURCE_MOBS = Object.values(SOURCE_MOB_COUNTS).reduce(
+  (total, count) => total + count,
+  0,
+)
 
 export function guideMobArtworkStyle(key: string): CSSProperties | undefined {
   const match = MOB_KEY_PATTERN.exec(key)
@@ -46,25 +49,40 @@ export function guideMobArtworkStyle(key: string): CSSProperties | undefined {
 
   const locationId = Number(match[1])
   const mobIndex = Number(match[2])
-  const locationMobCount = MOB_COUNTS[locationId]
+  const locationMobCount = SOURCE_MOB_COUNTS[locationId]
 
-  if (!locationMobCount || mobIndex < 1 || mobIndex > locationMobCount) {
+  if (
+    locationId < FIRST_LOCATION ||
+    locationId > LAST_LOCATION ||
+    !locationMobCount ||
+    mobIndex < 1 ||
+    mobIndex > locationMobCount
+  ) {
     return undefined
   }
 
-  const sourceId = `${locationId}_${mobIndex}`
-
-  if (MISSING_SOURCE_ARTWORK.has(sourceId)) {
-    return undefined
-  }
-
-  const sourceUrl =
-    SOURCE_URL_OVERRIDES[sourceId] ?? `${MOB_SOURCE_BASE_URL}/mob${locationId}_${mobIndex}.png`
+  const flatIndex = sourceMobOffset(locationId) + mobIndex - 1
+  const sheetIndex = Math.floor(flatIndex / CELLS_PER_FULL_SHEET) + 1
+  const sheetCellIndex = flatIndex % CELLS_PER_FULL_SHEET
+  const column = sheetCellIndex % ATLAS_COLUMNS
+  const row = Math.floor(sheetCellIndex / ATLAS_COLUMNS)
+  const sheetRows = sheetIndex === Math.ceil(TOTAL_SOURCE_MOBS / CELLS_PER_FULL_SHEET) ? 1 : 2
 
   return {
-    backgroundImage: `url(${sourceUrl})`,
-    backgroundPosition: "center",
+    backgroundImage: `url(/guides/entities/mob-model-atlas-${sheetIndex}.webp)`,
+    backgroundPosition: `${-column * DISPLAY_CELL_SIZE}px ${-row * DISPLAY_CELL_SIZE}px`,
     backgroundRepeat: "no-repeat",
-    backgroundSize: "contain",
+    backgroundSize: `${ATLAS_COLUMNS * DISPLAY_CELL_SIZE}px ${sheetRows * DISPLAY_CELL_SIZE}px`,
+    imageRendering: "pixelated",
   }
+}
+
+function sourceMobOffset(locationId: number) {
+  let offset = 0
+
+  for (let location = FIRST_LOCATION; location < locationId; location += 1) {
+    offset += SOURCE_MOB_COUNTS[location] ?? 0
+  }
+
+  return offset
 }
