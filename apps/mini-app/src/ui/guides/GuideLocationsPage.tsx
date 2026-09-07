@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { PageHeader } from "../shared/Primitives"
 import { GUIDE_LOCATIONS, type GuideLocation } from "./guideCatalog"
 import { GuideLocationDetail } from "./GuideLocationDetail"
-import { guideLocationArtworkStyle } from "./guideLocationArtwork"
 import { GUIDE_DUMP_LOCATION_BY_ID } from "./guideLocationDumpData"
 import { guideLocationUiText } from "./guideLocationUiText"
 import {
@@ -106,7 +105,6 @@ function GuideLocationIndexCard({
 }) {
   const dump = GUIDE_DUMP_LOCATION_BY_ID.get(location.id)
   const detailsAvailable = dump?.detailsAvailable ?? false
-  const artworkStyle = guideLocationArtworkStyle(location.id)
 
   return (
     <button
@@ -114,13 +112,12 @@ function GuideLocationIndexCard({
       className="guide-location-index-card guide-location-index-card--redesign"
       onClick={onOpen}
     >
-      {artworkStyle ? (
-        <span
-          className="guide-location-index-card__banner"
-          style={artworkStyle}
-          aria-hidden="true"
-        />
-      ) : null}
+      <img
+        className="guide-location-index-card__banner"
+        src={location.artworkUrl}
+        alt=""
+        aria-hidden="true"
+      />
 
       <span className="guide-location-index-card__body">
         <span className="guide-location-index-card__copy">
