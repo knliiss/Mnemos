@@ -96,7 +96,7 @@ export function localizationKeyMatchesQuery(
   key: string,
   query: string,
   catalogs: SaoCatalogs,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ) {
   const normalizedQuery = normalizeGuideSearchText(query)
 
