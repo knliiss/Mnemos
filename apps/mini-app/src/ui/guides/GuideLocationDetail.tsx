@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { BottomSheet } from "../shared/Primitives"
+import { PageHeader } from "../shared/Primitives"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GuideDropArt } from "./GuideDropArt"
 import {
@@ -54,11 +54,26 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
   const detailsAvailable = dump?.detailsAvailable ?? false
   const confirmedNpcs = location.npcs.filter((npc) => localizationKeyExists(npc.nameKey, catalogs))
 
-  return (
-    <div className="screen guides-screen guide-location-detail guide-location-detail--rebuild">
-      <GuideLocationHeader title={text(location.nameKey)} back={back} backLabel={ui.back} />
+  if (selectedDrop) {
+    return (
+      <GuideDropDetail
+        selection={selectedDrop}
+        text={text}
+        locationUi={locationUi}
+        back={() => setSelectedDrop(null)}
+      />
+    )
+  }
 
-      <section className="guide-location-hero guide-location-hero--rebuild">
+  return (
+    <div className="screen guides-screen guide-location-detail guide-location-detail--redesign">
+      <PageHeader
+        title={text(location.nameKey)}
+        eyebrow={locationLabel(location.id, locationUi)}
+        back={back}
+      />
+
+      <section className="guide-location-hero guide-location-hero--redesign">
         <img src={location.artworkUrl} alt="" aria-hidden="true" />
         <span className="guide-location-hero__shade" />
         <div className="guide-location-hero__copy">
@@ -68,30 +83,23 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
         </div>
       </section>
 
-      <section className="guide-location-summary" aria-label={text(location.nameKey)}>
+      <section className="guide-location-summary guide-location-summary--redesign" aria-label={text(location.nameKey)}>
         <GuideSummaryFact label={locationUi.purchasePrice} value={dump?.purchasePrice || "—"} />
         <GuideSummaryFact label={locationUi.cases} value={locationUi.count(cases.length)} />
         <GuideSummaryFact label={locationUi.mobs} value={locationUi.count(mobs.length)} />
       </section>
 
       {!detailsAvailable ? (
-        <section className="guide-source-unavailable">
-          <span className="guide-source-unavailable__art" aria-hidden="true">
-            <i />
-            <b />
-            <em />
-          </span>
-          <span>
-            <small>{locationUi.sourceUnavailable}</small>
-            <strong>{locationUi.detailsUnavailable}</strong>
-            <p>{locationUi.detailsUnavailableCopy}</p>
-          </span>
+        <section className="guides-empty guides-empty--source">
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" aria-hidden="true" />
+          <strong>{locationUi.detailsUnavailable}</strong>
+          <small>{locationUi.detailsUnavailableCopy}</small>
         </section>
       ) : (
         <>
           {cases.length ? (
             <GuideLocationSection title={locationUi.cases} count={cases.length}>
-              <div className="guide-case-list">
+              <div className="guide-case-list guide-case-list--redesign">
                 {cases.map((caseData, index) => (
                   <GuideCaseCard
                     key={`${caseData.key}-${index}`}
@@ -113,9 +121,9 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
 
           {rebirthSteps.length ? (
             <GuideLocationSection title={locationUi.rebirth} count={rebirthSteps.length}>
-              <div className="guide-location-rebirth-list guide-location-rebirth-list--rebuild">
+              <div className="guide-location-rebirth-list guide-location-rebirth-list--redesign">
                 {rebirthSteps.map((step) => (
-                  <article key={step.rank} className="guide-location-rebirth-card">
+                  <article key={step.rank} className="guide-location-rebirth-card guide-location-rebirth-card--redesign">
                     <header>
                       <span className="guide-location-rebirth-card__rank">#{step.rank}</span>
                       <span>
@@ -157,20 +165,24 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
 
           {confirmedNpcs.length ? (
             <GuideLocationSection title={locationUi.npcs} count={confirmedNpcs.length}>
-              <div className="guide-location-npc-list">
+              <div className="guide-location-npc-list guide-location-npc-list--redesign">
                 {confirmedNpcs.map((npc) => {
                   const artworkStyle = guideNpcArtworkStyle(location.id, npc.role)
                   const roleKeys = GUIDE_NPC_ROLE_KEYS[npc.role]
 
                   return (
-                    <article key={npc.nameKey} className="guide-location-npc-card">
+                    <article key={npc.nameKey} className="guide-location-npc-card guide-location-npc-card--redesign">
                       {artworkStyle ? (
                         <span
                           className="guide-location-npc-card__portrait"
                           style={artworkStyle}
                           aria-hidden="true"
                         />
-                      ) : null}
+                      ) : (
+                        <span className="guide-location-npc-card__fallback" aria-hidden="true">
+                          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+                        </span>
+                      )}
                       <span>
                         <strong>{text(npc.nameKey)}</strong>
                         <small>{text(roleKeys.role)}</small>
@@ -185,7 +197,7 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
 
           {mobs.length ? (
             <GuideLocationSection title={locationUi.mobs} count={mobs.length}>
-              <div className="guide-mob-list">
+              <div className="guide-mob-list guide-mob-list--redesign">
                 {mobs.map((mob) => {
                   const expanded = expandedMobKey === mob.key
 
@@ -212,36 +224,7 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
           ) : null}
         </>
       )}
-
-      {selectedDrop ? (
-        <GuideDropSheet
-          selection={selectedDrop}
-          text={text}
-          locationUi={locationUi}
-          onClose={() => setSelectedDrop(null)}
-        />
-      ) : null}
     </div>
-  )
-}
-
-function GuideLocationHeader({
-  title,
-  back,
-  backLabel,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-}) {
-  return (
-    <header className="guides-page-header guides-page-header--plain">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span aria-hidden="true" />
-    </header>
   )
 }
 
@@ -264,7 +247,7 @@ function GuideLocationSection({
   children: ReactNode
 }) {
   return (
-    <section className="guide-location-section">
+    <section className="guide-location-section guide-location-section--redesign">
       <header>
         <strong>{title}</strong>
         <b>{count}</b>
@@ -288,7 +271,7 @@ function GuideCaseCard({
   const economy = caseData.kind === "NORMAL" ? guideCaseEconomy(caseData.price) : null
 
   return (
-    <article className={`guide-case-card guide-case-card--${caseData.kind.toLowerCase()}`}>
+    <article className={`guide-case-card guide-case-card--${caseData.kind.toLowerCase()} guide-case-card--redesign`}>
       <header className="guide-case-card__header">
         <span>
           <small>{caseKindLabel(caseData.kind, locationUi)}</small>
@@ -301,7 +284,7 @@ function GuideCaseCard({
       </header>
 
       {economy ? (
-        <section className="guide-case-economy">
+        <section className="guide-case-economy guide-case-economy--redesign">
           <header>
             <strong>{locationUi.economy}</strong>
             <small>{locationUi.economyNote}</small>
@@ -358,7 +341,7 @@ function GuideMobCard({
   const sourceStats = getGuideSourceMobStats(mob.key)
 
   return (
-    <article className={`guide-mob-card ${expanded ? "is-expanded" : ""}`}>
+    <article className={`guide-mob-card guide-mob-card--redesign ${expanded ? "is-expanded" : ""}`}>
       <button
         type="button"
         className={`guide-mob-card__summary ${artworkStyle ? "" : "guide-mob-card__summary--no-art"}`}
@@ -370,7 +353,11 @@ function GuideMobCard({
             style={artworkStyle}
             aria-hidden="true"
           />
-        ) : null}
+        ) : (
+          <span className="guide-mob-card__fallback" aria-hidden="true">
+            <img src="/ui-illustrations/guides-explorer.svg" alt="" />
+          </span>
+        )}
         <span className="guide-mob-card__copy">
           <strong>{text(mob.key)}</strong>
           <small>
@@ -400,7 +387,7 @@ function GuideMobFacts({
   locationUi: ReturnType<typeof guideLocationUiText>
 }) {
   return (
-    <div className="guide-mob-card__facts">
+    <div className="guide-mob-card__facts guide-mob-card__facts--redesign">
       <GuideSourceFact label={locationUi.spawnType} value={locationUi.mobSpawn[stats.spawn]} />
       <GuideSourceFact label={locationUi.health} value={stats.health} />
       <GuideSourceFact label={locationUi.moneyDrop} value={stats.moneyDrop} />
@@ -432,12 +419,12 @@ function GuideDropGrid({
   onSelectDrop: (drop: GuideDumpDrop) => void
 }) {
   return (
-    <div className="guide-drop-grid">
+    <div className="guide-drop-grid guide-drop-grid--redesign">
       {drops.map((drop, index) => (
         <button
           key={`${drop.key}-${index}`}
           type="button"
-          className="guide-drop-card"
+          className="guide-drop-card guide-drop-card--redesign"
           data-rarity={drop.rarity.toLowerCase()}
           onClick={() => onSelectDrop(drop)}
         >
@@ -453,16 +440,16 @@ function GuideDropGrid({
   )
 }
 
-function GuideDropSheet({
+function GuideDropDetail({
   selection,
   text,
   locationUi,
-  onClose,
+  back,
 }: {
   selection: DropSelection
   text: (key: string) => string
   locationUi: ReturnType<typeof guideLocationUiText>
-  onClose: () => void
+  back: () => void
 }) {
   const sourceLabel = selection.sourceType === "case" ? locationUi.sourceCase : locationUi.sourceMob
   const loreKey = selection.drop.key.replace(/\.name$/, ".lore")
@@ -471,44 +458,46 @@ function GuideDropSheet({
   const sourceStats = getGuideSourceItemStats(selection.drop.key)
 
   return (
-    <BottomSheet title={locationUi.itemDetails} onClose={onClose}>
-      <div className="guide-drop-sheet">
-        <div className="guide-drop-sheet__hero" data-rarity={selection.drop.rarity.toLowerCase()}>
+    <div className="screen guides-screen guide-drop-detail-screen">
+      <PageHeader title={text(selection.drop.key)} eyebrow={locationUi.itemDetails} back={back} />
+
+      <section
+        className="guide-drop-detail-hero"
+        data-rarity={selection.drop.rarity.toLowerCase()}
+      >
+        <div className="guide-drop-detail-hero__art">
           <GuideDropArt localizationKey={selection.drop.key} size="detail" />
-          <span>
-            <small>{rarityLabel(selection.drop.rarity, text)}</small>
-            <strong>{text(selection.drop.key)}</strong>
-            {hasLore ? <p>{lore}</p> : null}
-          </span>
         </div>
+        <span>
+          <small>{rarityLabel(selection.drop.rarity, text)}</small>
+          <strong>{text(selection.drop.key)}</strong>
+          {hasLore ? <p>{lore}</p> : null}
+        </span>
+      </section>
 
-        <div className="guide-drop-sheet__facts">
-          <span>
-            <small>{sourceLabel}</small>
-            <strong>{selection.sourceName}</strong>
-          </span>
-          <span>
-            <small>{locationUi.quantity}</small>
-            <strong>×{selection.drop.quantity}</strong>
-          </span>
-        </div>
+      <section className="guide-drop-detail-facts">
+        <GuideSourceFact label={sourceLabel} value={selection.sourceName} />
+        <GuideSourceFact label={locationUi.quantity} value={`×${selection.drop.quantity}`} />
+      </section>
 
-        {sourceStats.length ? (
-          <section className="guide-drop-sheet__stats">
+      {sourceStats.length ? (
+        <section className="guide-drop-detail-stats">
+          <header>
             <strong>{locationUi.itemStats}</strong>
-            <div className="guide-drop-sheet__facts guide-drop-sheet__facts--stats">
-              {sourceStats.map((stat) => (
-                <GuideSourceFact
-                  key={stat.type}
-                  label={locationUi.itemStat[stat.type]}
-                  value={stat.value}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
-      </div>
-    </BottomSheet>
+            <b>{sourceStats.length}</b>
+          </header>
+          <div>
+            {sourceStats.map((stat) => (
+              <GuideSourceFact
+                key={stat.type}
+                label={locationUi.itemStat[stat.type]}
+                value={stat.value}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
   )
 }
 
