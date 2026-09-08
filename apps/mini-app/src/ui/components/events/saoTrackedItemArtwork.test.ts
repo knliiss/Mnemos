@@ -26,29 +26,43 @@ describe("SAO tracked item artwork", () => {
     })
   })
 
-  it("maps every verified location weapon through the shared inventory atlas", () => {
+  it("prefers verified event inventory-model artwork over the Guide fallback atlas", () => {
     expect(resolveSaoItemAtlasSprite("sao.item.l1_8.name")).toEqual({
-      column: 7,
-      row: 0,
+      column: 4,
+      row: 2,
       atlas: {
-        path: "/guides/entities/weapon-atlas.webp",
-        columns: 12,
-        rows: 28,
-      },
-    })
-
-    expect(resolveSaoItemAtlasSprite("sao.item.l23_1.name")).toEqual({
-      column: 0,
-      row: 22,
-      atlas: {
-        path: "/guides/entities/weapon-atlas.webp",
-        columns: 12,
-        rows: 28,
+        path: "/event-icons/sao-tracked-item-models-inventory-v2.webp",
+        columns: 8,
+        rows: 8,
       },
     })
 
     expect(resolveSaoItemAtlasSprite("sao.item.l23_10.name")).toEqual({
+      column: 6,
+      row: 3,
+      atlas: {
+        path: "/event-icons/sao-tracked-item-models-inventory-v2.webp",
+        columns: 8,
+        rows: 8,
+      },
+    })
+  })
+
+  it("prefers the original event atlas when no inventory-model override exists", () => {
+    expect(resolveSaoItemAtlasSprite("sao.item.l10_10.name")).toEqual({
       column: 9,
+      row: 5,
+      atlas: {
+        path: "/event-icons/sao-tracked-items.webp",
+        columns: 16,
+        rows: 11,
+      },
+    })
+  })
+
+  it("uses the Guide location atlas only for weapons absent from event artwork", () => {
+    expect(resolveSaoItemAtlasSprite("sao.item.l23_1.name")).toEqual({
+      column: 0,
       row: 22,
       atlas: {
         path: "/guides/entities/weapon-atlas.webp",

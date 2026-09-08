@@ -287,12 +287,6 @@ export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtla
   }
 
   const itemId = localizationKey.slice("sao.item.".length, -".name".length)
-  const locationWeaponSprite = resolveLocationWeaponSprite(itemId)
-
-  if (locationWeaponSprite) {
-    return locationWeaponSprite
-  }
-
   const modelIndex = MODEL_ITEM_ATLAS_INDEX[itemId]
 
   if (modelIndex !== undefined) {
@@ -301,11 +295,11 @@ export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtla
 
   const index = ITEM_ATLAS_INDEX[itemId]
 
-  if (index === undefined) {
-    return null
+  if (index !== undefined) {
+    return toSprite(index, TRACKED_ITEM_ATLAS)
   }
 
-  return toSprite(index, TRACKED_ITEM_ATLAS)
+  return resolveLocationWeaponSprite(itemId)
 }
 
 function resolveLocationWeaponSprite(itemId: string): SaoItemAtlasSprite | null {
