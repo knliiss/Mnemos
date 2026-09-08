@@ -26,16 +26,41 @@ describe("SAO tracked item artwork", () => {
     })
   })
 
-  it("uses rendered JSON model artwork when the resource pack defines a model", () => {
+  it("maps every verified location weapon through the shared inventory atlas", () => {
     expect(resolveSaoItemAtlasSprite("sao.item.l1_8.name")).toEqual({
-      column: 4,
-      row: 2,
+      column: 7,
+      row: 0,
       atlas: {
-        path: "/event-icons/sao-tracked-item-models-inventory-v2.webp",
-        columns: 8,
-        rows: 8,
+        path: "/guides/entities/weapon-atlas.webp",
+        columns: 12,
+        rows: 28,
       },
     })
+
+    expect(resolveSaoItemAtlasSprite("sao.item.l23_1.name")).toEqual({
+      column: 0,
+      row: 22,
+      atlas: {
+        path: "/guides/entities/weapon-atlas.webp",
+        columns: 12,
+        rows: 28,
+      },
+    })
+
+    expect(resolveSaoItemAtlasSprite("sao.item.l23_10.name")).toEqual({
+      column: 9,
+      row: 22,
+      atlas: {
+        path: "/guides/entities/weapon-atlas.webp",
+        columns: 12,
+        rows: 28,
+      },
+    })
+  })
+
+  it("does not invent sparse early-location weapon artwork", () => {
+    expect(resolveSaoItemAtlasSprite("sao.item.l1_3.name")).toBeNull()
+    expect(resolveSaoItemAtlasSprite("sao.item.l2_4.name")).toBeNull()
   })
 
   it("rejects unknown and non-item localization keys", () => {
