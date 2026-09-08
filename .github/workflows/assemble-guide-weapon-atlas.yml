@@ -30,25 +30,28 @@ jobs:
           set -euo pipefail
 
           stage_dir=.github/asset-staging/guide-weapon
-          expected_chunks=16
-          actual_chunks="$(find "$stage_dir" -maxdepth 1 -type f -name '*.b64' | wc -l | tr -d ' ')"
+          parts=(000a 000b 000c 000d)
+          for index in $(seq 1 15); do
+            parts+=("$(printf '%03d' "$index")")
+          done
 
-          if [ "$actual_chunks" -ne "$expected_chunks" ]; then
-            echo "Waiting for all atlas chunks: ${actual_chunks}/${expected_chunks}"
-            exit 0
-          fi
+          for part in "${parts[@]}"; do
+            if [ ! -f "$stage_dir/$part.b64" ]; then
+              echo "Waiting for atlas part: $part"
+              exit 0
+            fi
+          done
 
           : > /tmp/guide-weapon-atlas.b64
-          for index in $(seq 0 15); do
-            chunk="$(printf '%03d' "$index")"
-            test -f "$stage_dir/$chunk.b64"
-            cat "$stage_dir/$chunk.b64" >> /tmp/guide-weapon-atlas.b64
+          for part in "${parts[@]}"; do
+            cat "$stage_dir/$part.b64" >> /tmp/guide-weapon-atlas.b64
           done
 
           tr -d '\n\r' < /tmp/guide-weapon-atlas.b64 | base64 --decode > /tmp/weapon-atlas.webp
 
           expected_sha=c53c3f474a5dc9d1848bdefb67940434d74f6faf5730e6ad71883fc50d9e9e1c
           actual_sha="$(sha256sum /tmp/weapon-atlas.webp | awk '{print $1}')"
+          echo "Assembled atlas SHA-256: $actual_sha"
           test "$actual_sha" = "$expected_sha"
 
           python3 - <<'PY'
@@ -83,6 +86,7 @@ jobs:
 
           if size != (768, 1792):
               raise SystemExit(f'unexpected atlas dimensions: {size}')
+          print(f'Verified atlas dimensions: {size[0]}x{size[1]}')
           PY
 
           cp /tmp/weapon-atlas.webp apps/mini-app/public/guides/entities/weapon-atlas.webp
