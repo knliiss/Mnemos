@@ -1,5 +1,7 @@
 import type { SystemRole } from "../model"
 
-export function canAccessGuides(_systemRoles: SystemRole[]) {
+export function canAccessGuides(systemRoles: SystemRole[]) {
+  void systemRoles
+
   return true
 }
