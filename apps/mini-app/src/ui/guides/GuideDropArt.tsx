@@ -7,14 +7,13 @@ import {
 } from "../components/events/saoTrackedItemArtwork"
 import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
 import { guideSourceItemArtworkStyle } from "./guideSourceItemArtwork"
-import { guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 
 type Props = {
   localizationKey: string
   size?: "card" | "detail"
 }
 
-type ArtworkType = "source" | "tracked" | "weapon" | "material" | "missing"
+type ArtworkType = "tracked" | "source" | "material" | "missing"
 
 export function GuideDropArt({ localizationKey, size = "card" }: Props) {
   const petTextureUrl = resolveSaoPetInventoryTextureUrl(localizationKey)
@@ -31,12 +30,6 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
   }
 
   const displayCellSize = size === "detail" ? 92 : 56
-  const sourceStyle = guideSourceItemArtworkStyle(localizationKey, displayCellSize)
-
-  if (sourceStyle) {
-    return <GuideAtlasArtwork style={sourceStyle} size={size} type="source" />
-  }
-
   const trackedSprite = resolveSaoItemAtlasSprite(localizationKey)
 
   if (trackedSprite) {
@@ -49,10 +42,10 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
     )
   }
 
-  const weaponStyle = guideWeaponArtworkStyle(localizationKey, displayCellSize)
+  const sourceStyle = guideSourceItemArtworkStyle(localizationKey, displayCellSize)
 
-  if (weaponStyle) {
-    return <GuideAtlasArtwork style={weaponStyle} size={size} type="weapon" />
+  if (sourceStyle) {
+    return <GuideAtlasArtwork style={sourceStyle} size={size} type="source" />
   }
 
   const materialStyle = guideMaterialArtworkStyle(localizationKey)
