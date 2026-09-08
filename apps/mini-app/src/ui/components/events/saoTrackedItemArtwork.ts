@@ -16,6 +16,9 @@ export const SAO_ITEM_ATLAS_ROWS = 11
 export const SAO_MODEL_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-item-models-inventory-v2.webp"
 export const SAO_MODEL_ITEM_ATLAS_COLUMNS = 8
 export const SAO_MODEL_ITEM_ATLAS_ROWS = 8
+export const SAO_AURA_ITEM_ATLAS_PATH = "/guides/entities/aura-inventory-atlas.webp"
+export const SAO_AURA_ITEM_ATLAS_COLUMNS = 8
+export const SAO_AURA_ITEM_ATLAS_ROWS = 5
 
 const TRACKED_ITEM_ATLAS: SaoItemAtlas = {
   path: SAO_ITEM_ATLAS_PATH,
@@ -27,6 +30,50 @@ const MODEL_ITEM_ATLAS: SaoItemAtlas = {
   path: SAO_MODEL_ITEM_ATLAS_PATH,
   columns: SAO_MODEL_ITEM_ATLAS_COLUMNS,
   rows: SAO_MODEL_ITEM_ATLAS_ROWS,
+}
+
+const AURA_ITEM_ATLAS: SaoItemAtlas = {
+  path: SAO_AURA_ITEM_ATLAS_PATH,
+  columns: SAO_AURA_ITEM_ATLAS_COLUMNS,
+  rows: SAO_AURA_ITEM_ATLAS_ROWS,
+}
+
+const AURA_ITEM_ATLAS_INDEX: Record<string, number> = {
+  auraAwareness: 0,
+  auraBlack: 1,
+  auraBone: 2,
+  auraChristmas: 3,
+  auraConfrontation: 4,
+  auraDeep: 5,
+  auraDefence: 6,
+  auraDragon: 7,
+  auraEath: 8,
+  auraExhaustion: 9,
+  auraFire: 10,
+  auraFlame: 11,
+  auraForest: 12,
+  auraFury: 13,
+  auraGoodness: 14,
+  auraHumility: 15,
+  auraIce: 16,
+  auraIceBreathe: 17,
+  auraKnowledge: 18,
+  auraLava: 19,
+  auraLeaf: 20,
+  auraLight: 21,
+  auraLightning: 22,
+  auraMagic: 23,
+  auraNature: 24,
+  auraPumpkin: 25,
+  auraRebirth: 26,
+  auraScience: 27,
+  auraSnowflake: 28,
+  auraSpace: 29,
+  auraSword: 30,
+  auraTools: 31,
+  auraVampirism: 32,
+  auraVoodoo: 33,
+  auraWater: 34,
 }
 
 const ITEM_ATLAS_INDEX: Record<string, number> = {
@@ -266,6 +313,12 @@ export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtla
   }
 
   const itemId = localizationKey.slice("sao.item.".length, -".name".length)
+  const auraIndex = AURA_ITEM_ATLAS_INDEX[itemId]
+
+  if (auraIndex !== undefined) {
+    return toSprite(auraIndex, AURA_ITEM_ATLAS)
+  }
+
   const modelIndex = MODEL_ITEM_ATLAS_INDEX[itemId]
 
   if (modelIndex !== undefined) {

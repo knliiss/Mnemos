@@ -26,6 +26,27 @@ describe("SAO tracked item artwork", () => {
     })
   })
 
+  it("maps every source-backed aura through the complete RP atlas", () => {
+    expect(resolveSaoItemAtlasSprite("sao.item.auraAwareness.name")).toEqual({
+      column: 0,
+      row: 0,
+      atlas: {
+        path: "/guides/entities/aura-inventory-atlas.webp",
+        columns: 8,
+        rows: 5,
+      },
+    })
+    expect(resolveSaoItemAtlasSprite("sao.item.auraWater.name")).toEqual({
+      column: 2,
+      row: 4,
+      atlas: {
+        path: "/guides/entities/aura-inventory-atlas.webp",
+        columns: 8,
+        rows: 5,
+      },
+    })
+  })
+
   it("uses rendered JSON model artwork when the resource pack defines a model", () => {
     expect(resolveSaoItemAtlasSprite("sao.item.l1_8.name")).toEqual({
       column: 4,
