@@ -16,9 +16,6 @@ export const SAO_ITEM_ATLAS_ROWS = 11
 export const SAO_MODEL_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-item-models-inventory-v2.webp"
 export const SAO_MODEL_ITEM_ATLAS_COLUMNS = 8
 export const SAO_MODEL_ITEM_ATLAS_ROWS = 8
-export const SAO_LOCATION_WEAPON_ATLAS_PATH = "/guides/entities/weapon-atlas.webp"
-export const SAO_LOCATION_WEAPON_ATLAS_COLUMNS = 12
-export const SAO_LOCATION_WEAPON_ATLAS_ROWS = 28
 
 const TRACKED_ITEM_ATLAS: SaoItemAtlas = {
   path: SAO_ITEM_ATLAS_PATH,
@@ -30,12 +27,6 @@ const MODEL_ITEM_ATLAS: SaoItemAtlas = {
   path: SAO_MODEL_ITEM_ATLAS_PATH,
   columns: SAO_MODEL_ITEM_ATLAS_COLUMNS,
   rows: SAO_MODEL_ITEM_ATLAS_ROWS,
-}
-
-const LOCATION_WEAPON_ATLAS: SaoItemAtlas = {
-  path: SAO_LOCATION_WEAPON_ATLAS_PATH,
-  columns: SAO_LOCATION_WEAPON_ATLAS_COLUMNS,
-  rows: SAO_LOCATION_WEAPON_ATLAS_ROWS,
 }
 
 const ITEM_ATLAS_INDEX: Record<string, number> = {
@@ -269,18 +260,6 @@ const MODEL_ITEM_ATLAS_INDEX: Record<string, number> = {
   l9_12: 58,
 }
 
-const LOCATION_WEAPON_KEY_PATTERN = /^l(\d+)_(\d+)$/
-const EARLY_LOCATION_WEAPON_INDEXES: Record<number, readonly number[]> = {
-  1: [1, 2, 4, 5, 6, 7, 8, 9],
-  2: [1, 2, 3, 5, 6, 7, 8, 9, 10],
-  3: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  4: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  5: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  6: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  7: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  8: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-}
-
 export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {
   if (!localizationKey?.startsWith("sao.item.") || !localizationKey.endsWith(".name")) {
     return null
@@ -295,49 +274,11 @@ export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtla
 
   const index = ITEM_ATLAS_INDEX[itemId]
 
-  if (index !== undefined) {
-    return toSprite(index, TRACKED_ITEM_ATLAS)
-  }
-
-  return resolveLocationWeaponSprite(itemId)
-}
-
-function resolveLocationWeaponSprite(itemId: string): SaoItemAtlasSprite | null {
-  const match = LOCATION_WEAPON_KEY_PATTERN.exec(itemId)
-
-  if (!match) {
+  if (index === undefined) {
     return null
   }
 
-  const location = Number(match[1])
-  const itemIndex = Number(match[2])
-
-  if (!hasLocationWeaponArtwork(location, itemIndex)) {
-    return null
-  }
-
-  return {
-    column: itemIndex - 1,
-    row: location - 1,
-    atlas: LOCATION_WEAPON_ATLAS,
-  }
-}
-
-function hasLocationWeaponArtwork(location: number, itemIndex: number) {
-  if (
-    location < 1 ||
-    location > SAO_LOCATION_WEAPON_ATLAS_ROWS ||
-    itemIndex < 1 ||
-    itemIndex > SAO_LOCATION_WEAPON_ATLAS_COLUMNS
-  ) {
-    return false
-  }
-
-  if (location >= 9) {
-    return true
-  }
-
-  return EARLY_LOCATION_WEAPON_INDEXES[location]?.includes(itemIndex) ?? false
+  return toSprite(index, TRACKED_ITEM_ATLAS)
 }
 
 function toSprite(index: number, atlas: SaoItemAtlas): SaoItemAtlasSprite {

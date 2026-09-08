@@ -8,6 +8,7 @@ import {
 import "../events/event-art.css"
 import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
 import { guideSourceItemArtworkStyle } from "./guideSourceItemArtwork"
+import { resolveGuideWeaponSprite } from "./guideWeaponArtwork"
 
 type Props = {
   localizationKey: string
@@ -27,6 +28,12 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
 
   if (trackedSprite) {
     return <GuideInventoryArtwork itemSprite={trackedSprite} size={size} />
+  }
+
+  const guideWeaponSprite = resolveGuideWeaponSprite(localizationKey)
+
+  if (guideWeaponSprite) {
+    return <GuideInventoryArtwork itemSprite={guideWeaponSprite} size={size} />
   }
 
   const displayCellSize = guideArtFrameSize(size)
