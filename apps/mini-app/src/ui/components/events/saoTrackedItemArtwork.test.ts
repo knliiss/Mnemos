@@ -26,7 +26,7 @@ describe("SAO tracked item artwork", () => {
     })
   })
 
-  it("prefers verified event inventory-model artwork over the Guide fallback atlas", () => {
+  it("uses rendered JSON model artwork when the resource pack defines a model", () => {
     expect(resolveSaoItemAtlasSprite("sao.item.l1_8.name")).toEqual({
       column: 4,
       row: 2,
@@ -36,45 +36,10 @@ describe("SAO tracked item artwork", () => {
         rows: 8,
       },
     })
-
-    expect(resolveSaoItemAtlasSprite("sao.item.l23_10.name")).toEqual({
-      column: 6,
-      row: 3,
-      atlas: {
-        path: "/event-icons/sao-tracked-item-models-inventory-v2.webp",
-        columns: 8,
-        rows: 8,
-      },
-    })
   })
 
-  it("prefers the original event atlas when no inventory-model override exists", () => {
-    expect(resolveSaoItemAtlasSprite("sao.item.l10_10.name")).toEqual({
-      column: 9,
-      row: 5,
-      atlas: {
-        path: "/event-icons/sao-tracked-items.webp",
-        columns: 16,
-        rows: 11,
-      },
-    })
-  })
-
-  it("uses the Guide location atlas only for weapons absent from event artwork", () => {
-    expect(resolveSaoItemAtlasSprite("sao.item.l23_1.name")).toEqual({
-      column: 0,
-      row: 22,
-      atlas: {
-        path: "/guides/entities/weapon-atlas.webp",
-        columns: 12,
-        rows: 28,
-      },
-    })
-  })
-
-  it("does not invent sparse early-location weapon artwork", () => {
-    expect(resolveSaoItemAtlasSprite("sao.item.l1_3.name")).toBeNull()
-    expect(resolveSaoItemAtlasSprite("sao.item.l2_4.name")).toBeNull()
+  it("keeps untracked location weapons out of the ordinary feed resolver", () => {
+    expect(resolveSaoItemAtlasSprite("sao.item.l23_1.name")).toBeNull()
   })
 
   it("rejects unknown and non-item localization keys", () => {

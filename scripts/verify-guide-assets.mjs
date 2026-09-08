@@ -13,7 +13,7 @@ const expectedDimensions = new Map([
   ["entities/comet-atlas.webp", [192, 96]],
   ["entities/npc-atlas.webp", [256, 3584]],
   ["entities/rebirth-emblem-atlas.webp", [960, 64]],
-  ["entities/weapon-atlas.webp", [768, 1792]],
+  ["entities/weapon-inventory-atlas.webp", [768, 1792]],
   ["locations/location-dungeon-hall.webp", [694, 160]],
 ])
 
