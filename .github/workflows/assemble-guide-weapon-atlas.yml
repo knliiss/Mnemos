@@ -30,10 +30,7 @@ jobs:
           set -euo pipefail
 
           stage_dir=.github/asset-staging/guide-weapon
-          parts=(000a 000b 000c 000d)
-          for index in $(seq 1 15); do
-            parts+=("$(printf '%03d' "$index")")
-          done
+          parts=(000a 000b 000c 000d 001 002 003 004 005 006 007 008 009 010 011a 011b 011c 011d 012 013 014 015)
 
           for part in "${parts[@]}"; do
             if [ ! -f "$stage_dir/$part.b64" ]; then
