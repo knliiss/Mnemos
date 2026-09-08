@@ -39,9 +39,9 @@ const DUNGEONS = [
 ] as const
 
 const HUB_ILLUSTRATIONS: Record<GuideHubSection, string> = {
-  locations: "/ui-illustrations/guides-locations.svg",
-  dungeons: "/ui-illustrations/guides-dungeons.svg",
-  mechanics: "/ui-illustrations/guides-mechanics.svg",
+  locations: "/ui-illustrations/guides-explorer.svg",
+  dungeons: "/ui-illustrations/guides-trainer.svg",
+  mechanics: "/ui-illustrations/guides-cartographer.svg",
 }
 
 export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }: Props) {

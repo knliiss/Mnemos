@@ -9,6 +9,7 @@ const guideRoot = process.argv[2]
   : path.join(repositoryRoot, "apps/mini-app/public/guides")
 
 const expectedDimensions = new Map([
+  ["entities/aura-inventory-atlas.webp", [512, 320]],
   ["entities/case-icon.webp", [32, 32]],
   ["entities/comet-atlas.webp", [192, 96]],
   ["entities/npc-atlas.webp", [256, 3584]],
