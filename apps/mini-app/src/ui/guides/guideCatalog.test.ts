@@ -234,9 +234,10 @@ describe("guide localization", () => {
 })
 
 describe("guide access", () => {
-  it("is restricted to administrators", () => {
-    expect(canAccessGuides(["USER"])).toBe(false)
-    expect(canAccessGuides(["MODERATOR"])).toBe(false)
+  it("is available to every user", () => {
+    expect(canAccessGuides([])).toBe(true)
+    expect(canAccessGuides(["USER"])).toBe(true)
+    expect(canAccessGuides(["MODERATOR"])).toBe(true)
     expect(canAccessGuides(["ADMIN"])).toBe(true)
     expect(canAccessGuides(["SUPER_ADMIN"])).toBe(true)
   })
