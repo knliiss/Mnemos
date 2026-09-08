@@ -1,5 +1,5 @@
 import type { SystemRole } from "../model"
 
-export function canAccessGuides(systemRoles: SystemRole[]) {
-  return systemRoles.includes("ADMIN") || systemRoles.includes("SUPER_ADMIN")
+export function canAccessGuides(_systemRoles: SystemRole[]) {
+  return true
 }
