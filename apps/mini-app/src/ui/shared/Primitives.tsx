@@ -50,10 +50,7 @@ export function PageHeader({
 
     routeStage.addEventListener("scroll", remember, { passive: true })
 
-    const cancelRestore = restoreScrollTop(
-      routeStage,
-      restoreGuideScrollOnNextMount ? savedTop : 0,
-    )
+    const cancelRestore = restoreScrollTop(routeStage, restoreGuideScrollOnNextMount ? savedTop : 0)
     restoreGuideScrollOnNextMount = false
 
     return () => {
