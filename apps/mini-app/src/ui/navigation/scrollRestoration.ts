@@ -47,7 +47,12 @@ export function restoreScrollTop(element: HTMLElement, top: number) {
     }
 
     attempts += 1
-    if (apply() || attempts >= 90) {
+    if (apply()) {
+      cleanup()
+      return
+    }
+
+    if (attempts >= 90) {
       frame = null
       return
     }
