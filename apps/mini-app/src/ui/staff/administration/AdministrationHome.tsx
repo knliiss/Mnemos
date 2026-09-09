@@ -6,10 +6,13 @@ import { listLeaderboardExclusions } from "@/shared/api/leaderboardExclusionApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { createSpotlightPreview, spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
+import { SAO_TRACKED_WEAPON_LOCALIZATION_KEYS } from "../../components/events/saoTrackedItemArtwork"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 import { LeaderboardExclusionAdmin } from "./leaderboards/LeaderboardExclusionAdmin"
 import "./administration-control-polish.css"
+
+const SPOTLIGHT_PREVIEW_FALLBACK_WEAPON_KEY = "sao.item.l21_10.name"
 
 type AdminStats = {
   review: number
@@ -111,8 +114,11 @@ export function AdministrationHome({
   }
 
   const launchSpotlightPreview = () => {
+    const itemKey = randomSpotlightPreviewWeaponKey()
     const preview = createSpotlightPreview({
       itemName: t("administration.spotlightPreviewItem"),
+      itemKey,
+      itemType: "SWORD",
       droppedFor: t("administration.spotlightPreviewPlayer"),
     })
 
@@ -235,4 +241,14 @@ export function AdministrationHome({
       </div>
     </div>
   )
+}
+
+function randomSpotlightPreviewWeaponKey() {
+  if (SAO_TRACKED_WEAPON_LOCALIZATION_KEYS.length === 0) {
+    return SPOTLIGHT_PREVIEW_FALLBACK_WEAPON_KEY
+  }
+
+  return SAO_TRACKED_WEAPON_LOCALIZATION_KEYS[
+    Math.floor(Math.random() * SAO_TRACKED_WEAPON_LOCALIZATION_KEYS.length)
+  ]
 }
