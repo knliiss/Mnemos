@@ -120,6 +120,7 @@ export type DropSpotlightBroadcast = {
     itemDropEventId: string
     droppedFor: string
     itemId: string
+    itemKey?: string | null
     itemName: string
     itemRarity: string
     itemType: string
