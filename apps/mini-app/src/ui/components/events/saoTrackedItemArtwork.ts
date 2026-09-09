@@ -307,6 +307,12 @@ const MODEL_ITEM_ATLAS_INDEX: Record<string, number> = {
   l9_12: 58,
 }
 
+export const SAO_TRACKED_WEAPON_LOCALIZATION_KEYS = [
+  ...new Set([...Object.keys(ITEM_ATLAS_INDEX), ...Object.keys(MODEL_ITEM_ATLAS_INDEX)]),
+]
+  .filter((itemId) => /^l\d+_\d+$/.test(itemId))
+  .map((itemId) => `sao.item.${itemId}.name`)
+
 export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {
   if (!localizationKey?.startsWith("sao.item.") || !localizationKey.endsWith(".name")) {
     return null
