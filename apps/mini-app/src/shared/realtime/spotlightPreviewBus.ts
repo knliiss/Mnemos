@@ -4,6 +4,8 @@ type SpotlightPreviewListener = (spotlight: DropSpotlightBroadcast) => void
 
 type CreateSpotlightPreviewInput = {
   itemName: string
+  itemKey: string
+  itemType: string
   droppedFor: string
 }
 
@@ -26,6 +28,8 @@ export const spotlightPreviews = {
 
 export function createSpotlightPreview({
   itemName,
+  itemKey,
+  itemType,
   droppedFor,
 }: CreateSpotlightPreviewInput): DropSpotlightBroadcast {
   const now = new Date()
@@ -47,10 +51,11 @@ export function createSpotlightPreview({
       sourceAccountId: "local-preview",
       itemDropEventId: spotlightId,
       droppedFor,
-      itemId: "local-preview-sword",
+      itemId: `local-preview:${itemKey}`,
+      itemKey,
       itemName,
       itemRarity: "MYTHICAL",
-      itemType: "SWORD",
+      itemType,
       notificationPack: null,
       publishedAt,
       expiresAt,
