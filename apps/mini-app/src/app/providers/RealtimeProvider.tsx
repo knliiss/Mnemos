@@ -170,7 +170,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 }
 
 function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }) {
-  const [itemEvent, setItemEvent] = useState<FeedEvent | null>(null)
+  const [itemEvent, setItemEvent] = useState<FeedEvent | null>(() =>
+    localPreviewItemEvent(spotlight),
+  )
   const template = spotlight.payload.notificationPack?.templates.find(
     (candidate) => candidate.type === "ITEM_DROP",
   )
@@ -221,6 +223,23 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
       />
     </motion.div>
   )
+}
+
+function localPreviewItemEvent(spotlight: DropSpotlightBroadcast): FeedEvent | null {
+  if (spotlight.payload.sourceAccountId !== "local-preview" || !spotlight.payload.itemKey) {
+    return null
+  }
+
+  return {
+    id: spotlight.payload.itemDropEventId,
+    kind: "ITEM_DROP",
+    title: spotlight.payload.itemName,
+    detail: spotlight.payload.droppedFor,
+    occurredAt: spotlight.occurredAt,
+    relative: spotlight.occurredAt,
+    meta: spotlight.payload.itemType,
+    localizationKey: spotlight.payload.itemKey,
+  }
 }
 
 function notifyAboutOperation(event: RealtimeEvent, translate: (key: string) => string) {
