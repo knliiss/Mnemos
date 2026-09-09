@@ -204,7 +204,7 @@ export function ChoiceGrid<T extends string>({
   labels?: Partial<Record<T, string>>
 }) {
   return (
-    <div className="choice-grid" role="group">
+    <div className="choice-grid">
       {options.map((option) => (
         <button
           key={option}
