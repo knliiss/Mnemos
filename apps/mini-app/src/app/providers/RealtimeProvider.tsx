@@ -177,12 +177,10 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
 
   useEffect(() => {
     if (spotlight.payload.sourceAccountId === "local-preview") {
-      setItemEvent(null)
       return
     }
 
     let cancelled = false
-    setItemEvent(null)
 
     void getEventFeedItem(spotlight.payload.itemDropEventId)
       .then((response) => {
