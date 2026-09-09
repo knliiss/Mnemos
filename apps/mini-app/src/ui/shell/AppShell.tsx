@@ -6,6 +6,7 @@ import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, RootRoute, Route } from "../model"
 import { persistNavigationStack, restoreNavigationStack } from "../navigation/navigationSession"
 import { isRootRoute } from "../navigation/routeRegistry"
+import { restoreScrollTop } from "../navigation/scrollRestoration"
 import "../shared/layout.css"
 import "../shared/form-controls.css"
 import "./badges/user-badges.css"
@@ -101,14 +102,7 @@ export function AppShell() {
       return
     }
 
-    const frame = window.requestAnimationFrame(() => {
-      element.scrollTo({
-        top: scrollPositions.current[currentScrollKey] ?? 0,
-        behavior: "auto",
-      })
-    })
-
-    return () => window.cancelAnimationFrame(frame)
+    return restoreScrollTop(element, scrollPositions.current[currentScrollKey] ?? 0)
   }, [currentScrollKey])
 
   useEffect(() => {
