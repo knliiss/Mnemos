@@ -1,8 +1,16 @@
 import { motion } from "framer-motion"
-import type { ReactNode } from "react"
+import { useLayoutEffect, useRef, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { restoreScrollTop } from "../navigation/scrollRestoration"
 import { CurrencyMark, Glyph, type GlyphName } from "./MnemosIcon"
 import "./primitives.css"
+
+const guideScrollPositions = new Map<string, number>()
+let restoreGuideScrollOnNextMount = false
+
+function guideScrollKey(screen: HTMLElement, title: string, eyebrow?: string) {
+  return `${screen.className}:${eyebrow ?? ""}:${title}`
+}
 
 export function PageHeader({
   title,
@@ -16,15 +24,63 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   const { t } = useTranslation()
+  const headerRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const header = headerRef.current
+    const guideScreen = header?.closest<HTMLElement>(".guides-screen")
+
+    if (!header || !guideScreen) {
+      restoreGuideScrollOnNextMount = false
+      return
+    }
+
+    const routeStage = header.closest<HTMLElement>(".route-stage")
+    if (!routeStage) {
+      return
+    }
+
+    const key = guideScrollKey(guideScreen, title, eyebrow)
+    const restorePreviousPosition = restoreGuideScrollOnNextMount
+    const targetTop = restorePreviousPosition ? (guideScrollPositions.get(key) ?? 0) : 0
+
+    if (!restorePreviousPosition) {
+      guideScrollPositions.set(key, 0)
+    }
+
+    const remember = () => {
+      guideScrollPositions.set(key, routeStage.scrollTop)
+    }
+
+    routeStage.addEventListener("scroll", remember, { passive: true })
+
+    const cancelRestore = restoreScrollTop(routeStage, targetTop)
+    restoreGuideScrollOnNextMount = false
+
+    return () => {
+      routeStage.removeEventListener("scroll", remember)
+      cancelRestore()
+    }
+  }, [eyebrow, title])
+
+  const handleBack = () => {
+    const guideScreen = headerRef.current?.closest<HTMLElement>(".guides-screen")
+
+    if (guideScreen) {
+      restoreGuideScrollOnNextMount = !guideScreen.classList.contains("guides-hub-screen")
+    }
+
+    back?.()
+  }
 
   return (
-    <header className="page-header">
+    <header ref={headerRef} className="page-header">
       <div className="page-header__lead">
         {back ? (
           <button
             type="button"
             className="icon-button icon-button--back"
-            onClick={back}
+            onClick={handleBack}
             aria-label={t("common.back")}
           >
             <Glyph name="back" size={20} />
