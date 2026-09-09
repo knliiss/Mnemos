@@ -40,7 +40,7 @@ const DUNGEONS = [
 
 const HUB_ILLUSTRATIONS: Record<GuideHubSection, string> = {
   locations: "/ui-illustrations/guides-locations.svg",
-  dungeons: "/ui-illustrations/guides-dungeons.svg",
+  dungeons: "/ui-illustrations/guides-dungeon-gate-v2.svg",
   mechanics: "/ui-illustrations/guides-mechanics.svg",
 }
 

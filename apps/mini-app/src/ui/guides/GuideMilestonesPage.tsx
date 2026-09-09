@@ -65,7 +65,7 @@ function GuideDungeonsPage({
         </span>
         <img
           className="guide-section-intro__art"
-          src="/ui-illustrations/guides-dungeons.svg"
+          src="/ui-illustrations/guides-dungeon-gate-v2.svg"
           alt=""
           aria-hidden="true"
         />
