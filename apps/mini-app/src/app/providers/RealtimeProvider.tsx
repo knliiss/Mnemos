@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState, type ReactNode } from "react"
-import { useTranslation } from "react-i18next"
+import { getEventFeedItem } from "@/shared/api/eventApi"
 import { errorEvents } from "@/shared/errors/errorEventBus"
 import { notifications } from "@/shared/notifications/notificationCenter"
 import { realtimeClient } from "@/shared/realtime/realtimeClient"
@@ -8,6 +8,8 @@ import { realtimeBroadcasts, realtimeEvents } from "@/shared/realtime/realtimeEv
 import { spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
 import type { DropSpotlightBroadcast, RealtimeEvent } from "@/shared/realtime/realtime.types"
 import { DropSpotlightPresentation } from "@/ui/components/spotlight/DropSpotlightPresentation"
+import { toFeedEvent } from "@/ui/data/dataMappers"
+import type { FeedEvent } from "@/ui/model"
 import "@/ui/system/system.css"
 import "@/ui/system/spotlight-position.css"
 
@@ -167,9 +169,39 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 }
 
 function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }) {
+  const [itemEvent, setItemEvent] = useState<FeedEvent | null>(null)
   const template = spotlight.payload.notificationPack?.templates.find(
     (candidate) => candidate.type === "ITEM_DROP",
   )
+
+  useEffect(() => {
+    if (spotlight.payload.sourceAccountId === "local-preview") {
+      setItemEvent(null)
+      return
+    }
+
+    let cancelled = false
+    setItemEvent(null)
+
+    void getEventFeedItem(spotlight.payload.itemDropEventId)
+      .then((response) => {
+        if (cancelled) {
+          return
+        }
+
+        const event = toFeedEvent(response)
+        setItemEvent(event.kind === "ITEM_DROP" ? event : null)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setItemEvent(null)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [spotlight.payload.itemDropEventId, spotlight.payload.sourceAccountId])
 
   return (
     <motion.div
@@ -185,6 +217,7 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
         droppedFor={spotlight.payload.droppedFor}
         itemRarity={spotlight.payload.itemRarity}
         itemType={spotlight.payload.itemType}
+        itemEvent={itemEvent}
         template={template}
       />
     </motion.div>
