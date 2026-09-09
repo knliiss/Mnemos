@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState, type ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { getEventFeedItem } from "@/shared/api/eventApi"
 import { errorEvents } from "@/shared/errors/errorEventBus"
 import { notifications } from "@/shared/notifications/notificationCenter"
