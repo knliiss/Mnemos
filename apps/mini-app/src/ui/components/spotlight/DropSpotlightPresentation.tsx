@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import type { NotificationPackBroadcastTemplate } from "@/shared/realtime/realtime.types"
-import { ItemTypeArt } from "@/ui/components/events/EventArt"
-import type { BetItemType, DropSpotlightPresentationMode } from "@/ui/model"
+import { EventArt, ItemTypeArt } from "@/ui/components/events/EventArt"
+import type { BetItemType, DropSpotlightPresentationMode, FeedEvent } from "@/ui/model"
 import { Glyph } from "@/ui/shared/MnemosIcon"
 import "./drop-spotlight-preview.css"
 
@@ -18,11 +18,12 @@ type DropSpotlightPresentationProps = {
   droppedFor: string
   itemRarity: string
   itemType: string
+  itemEvent?: FeedEvent | null
   template?: SpotlightPresentationTemplate | null
   embedded?: boolean
 }
 
-type DropSpotlightPreviewProps = Omit<DropSpotlightPresentationProps, "embedded"> & {
+type DropSpotlightPreviewProps = Omit<DropSpotlightPresentationProps, "embedded" | "itemEvent"> & {
   size: "THUMBNAIL" | "CARD" | "DETAIL" | "STUDIO"
 }
 
@@ -32,6 +33,7 @@ export function DropSpotlightPresentation({
   droppedFor,
   itemRarity,
   itemType,
+  itemEvent = null,
   template,
   embedded = false,
 }: DropSpotlightPresentationProps) {
@@ -77,7 +79,9 @@ export function DropSpotlightPresentation({
         animate={{ y: [0, -3, 0], rotate: [0, -0.7, 0.7, 0] }}
         transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
       >
-        {resolvedItemType ? (
+        {itemEvent?.kind === "ITEM_DROP" ? (
+          <EventArt event={itemEvent} size={compact ? 40 : 78} />
+        ) : resolvedItemType ? (
           <ItemTypeArt itemType={resolvedItemType} size={compact ? 40 : 78} />
         ) : (
           <Glyph name="item-drop" size={compact ? 20 : 32} />
