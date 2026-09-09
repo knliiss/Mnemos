@@ -128,7 +128,9 @@ export function AdministrationHome({
     const localizedItemName = saoText(itemKey)
     const preview = createSpotlightPreview({
       itemName:
-        localizedItemName === itemKey ? t("administration.spotlightPreviewItem") : localizedItemName,
+        localizedItemName === itemKey
+          ? t("administration.spotlightPreviewItem")
+          : localizedItemName,
       itemKey,
       itemType: "SWORD",
       droppedFor: t("administration.spotlightPreviewPlayer"),
