@@ -41,8 +41,12 @@ export function PageHeader({
     }
 
     const key = guideScrollKey(guideScreen, title, eyebrow)
-    const savedTop = guideScrollPositions.get(key) ?? 0
-    guideScrollPositions.set(key, savedTop)
+    const restorePreviousPosition = restoreGuideScrollOnNextMount
+    const targetTop = restorePreviousPosition ? (guideScrollPositions.get(key) ?? 0) : 0
+
+    if (!restorePreviousPosition) {
+      guideScrollPositions.set(key, 0)
+    }
 
     const remember = () => {
       guideScrollPositions.set(key, routeStage.scrollTop)
@@ -50,7 +54,7 @@ export function PageHeader({
 
     routeStage.addEventListener("scroll", remember, { passive: true })
 
-    const cancelRestore = restoreScrollTop(routeStage, restoreGuideScrollOnNextMount ? savedTop : 0)
+    const cancelRestore = restoreScrollTop(routeStage, targetTop)
     restoreGuideScrollOnNextMount = false
 
     return () => {
@@ -200,7 +204,7 @@ export function ChoiceGrid<T extends string>({
   labels?: Partial<Record<T, string>>
 }) {
   return (
-    <div className="choice-grid">
+    <div className="choice-grid" role="group">
       {options.map((option) => (
         <button
           key={option}
