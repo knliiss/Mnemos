@@ -30,6 +30,14 @@ import "./leaderboard-polish.css"
 
 type LeaderboardTab = "DROPS" | "COINS" | "BOOSTERS"
 
+type LeaderboardViewState = {
+  tab: LeaderboardTab
+  wipeId: string | null
+  dropSort: DropLeaderboardSort
+  dropDirection: DropLeaderboardDirection
+  page: number
+}
+
 const tabs: LeaderboardTab[] = ["DROPS", "COINS", "BOOSTERS"]
 const tabIllustrations: Record<LeaderboardTab, string> = {
   DROPS: "/ui-illustrations/leaderboard-tab-drops.svg",
@@ -38,6 +46,7 @@ const tabIllustrations: Record<LeaderboardTab, string> = {
 }
 const pageSize = 10
 const leaderboardLimit = 100
+let rememberedLeaderboardView: LeaderboardViewState | null = null
 
 export function LeaderboardPage({
   navigate,
@@ -47,21 +56,36 @@ export function LeaderboardPage({
   back: () => void
 }) {
   const { t, i18n } = useTranslation()
-  const [tab, setTab] = useState<LeaderboardTab>("DROPS")
+  const initialView = rememberedLeaderboardView
+  const [tab, setTab] = useState<LeaderboardTab>(() => initialView?.tab ?? "DROPS")
   const [wipes, setWipes] = useState<Wipe[]>([])
-  const [wipeId, setWipeId] = useState<string | null>(null)
+  const [wipeId, setWipeId] = useState<string | null>(() => initialView?.wipeId ?? null)
   const [wipeRevision, setWipeRevision] = useState(0)
   const [requestRevision, setRequestRevision] = useState(0)
-  const [dropSort, setDropSort] = useState<DropLeaderboardSort>("TOTAL")
-  const [dropDirection, setDropDirection] = useState<DropLeaderboardDirection>("DESC")
+  const [dropSort, setDropSort] = useState<DropLeaderboardSort>(
+    () => initialView?.dropSort ?? "TOTAL",
+  )
+  const [dropDirection, setDropDirection] = useState<DropLeaderboardDirection>(
+    () => initialView?.dropDirection ?? "DESC",
+  )
   const [entries, setEntries] = useState<LeaderboardDisplayEntry[]>([])
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(() => initialView?.page ?? 1)
   const [pageMotionDirection, setPageMotionDirection] = useState(1)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
   const locale =
     i18n.resolvedLanguage === "en" ? "en-US" : i18n.resolvedLanguage === "ru" ? "ru-RU" : "uk-UA"
+
+  useEffect(() => {
+    rememberedLeaderboardView = {
+      tab,
+      wipeId,
+      dropSort,
+      dropDirection,
+      page,
+    }
+  }, [dropDirection, dropSort, page, tab, wipeId])
 
   useEffect(() => {
     let cancelled = false
@@ -205,6 +229,14 @@ export function LeaderboardPage({
   }
 
   function openProfile(entry: LeaderboardDisplayEntry) {
+    rememberedLeaderboardView = {
+      tab,
+      wipeId,
+      dropSort,
+      dropDirection,
+      page,
+    }
+
     navigate({
       id: "public-profile",
       params: entry.accountId ? { accountId: entry.accountId } : { nickname: entry.nickname },
