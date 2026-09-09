@@ -243,6 +243,11 @@ export function LeaderboardPage({
     })
   }
 
+  function leaveLeaderboards() {
+    rememberedLeaderboardView = null
+    back()
+  }
+
   function retry() {
     if (wipes.length === 0) {
       setWipeRevision((value) => value + 1)
@@ -260,7 +265,7 @@ export function LeaderboardPage({
         <button
           type="button"
           className="leaderboard-header__back"
-          onClick={back}
+          onClick={leaveLeaderboards}
           aria-label={t("common.back")}
         >
           <Glyph name="back" size={18} />
