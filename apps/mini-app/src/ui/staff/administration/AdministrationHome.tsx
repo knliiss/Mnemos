@@ -6,22 +6,13 @@ import { listLeaderboardExclusions } from "@/shared/api/leaderboardExclusionApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { createSpotlightPreview, spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
-import { resolveSaoItemAtlasSprite } from "../../components/events/saoTrackedItemArtwork"
-import { GUIDE_LOCATIONS } from "../../guides/guideCatalog"
-import { useSaoGuideLocalization } from "../../guides/guideLocalization"
+import { SAO_TRACKED_WEAPON_LOCALIZATION_KEYS } from "../../components/events/saoTrackedItemArtwork"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 import { LeaderboardExclusionAdmin } from "./leaderboards/LeaderboardExclusionAdmin"
 import "./administration-control-polish.css"
 
 const SPOTLIGHT_PREVIEW_FALLBACK_WEAPON_KEY = "sao.item.l21_10.name"
-const SPOTLIGHT_PREVIEW_WEAPON_KEYS = [
-  ...new Set(
-    GUIDE_LOCATIONS.flatMap((location) => location.weaponKeys).filter(
-      (key) => resolveSaoItemAtlasSprite(key) !== null,
-    ),
-  ),
-]
 
 type AdminStats = {
   review: number
@@ -78,8 +69,7 @@ export function AdministrationHome({
   navigate: (route: Route) => void
   back: () => void
 }) {
-  const { t, i18n } = useTranslation()
-  const { text: saoText } = useSaoGuideLocalization(i18n.language)
+  const { t } = useTranslation()
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [leaderboardExclusionsOpen, setLeaderboardExclusionsOpen] = useState(false)
 
@@ -125,12 +115,8 @@ export function AdministrationHome({
 
   const launchSpotlightPreview = () => {
     const itemKey = randomSpotlightPreviewWeaponKey()
-    const localizedItemName = saoText(itemKey)
     const preview = createSpotlightPreview({
-      itemName:
-        localizedItemName === itemKey
-          ? t("administration.spotlightPreviewItem")
-          : localizedItemName,
+      itemName: t("administration.spotlightPreviewItem"),
       itemKey,
       itemType: "SWORD",
       droppedFor: t("administration.spotlightPreviewPlayer"),
@@ -258,11 +244,11 @@ export function AdministrationHome({
 }
 
 function randomSpotlightPreviewWeaponKey() {
-  if (SPOTLIGHT_PREVIEW_WEAPON_KEYS.length === 0) {
+  if (SAO_TRACKED_WEAPON_LOCALIZATION_KEYS.length === 0) {
     return SPOTLIGHT_PREVIEW_FALLBACK_WEAPON_KEY
   }
 
-  return SPOTLIGHT_PREVIEW_WEAPON_KEYS[
-    Math.floor(Math.random() * SPOTLIGHT_PREVIEW_WEAPON_KEYS.length)
+  return SAO_TRACKED_WEAPON_LOCALIZATION_KEYS[
+    Math.floor(Math.random() * SAO_TRACKED_WEAPON_LOCALIZATION_KEYS.length)
   ]
 }
