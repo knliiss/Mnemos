@@ -1,4 +1,4 @@
-name: Temporary Production Diagnostics 2026-09-13
+name: Temporary Production Infrastructure Diagnostics 2026-09-13
 
 on:
   push:
@@ -14,79 +14,87 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Inspect production runtime
+      - name: Inspect production infrastructure
         shell: bash
         run: |
           set +e
 
-          echo '===== TIME / HOST LOAD ====='
+          echo '===== HOST / REBOOT ====='
           date -u
           uptime
-          free -h
-          df -h / /var/lib/docker 2>/dev/null || df -h /
+          last -x reboot shutdown 2>/dev/null | head -n 20 || true
+          systemctl --failed --no-pager 2>/dev/null || true
 
           echo
-          echo '===== DOCKER / SWARM ====='
-          sudo -n docker info --format 'server={{.ServerVersion}} swarm={{.Swarm.LocalNodeState}} control={{.Swarm.ControlAvailable}} containers={{.Containers}} running={{.ContainersRunning}} paused={{.ContainersPaused}} stopped={{.ContainersStopped}}'
-          sudo -n docker system df
+          echo '===== ALL SWARM SERVICES ====='
+          sudo -n docker service ls --format 'table {{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}'
 
           echo
-          echo '===== MNEMOS STACK SERVICES ====='
-          sudo -n docker stack services mnemos --format 'table {{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}'
-
-          echo
-          echo '===== MNEMOS CONTAINERS ====='
+          echo '===== INFRA CONTAINERS ====='
           sudo -n docker ps -a \
-            --filter label=com.docker.stack.namespace=mnemos \
-            --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' \
-            | head -n 120
+            --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Networks}}' \
+            | grep -Ei 'redis|kafka|postgres|keycloak|zookeeper|mnemos|infra' \
+            | head -n 200 || true
 
           echo
-          echo '===== RESOURCE SNAPSHOT ====='
-          sudo -n docker stats --no-stream \
-            --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}' \
-            $(sudo -n docker ps -q --filter label=com.docker.stack.namespace=mnemos) 2>/dev/null \
-            | head -n 120
+          echo '===== DOCKER NETWORKS ====='
+          sudo -n docker network ls --format 'table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}'
 
           echo
-          echo '===== NON-CONVERGED / RECENT FAILED TASKS ====='
-          while IFS='|' read -r service replicas image; do
-            [ -n "$service" ] || continue
-            current="${replicas%%/*}"
-            desired="${replicas##*/}"
-            failed="$(sudo -n docker service ps "$service" --no-trunc --format '{{.CurrentState}}|{{.Error}}' 2>/dev/null | grep -Eci 'Failed|Rejected|Shutdown.*(second|minute|hour)|non-zero|error' || true)"
-            if [ "$current" != "$desired" ] || [ "${failed:-0}" -gt 0 ]; then
-              echo
-              echo "--- $service replicas=$replicas image=$image ---"
-              sudo -n docker service inspect "$service" \
-                --format 'update={{if .UpdateStatus}}{{.UpdateStatus.State}} {{.UpdateStatus.Message}}{{else}}none{{end}} created={{.CreatedAt}} updated={{.UpdatedAt}}' 2>&1
-              sudo -n docker service ps "$service" --no-trunc \
-                --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
-                | head -n 30
-            fi
-          done < <(sudo -n docker stack services mnemos --format '{{.Name}}|{{.Replicas}}|{{.Image}}')
+          echo '===== RELEVANT NETWORK MEMBERS ====='
+          while read -r network; do
+            [ -n "$network" ] || continue
+            echo
+            echo "--- $network ---"
+            sudo -n docker network inspect "$network" \
+              --format 'name={{.Name}} id={{.Id}} driver={{.Driver}} scope={{.Scope}} attachable={{.Attachable}}{{range $id, $c := .Containers}}{{println}}{{printf "%s|%s|%s" $id $c.Name $c.IPv4Address}}{{end}}' 2>&1 \
+              | head -n 160
+          done < <(sudo -n docker network ls --format '{{.Name}}' | grep -Ei 'mnemos|redis|kafka|infra|backend|public' | sort -u)
 
           echo
-          echo '===== RECENT ERRORS / WARNINGS (LAST 90M) ====='
-          while read -r service; do
-            [ -n "$service" ] || continue
-            matches="$(
-              sudo -n timeout 6s docker service logs --raw --since 90m "$service" 2>&1 \
-                | grep -Ei 'ERROR|WARN|Exception|Caused by:|failed|failure|unhealthy|timeout|timed out|refused|denied|OOM|OutOfMemory|panic|fatal' \
-                | tail -n 100
-            )"
-            if [ -n "$matches" ]; then
-              echo
-              echo "--- $service ---"
-              printf '%s\n' "$matches" \
-                | sed -E 's/(Bearer )[A-Za-z0-9._~+\/-]+/\1<redacted>/g; s/([Pp]assword[=: ]+)[^ ,;]+/\1<redacted>/g; s/([Tt]oken[=: ]+)[^ ,;]+/\1<redacted>/g'
-            fi
-          done < <(sudo -n docker stack services mnemos --format '{{.Name}}')
+          echo '===== REDIS / KAFKA CONTAINER STATE ====='
+          while IFS='|' read -r cid name image status networks; do
+            case "$name $image" in
+              *[Rr][Ee][Dd][Ii][Ss]*|*[Kk][Aa][Ff][Kk][Aa]*) ;;
+              *) continue ;;
+            esac
+            echo
+            echo "--- $name ---"
+            echo "id=$cid image=$image status=$status networks=$networks"
+            sudo -n docker inspect "$cid" --format 'state={{.State.Status}} running={{.State.Running}} restarting={{.State.Restarting}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} restart={{.HostConfig.RestartPolicy.Name}}' 2>&1
+            sudo -n timeout 5s docker logs --since 90m "$cid" 2>&1 \
+              | grep -Ei 'ERROR|WARN|FATAL|panic|failed|failure|OOM|OutOfMemory|refused|unreachable|timeout|timed out|shutdown|terminated|ready|started' \
+              | tail -n 120 || true
+          done < <(sudo -n docker ps -a --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Networks}}')
 
           echo
-          echo '===== RECENT CONTAINER EXITS / RESTARTS ====='
-          sudo -n docker ps -a \
-            --filter label=com.docker.stack.namespace=mnemos \
-            --format '{{.Names}}|{{.Status}}|{{.Image}}' \
-            | grep -Ei 'Exited|Restarting|unhealthy|Created' \
-            | head -n 120 || true
+          echo '===== SERVICE DISCOVERY FROM APP CONTAINERS ====='
+          for svc in gateway-service realtime-service event-service notification-service profile-service; do
+            cid="$(sudo -n docker ps -q --filter label=com.docker.swarm.service.name=mnemos_${svc} | head -n 1)"
+            [ -n "$cid" ] || continue
+            echo
+            echo "--- $svc container=$cid ---"
+            sudo -n docker exec "$cid" sh -lc '
+              for host in redis kafka account-service event-service gateway-service; do
+                printf "%s => " "$host"
+                if command -v getent >/dev/null 2>&1; then getent hosts "$host" || true; else cat /etc/hosts | grep -w "$host" || true; fi
+              done
+            ' 2>&1 || true
+          done
+
+          echo
+          echo '===== HOST ROUTING ====='
+          ip -br addr 2>/dev/null || true
+          ip route 2>/dev/null || true
+
+          echo
+          echo '===== DOCKER DAEMON EVENTS / ERRORS ====='
+          sudo -n journalctl --since '90 minutes ago' -u docker --no-pager 2>/dev/null \
+            | grep -Ei 'error|warn|failed|failure|restart|shutdown|network|overlay|vxlan|endpoint|sandbox|daemon' \
+            | tail -n 240 || true
+
+          echo
+          echo '===== KERNEL NETWORK / OOM / REBOOT SIGNALS ====='
+          sudo -n journalctl --since '90 minutes ago' -k --no-pager 2>/dev/null \
+            | grep -Ei 'oom|out of memory|panic|watchdog|reset|reboot|shutdown|docker|vxlan|overlay|bridge|veth|network|nf_conntrack' \
+            | tail -n 240 || true
