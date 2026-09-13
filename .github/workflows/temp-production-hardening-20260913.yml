@@ -1,4 +1,4 @@
-name: Temporary Production Hardening 2026-09-13
+name: Temporary Production Runtime Hardening 2026-09-13
 
 on:
   push:
@@ -7,98 +7,102 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
-  harden:
+  reconcile:
     runs-on: [self-hosted, mnemos-production]
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      TOOLING_REVISION: daf35deec5e0a41172afa73de89e1f68d36ee8dc
 
     steps:
-      - name: Apply Redis kernel hardening and refresh durable GHCR auth when available
+      - name: Prepare runner workspace
         shell: bash
-        env:
-          SECRET_MNEMOS_GHCR_PULL_TOKEN: ${{ secrets.MNEMOS_GHCR_PULL_TOKEN }}
-          SECRET_GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
-          SECRET_GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          SECRET_CR_PAT: ${{ secrets.CR_PAT }}
-          GHCR_USERNAME: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-
-          echo '===== REDIS KERNEL HARDENING ====='
-          printf '%s\n' 'vm.overcommit_memory = 1' | sudo -n tee /etc/sysctl.d/99-mnemos-redis.conf >/dev/null
-          sudo -n chmod 0644 /etc/sysctl.d/99-mnemos-redis.conf
-          sudo -n sysctl -p /etc/sysctl.d/99-mnemos-redis.conf
-
-          current_overcommit="$(cat /proc/sys/vm/overcommit_memory)"
-          persistent_overcommit="$(sudo -n awk -F= '/^[[:space:]]*vm\.overcommit_memory[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2}' /etc/sysctl.d/99-mnemos-redis.conf)"
-          echo "runtime_vm_overcommit_memory=$current_overcommit"
-          echo "persistent_vm_overcommit_memory=$persistent_overcommit"
-          test "$current_overcommit" = 1
-          test "$persistent_overcommit" = 1
-
-          echo
-          echo '===== LONG-LIVED GHCR SECRET PRESENCE ====='
-          selected_token=''
-          selected_name=''
-          if [ -n "$SECRET_MNEMOS_GHCR_PULL_TOKEN" ]; then
-            selected_token="$SECRET_MNEMOS_GHCR_PULL_TOKEN"
-            selected_name='MNEMOS_GHCR_PULL_TOKEN'
-          elif [ -n "$SECRET_GHCR_PULL_TOKEN" ]; then
-            selected_token="$SECRET_GHCR_PULL_TOKEN"
-            selected_name='GHCR_PULL_TOKEN'
-          elif [ -n "$SECRET_GHCR_TOKEN" ]; then
-            selected_token="$SECRET_GHCR_TOKEN"
-            selected_name='GHCR_TOKEN'
-          elif [ -n "$SECRET_CR_PAT" ]; then
-            selected_token="$SECRET_CR_PAT"
-            selected_name='CR_PAT'
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
           fi
 
-          for name in MNEMOS_GHCR_PULL_TOKEN GHCR_PULL_TOKEN GHCR_TOKEN CR_PAT; do
-            var="SECRET_${name}"
-            if [ -n "${!var}" ]; then
-              echo "$name=present"
-            else
-              echo "$name=absent"
-            fi
-          done
+      - name: Checkout pinned merged master tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: daf35deec5e0a41172afa73de89e1f68d36ee8dc
+          fetch-depth: 1
+          persist-credentials: false
 
-          if [ -n "$selected_token" ]; then
-            echo "selected_secret=$selected_name"
-            auth_dir="$(mktemp -d)"
-            sudo -n install -d -m 0700 -o root -g root "$auth_dir/root"
-            trap 'sudo -n rm -rf "$auth_dir"' EXIT
+      - name: Verify pinned tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TOOLING_REVISION"
 
-            printf '%s' "$selected_token" | sudo -n env DOCKER_CONFIG="$auth_dir/root" docker login ghcr.io --username "$GHCR_USERNAME" --password-stdin >/dev/null
+      - name: Preflight production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/validate-production-env.sh
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
 
-            test_image="$(sudo -n docker service ls --format '{{.Image}}' | sed '/^ghcr\.io\/knliiss\/mnemos-/!d' | head -n 1)"
-            test -n "$test_image"
-            echo "registry_pull_test_image=$test_image"
-            sudo -n env DOCKER_CONFIG="$auth_dir/root" docker pull "$test_image" >/dev/null
-            echo 'registry_pull_test=success'
+      - name: Reconcile runtime policy without image replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n env \
+            PYTHONDONTWRITEBYTECODE=1 \
+            python3 scripts/reconcile-production-runtime-policy.py
 
-            refreshed=0
-            while IFS= read -r service; do
-              [ -n "$service" ] || continue
-              image="$(sudo -n docker service inspect "$service" --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}')"
-              case "$image" in
-                ghcr.io/knliiss/mnemos-*)
-                  echo "refresh_registry_auth=$service"
-                  sudo -n env DOCKER_CONFIG="$auth_dir/root" docker service update --detach=true --with-registry-auth "$service" >/dev/null
-                  refreshed=$((refreshed + 1))
-                  ;;
-              esac
-            done < <(sudo -n docker service ls --format '{{.Name}}')
-            echo "services_registry_auth_refreshed=$refreshed"
-          else
-            echo 'selected_secret=none'
-            echo 'durable_registry_auth_refresh=skipped'
-          fi
+      - name: Verify after policy reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
 
-          echo
-          echo '===== PRODUCTION HEALTH ====='
-          sudo -n /opt/mnemos/current/scripts/check-production-health.sh
+      - name: Install merged production tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/install-production-runtime.sh "$TOOLING_REVISION"
+          test "$(cat /proc/sys/vm/overcommit_memory)" = 1
+          test "$(sudo -n awk -F= '/^[[:space:]]*vm\.overcommit_memory[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2}' /etc/sysctl.d/99-mnemos-redis.conf)" = 1
+
+      - name: Record exact live production state
+        shell: bash
+        run: |
+          set -euo pipefail
+          state_tmp="$(sudo -n mktemp)"
+          trap 'sudo -n rm -f "$state_tmp"' EXIT
+
+          sudo -n env \
+            PYTHONDONTWRITEBYTECODE=1 \
+            python3 scripts/production_runtime_state.py \
+              observe \
+              --tooling-revision "$TOOLING_REVISION" \
+              --output "$state_tmp"
+
+          sudo -n install --directory --mode=0700 /var/lib/mnemos-deploy
+          sudo -n install \
+            --owner=root \
+            --group=root \
+            --mode=0600 \
+            "$state_tmp" \
+            /var/lib/mnemos-deploy/current-state.json
+
+          sudo -n env \
+            PYTHONDONTWRITEBYTECODE=1 \
+            python3 scripts/production_runtime_state.py \
+              verify \
+              --state /var/lib/mnemos-deploy/current-state.json
+
+      - name: Final production gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
           sudo -n docker inspect mnemos-redis --format 'redis_state={{.State.Status}} redis_health={{.State.Health.Status}} restart_count={{.RestartCount}}'
-          echo 'PRODUCTION_HARDENING_STEP_COMPLETE'
+          echo "runtime_current=$(readlink -f /opt/mnemos/current)"
+          echo 'PRODUCTION_RUNTIME_HARDENING_SUCCESS'
