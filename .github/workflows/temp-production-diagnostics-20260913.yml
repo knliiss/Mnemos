@@ -72,12 +72,10 @@ jobs:
           for cfg in /root/.docker/config.json /home/*/.docker/config.json; do
             if sudo -n test -f "$cfg"; then
               echo "config=$cfg"
-              sudo -n python3 - "$cfg" <<'PY' 2>/dev/null || true
-import json, sys
-with open(sys.argv[1], encoding='utf-8') as f:
-    data=json.load(f)
-print('auth_hosts=' + ','.join(sorted((data.get('auths') or {}).keys())))
-print('credsStore=' + str(data.get('credsStore') or ''))
-PY
+              if command -v jq >/dev/null 2>&1; then
+                sudo -n jq -r '(.auths // {}) | keys[]' "$cfg" 2>/dev/null | sed 's/^/auth_host=/'
+              else
+                echo 'jq=unavailable'
+              fi
             fi
           done
