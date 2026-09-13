@@ -1,0 +1,82 @@
+name: Temporary Patch Production GHCR Auth 2026-09-13
+
+on:
+  push:
+    branches:
+      - ops/production-diagnostics-20260913
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 10
+
+    steps:
+      - name: Prepare runner workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+          fi
+
+      - name: Checkout GHCR hardening branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: fix/production-ghcr-pull-auth
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Patch production mutation workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          github_token = "$" + "{{ github.token }}"
+          durable_token = "$" + "{{ secrets.MNEMOS_GHCR_PULL_TOKEN || github.token }}"
+
+          paths = [
+              Path('.github/workflows/production-targeted-execution.yml'),
+              Path('.github/workflows/production-backend-service-deploy.yml'),
+          ]
+
+          old = (
+              "      - name: Authenticate production Docker to GHCR\n"
+              "        shell: bash\n"
+              "        env:\n"
+              f"          GHCR_TOKEN: {github_token}\n"
+          )
+          new = (
+              "      - name: Authenticate production Docker to GHCR\n"
+              "        shell: bash\n"
+              "        env:\n"
+              f"          GHCR_TOKEN: {durable_token}\n"
+          )
+
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly one production GHCR auth block, found {count}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              print(f'patched={path}')
+          PY
+
+          git diff --check
+          git diff -- .github/workflows/production-targeted-execution.yml .github/workflows/production-backend-service-deploy.yml
+
+      - name: Commit and push GHCR hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/production-targeted-execution.yml .github/workflows/production-backend-service-deploy.yml
+          git diff --cached --quiet && { echo 'No GHCR hardening changes to commit'; exit 0; }
+          git commit -m 'Prefer durable GHCR pull auth in production'
+          git push origin HEAD:fix/production-ghcr-pull-auth
