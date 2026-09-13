@@ -1,0 +1,92 @@
+name: Temporary Production Diagnostics 2026-09-13
+
+on:
+  push:
+    branches:
+      - ops/production-diagnostics-20260913
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 10
+
+    steps:
+      - name: Inspect production runtime
+        shell: bash
+        run: |
+          set +e
+
+          echo '===== TIME / HOST LOAD ====='
+          date -u
+          uptime
+          free -h
+          df -h / /var/lib/docker 2>/dev/null || df -h /
+
+          echo
+          echo '===== DOCKER / SWARM ====='
+          sudo -n docker info --format 'server={{.ServerVersion}} swarm={{.Swarm.LocalNodeState}} control={{.Swarm.ControlAvailable}} containers={{.Containers}} running={{.ContainersRunning}} paused={{.ContainersPaused}} stopped={{.ContainersStopped}}'
+          sudo -n docker system df
+
+          echo
+          echo '===== MNEMOS STACK SERVICES ====='
+          sudo -n docker stack services mnemos --format 'table {{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}'
+
+          echo
+          echo '===== MNEMOS CONTAINERS ====='
+          sudo -n docker ps -a \
+            --filter label=com.docker.stack.namespace=mnemos \
+            --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' \
+            | head -n 120
+
+          echo
+          echo '===== RESOURCE SNAPSHOT ====='
+          sudo -n docker stats --no-stream \
+            --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}' \
+            $(sudo -n docker ps -q --filter label=com.docker.stack.namespace=mnemos) 2>/dev/null \
+            | head -n 120
+
+          echo
+          echo '===== NON-CONVERGED / RECENT FAILED TASKS ====='
+          while IFS='|' read -r service replicas image; do
+            [ -n "$service" ] || continue
+            current="${replicas%%/*}"
+            desired="${replicas##*/}"
+            failed="$(sudo -n docker service ps "$service" --no-trunc --format '{{.CurrentState}}|{{.Error}}' 2>/dev/null | grep -Eci 'Failed|Rejected|Shutdown.*(second|minute|hour)|non-zero|error' || true)"
+            if [ "$current" != "$desired" ] || [ "${failed:-0}" -gt 0 ]; then
+              echo
+              echo "--- $service replicas=$replicas image=$image ---"
+              sudo -n docker service inspect "$service" \
+                --format 'update={{if .UpdateStatus}}{{.UpdateStatus.State}} {{.UpdateStatus.Message}}{{else}}none{{end}} created={{.CreatedAt}} updated={{.UpdatedAt}}' 2>&1
+              sudo -n docker service ps "$service" --no-trunc \
+                --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+                | head -n 30
+            fi
+          done < <(sudo -n docker stack services mnemos --format '{{.Name}}|{{.Replicas}}|{{.Image}}')
+
+          echo
+          echo '===== RECENT ERRORS / WARNINGS (LAST 90M) ====='
+          while read -r service; do
+            [ -n "$service" ] || continue
+            matches="$(
+              sudo -n timeout 6s docker service logs --raw --since 90m "$service" 2>&1 \
+                | grep -Ei 'ERROR|WARN|Exception|Caused by:|failed|failure|unhealthy|timeout|timed out|refused|denied|OOM|OutOfMemory|panic|fatal' \
+                | tail -n 100
+            )"
+            if [ -n "$matches" ]; then
+              echo
+              echo "--- $service ---"
+              printf '%s\n' "$matches" \
+                | sed -E 's/(Bearer )[A-Za-z0-9._~+\/-]+/\1<redacted>/g; s/([Pp]assword[=: ]+)[^ ,;]+/\1<redacted>/g; s/([Tt]oken[=: ]+)[^ ,;]+/\1<redacted>/g'
+            fi
+          done < <(sudo -n docker stack services mnemos --format '{{.Name}}')
+
+          echo
+          echo '===== RECENT CONTAINER EXITS / RESTARTS ====='
+          sudo -n docker ps -a \
+            --filter label=com.docker.stack.namespace=mnemos \
+            --format '{{.Names}}|{{.Status}}|{{.Image}}' \
+            | grep -Ei 'Exited|Restarting|unhealthy|Created' \
+            | head -n 120 || true
