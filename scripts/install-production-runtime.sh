@@ -29,6 +29,8 @@ if [ "${#RELEASE_TAG}" -lt 12 ]; then
     exit 1
 fi
 
+sh "$REPOSITORY_ROOT/scripts/configure-production-kernel.sh"
+
 TARGET="$RUNTIME_ROOT/$RELEASE_TAG"
 TEMP_TARGET="$RUNTIME_ROOT/.${RELEASE_TAG}.tmp.$$"
 
