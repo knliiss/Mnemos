@@ -1,4 +1,4 @@
-name: Temporary Production Infrastructure Diagnostics 2026-09-13
+name: Temporary Production Root Cause Diagnostics 2026-09-13
 
 on:
   push:
@@ -14,87 +14,70 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Inspect production infrastructure
+      - name: Inspect Redis crash and reboot cause
         shell: bash
         run: |
           set +e
 
-          echo '===== HOST / REBOOT ====='
-          date -u
-          uptime
-          last -x reboot shutdown 2>/dev/null | head -n 20 || true
-          systemctl --failed --no-pager 2>/dev/null || true
+          echo '===== REDIS CURRENT STATE ====='
+          sudo -n docker ps -a --filter name='^/mnemos-redis$' --format 'id={{.ID}} name={{.Names}} image={{.Image}} status={{.Status}} networks={{.Networks}}'
+          sudo -n docker inspect mnemos-redis --format 'state={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} error={{.State.Error}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} restart_count={{.RestartCount}}' 2>&1 || true
 
           echo
-          echo '===== ALL SWARM SERVICES ====='
-          sudo -n docker service ls --format 'table {{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}'
-
-          echo
-          echo '===== INFRA CONTAINERS ====='
-          sudo -n docker ps -a \
-            --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Networks}}' \
-            | grep -Ei 'redis|kafka|postgres|keycloak|zookeeper|mnemos|infra' \
-            | head -n 200 || true
-
-          echo
-          echo '===== DOCKER NETWORKS ====='
-          sudo -n docker network ls --format 'table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}'
-
-          echo
-          echo '===== RELEVANT NETWORK MEMBERS ====='
-          while read -r network; do
-            [ -n "$network" ] || continue
-            echo
-            echo "--- $network ---"
-            sudo -n docker network inspect "$network" \
-              --format 'name={{.Name}} id={{.Id}} driver={{.Driver}} scope={{.Scope}} attachable={{.Attachable}}{{range $id, $c := .Containers}}{{println}}{{printf "%s|%s|%s" $id $c.Name $c.IPv4Address}}{{end}}' 2>&1 \
-              | head -n 160
-          done < <(sudo -n docker network ls --format '{{.Name}}' | grep -Ei 'mnemos|redis|kafka|infra|backend|public' | sort -u)
-
-          echo
-          echo '===== REDIS / KAFKA CONTAINER STATE ====='
-          while IFS='|' read -r cid name image status networks; do
-            case "$name $image" in
-              *[Rr][Ee][Dd][Ii][Ss]*|*[Kk][Aa][Ff][Kk][Aa]*) ;;
-              *) continue ;;
-            esac
-            echo
-            echo "--- $name ---"
-            echo "id=$cid image=$image status=$status networks=$networks"
-            sudo -n docker inspect "$cid" --format 'state={{.State.Status}} running={{.State.Running}} restarting={{.State.Restarting}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} restart={{.HostConfig.RestartPolicy.Name}}' 2>&1
-            sudo -n timeout 5s docker logs --since 90m "$cid" 2>&1 \
-              | grep -Ei 'ERROR|WARN|FATAL|panic|failed|failure|OOM|OutOfMemory|refused|unreachable|timeout|timed out|shutdown|terminated|ready|started' \
-              | tail -n 120 || true
-          done < <(sudo -n docker ps -a --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Networks}}')
-
-          echo
-          echo '===== SERVICE DISCOVERY FROM APP CONTAINERS ====='
-          for svc in gateway-service realtime-service event-service notification-service profile-service; do
-            cid="$(sudo -n docker ps -q --filter label=com.docker.swarm.service.name=mnemos_${svc} | head -n 1)"
-            [ -n "$cid" ] || continue
-            echo
-            echo "--- $svc container=$cid ---"
-            sudo -n docker exec "$cid" sh -lc '
-              for host in redis kafka account-service event-service gateway-service; do
-                printf "%s => " "$host"
-                if command -v getent >/dev/null 2>&1; then getent hosts "$host" || true; else cat /etc/hosts | grep -w "$host" || true; fi
-              done
-            ' 2>&1 || true
+          echo '===== REDIS REQUIRED ENV PRESENCE (VALUES HIDDEN) ====='
+          for key in REDIS_ADMIN_PASSWORD REDIS_GATEWAY_PASSWORD REDIS_REALTIME_PASSWORD REDIS_NOTIFICATION_PASSWORD REDIS_TELEGRAM_BOT_PASSWORD; do
+            if sudo -n docker inspect mnemos-redis --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | grep -q "^${key}=."; then
+              echo "$key=present"
+            else
+              echo "$key=MISSING_OR_EMPTY"
+            fi
           done
 
           echo
-          echo '===== HOST ROUTING ====='
-          ip -br addr 2>/dev/null || true
-          ip route 2>/dev/null || true
+          echo '===== REDIS LAST LOGS ====='
+          sudo -n docker logs --tail 160 mnemos-redis 2>&1 \
+            | sed -E 's/(password|pass|token|secret)([=: ]+)[^ ,;]+/\1\2<redacted>/Ig' || true
 
           echo
-          echo '===== DOCKER DAEMON EVENTS / ERRORS ====='
-          sudo -n journalctl --since '90 minutes ago' -u docker --no-pager 2>/dev/null \
-            | grep -Ei 'error|warn|failed|failure|restart|shutdown|network|overlay|vxlan|endpoint|sandbox|daemon' \
-            | tail -n 240 || true
+          echo '===== REDIS DATA VOLUME METADATA ====='
+          sudo -n docker inspect mnemos-redis --format '{{range .Mounts}}type={{.Type}} name={{.Name}} destination={{.Destination}} rw={{.RW}}{{println}}{{end}}' 2>&1 || true
+          volume="$(sudo -n docker inspect mnemos-redis --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}' 2>/dev/null)"
+          if [ -n "$volume" ]; then
+            mountpoint="$(sudo -n docker volume inspect "$volume" --format '{{.Mountpoint}}' 2>/dev/null)"
+            echo "volume=$volume"
+            sudo -n find "$mountpoint" -maxdepth 3 -printf '%M %u:%g %s %TY-%Tm-%TdT%TH:%TM:%TS %p\n' 2>/dev/null | head -n 100
+          fi
 
           echo
-          echo '===== KERNEL NETWORK / OOM / REBOOT SIGNALS ====='
-          sudo -n journalctl --since '90 minutes ago' -k --no-pager 2>/dev/null \
-            | grep -Ei 'oom|out of memory|panic|watchdog|reset|reboot|shutdown|docker|vxlan|overlay|bridge|veth|network|nf_conntrack' \
-            | tail -n 240 || true
+          echo '===== PRODUCTION HEALTH SERVICE ====='
+          sudo -n systemctl status mnemos-production-health.service --no-pager -l 2>&1 | tail -n 100 || true
+          sudo -n journalctl -u mnemos-production-health.service --since '60 minutes ago' --no-pager 2>&1 | tail -n 160 || true
+
+          echo
+          echo '===== PREVIOUS BOOT END (-1) ====='
+          sudo -n journalctl -b -1 -e --no-pager 2>/dev/null | tail -n 220 || true
+
+          echo
+          echo '===== PREVIOUS BOOT END (-2) ====='
+          sudo -n journalctl -b -2 -e --no-pager 2>/dev/null | tail -n 160 || true
+
+          echo
+          echo '===== REBOOT / SHUTDOWN COMMAND SIGNALS ====='
+          sudo -n journalctl --since '45 minutes ago' --no-pager 2>/dev/null \
+            | grep -Ei 'reboot|shutdown|poweroff|systemd-logind|systemd-shutdown|watchdog|panic|oom|out of memory|apt|unattended|needrestart' \
+            | tail -n 200 || true
+
+          echo
+          echo '===== GHCR AUTH PRESENCE (NO CREDENTIALS) ====='
+          for cfg in /root/.docker/config.json /home/*/.docker/config.json; do
+            if sudo -n test -f "$cfg"; then
+              echo "config=$cfg"
+              sudo -n python3 - "$cfg" <<'PY' 2>/dev/null || true
+import json, sys
+with open(sys.argv[1], encoding='utf-8') as f:
+    data=json.load(f)
+print('auth_hosts=' + ','.join(sorted((data.get('auths') or {}).keys())))
+print('credsStore=' + str(data.get('credsStore') or ''))
+PY
+            fi
+          done
