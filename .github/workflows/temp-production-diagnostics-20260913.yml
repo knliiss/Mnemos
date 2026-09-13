@@ -1,4 +1,4 @@
-name: Temporary Production Redis Recovery 2026-09-13
+name: Temporary Production Convergence Verification 2026-09-13
 
 on:
   push:
@@ -9,95 +9,40 @@ permissions:
   contents: read
 
 jobs:
-  recover:
+  verify:
     runs-on: [self-hosted, mnemos-production]
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-      - name: Backup and repair Redis AOF
+      - name: Wait for production convergence
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
 
-          echo '===== PRECHECK ====='
-          sudo -n docker inspect mnemos-redis >/dev/null
-          volume="$(sudo -n docker inspect mnemos-redis --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}')"
-          image="$(sudo -n docker inspect mnemos-redis --format '{{.Config.Image}}')"
-          mountpoint="$(sudo -n docker volume inspect "$volume" --format '{{.Mountpoint}}')"
-          test -n "$volume"
-          test -n "$image"
-          test -n "$mountpoint"
-          echo "redis_volume=$volume"
-          echo "redis_image=$image"
-
-          backup_root=/opt/mnemos/backups
-          backup_name="redis-recovery-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
-          sudo -n mkdir -p "$backup_root"
-          echo '===== BACKUP ====='
-          sudo -n tar -C "$mountpoint" -czf "$backup_root/$backup_name" .
-          sudo -n test -s "$backup_root/$backup_name"
-          sudo -n sha256sum "$backup_root/$backup_name"
-          echo "backup=$backup_root/$backup_name"
-
-          echo '===== STOP REDIS RESTART LOOP ====='
-          sudo -n docker stop -t 20 mnemos-redis || true
-          for i in $(seq 1 20); do
-            state="$(sudo -n docker inspect mnemos-redis --format '{{.State.Status}}')"
-            [ "$state" = stopped ] || [ "$state" = exited ] && break
-            sleep 1
-          done
-          sudo -n docker inspect mnemos-redis --format 'state={{.State.Status}} exit={{.State.ExitCode}} restart_count={{.RestartCount}}'
-
-          echo '===== REPAIR AOF ====='
-          printf 'y\n' | sudo -n docker run --rm -i \
-            --entrypoint redis-check-aof \
-            -v "$volume:/data" \
-            "$image" \
-            --fix /data/appendonlydir/appendonly.aof.manifest
-
-          echo '===== VALIDATE AOF ====='
-          sudo -n docker run --rm \
-            --entrypoint redis-check-aof \
-            -v "$volume:/data" \
-            "$image" \
-            /data/appendonlydir/appendonly.aof.manifest
-
-          echo '===== START REDIS ====='
-          sudo -n docker start mnemos-redis
-
-          echo '===== WAIT FOR REDIS HEALTH ====='
-          healthy=0
-          for i in $(seq 1 60); do
-            status="$(sudo -n docker inspect mnemos-redis --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' 2>/dev/null || true)"
-            echo "redis_status=$status attempt=$i"
-            if [ "$status" = healthy ]; then
-              healthy=1
-              break
-            fi
-            if [ "$(sudo -n docker inspect mnemos-redis --format '{{.State.Status}}' 2>/dev/null || true)" = exited ]; then
-              break
-            fi
-            sleep 2
-          done
-
-          if [ "$healthy" -ne 1 ]; then
-            echo 'Redis did not become healthy after AOF repair' >&2
-            sudo -n docker logs --tail 200 mnemos-redis 2>&1 || true
-            exit 1
-          fi
-
-          echo '===== REDIS PING ====='
+          echo '===== REDIS STATE ====='
+          sudo -n docker inspect mnemos-redis --format 'state={{.State.Status}} health={{.State.Health.Status}} restart_count={{.RestartCount}}'
           sudo -n docker exec mnemos-redis sh -lc 'REDISCLI_AUTH="$REDIS_ADMIN_PASSWORD" redis-cli --user redis_admin ping'
 
-          echo '===== PRODUCTION HEALTH ====='
-          sleep 15
-          if ! sudo -n /opt/mnemos/current/scripts/check-production-health.sh; then
-            echo 'Production health check did not pass after Redis recovery' >&2
-            sudo -n docker service ls || true
-            sudo -n docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' || true
-            exit 2
-          fi
+          echo '===== WAIT FOR PRODUCTION HEALTH ====='
+          for i in $(seq 1 36); do
+            echo "--- health attempt $i/36 ---"
+            if sudo -n /opt/mnemos/current/scripts/check-production-health.sh; then
+              echo 'PRODUCTION_HEALTHY'
+              echo '===== FINAL SERVICES ====='
+              sudo -n docker service ls
+              echo '===== FINAL CONTAINERS ====='
+              sudo -n docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+              exit 0
+            fi
+            sleep 10
+          done
 
-          echo '===== FINAL REDIS STATE ====='
-          sudo -n docker inspect mnemos-redis --format 'state={{.State.Status}} health={{.State.Health.Status}} restart_count={{.RestartCount}}'
-          echo 'PRODUCTION_REDIS_RECOVERY_SUCCESS'
+          echo '===== CONVERGENCE FAILED =====' >&2
+          sudo -n docker service ls || true
+          for service in $(sudo -n docker service ls --format '{{.Name}}'); do
+            echo "===== SERVICE $service ====="
+            sudo -n docker service ps "$service" --no-trunc --format 'name={{.Name}} desired={{.DesiredState}} current={{.CurrentState}} error={{.Error}} image={{.Image}}' | head -n 20 || true
+          done
+          echo '===== CONTAINERS ====='
+          sudo -n docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' | head -n 80 || true
+          exit 1
