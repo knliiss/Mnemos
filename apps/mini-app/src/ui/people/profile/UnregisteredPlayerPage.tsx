@@ -55,7 +55,7 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
     })
       .then((response) => {
         if (!cancelled) {
-          setDrops(response.content.map(toFeedEvent))
+          setDrops(response.items.map(toFeedEvent))
         }
       })
       .catch((error) => {
