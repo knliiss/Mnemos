@@ -86,7 +86,8 @@ export const eventsUk = {
       allRules: "Усі правила",
       feedBridgeEyebrow: "ПОШУК У СТРІЧЦІ",
       feedBridgeTitle: "Що саме знайти?",
-      feedBridgeCopy: "Оберіть звʼязок із цією подією: гравця, такий самий дроп, тип події або конкретну локацію.",
+      feedBridgeCopy:
+        "Оберіть звʼязок із цією подією: гравця, такий самий дроп, тип події або конкретну локацію.",
       feedChoicePlayerTitle: "Події {{player}}",
       feedChoicePlayerCopy: "Дропи й активації, повʼязані з цим гравцем.",
       feedChoiceItemTitle: "Такий самий дроп",
