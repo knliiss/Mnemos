@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { FeedEvent } from "../../model"
-import { eventToFeedRouteParams, readEventFeedRouteParams } from "./eventFeedRouteParams"
+import { eventToFeedRouteChoices, readEventFeedRouteParams } from "./eventFeedRouteParams"
 
 function event(overrides: Partial<FeedEvent>): FeedEvent {
   return {
@@ -15,42 +15,73 @@ function event(overrides: Partial<FeedEvent>): FeedEvent {
 }
 
 describe("event feed route params", () => {
-  it("copies the useful drop filters into the feed route", () => {
-    expect(
-      eventToFeedRouteParams(
-        event({
-          kind: "ITEM_DROP",
-          meta: "PET",
-          rarity: "SECRET",
-        }),
-      ),
-    ).toEqual({
-      filter: "ITEM_DROP",
-      itemType: "PET",
-      rarity: "SECRET",
-    })
+  it("offers player and exact drop searches separately", () => {
+    expect(eventToFeedRouteChoices(event({}))).toEqual([
+      {
+        id: "player:player",
+        type: "PLAYER",
+        value: "Player",
+        params: { query: "Player" },
+      },
+      {
+        id: "item:test item",
+        type: "ITEM",
+        value: "Test item",
+        params: { filter: "ITEM_DROP", query: "Test item" },
+      },
+    ])
   })
 
-  it("copies a raid location only when the event has exactly one location", () => {
+  it("offers player and booster searches separately", () => {
     expect(
-      eventToFeedRouteParams(
+      eventToFeedRouteChoices(
         event({
-          kind: "RAID",
-          title: "RAID",
-          detail: "7",
+          kind: "BOOSTER",
+          title: "LUCK",
+          detail: "BoostPlayer",
         }),
       ),
-    ).toEqual({ filter: "RAID", raidLocation: "7" })
+    ).toEqual([
+      {
+        id: "player:boostplayer",
+        type: "PLAYER",
+        value: "BoostPlayer",
+        params: { query: "BoostPlayer" },
+      },
+      {
+        id: "booster:LUCK",
+        type: "BOOSTER",
+        value: "LUCK",
+        params: { filter: "BOOSTER", boosterType: "LUCK" },
+      },
+    ])
+  })
 
+  it("turns every raid location into its own feed choice", () => {
     expect(
-      eventToFeedRouteParams(
+      eventToFeedRouteChoices(
         event({
           kind: "RAID",
           title: "RAID",
-          detail: "7 · 12",
+          detail: "7 · 12 · 7",
         }),
       ),
-    ).toEqual({ filter: "RAID" })
+    ).toEqual([
+      {
+        id: "raid-location:7",
+        type: "RAID_LOCATION",
+        value: "7",
+        location: 7,
+        params: { filter: "RAID", raidLocation: "7" },
+      },
+      {
+        id: "raid-location:12",
+        type: "RAID_LOCATION",
+        value: "12",
+        location: 12,
+        params: { filter: "RAID", raidLocation: "12" },
+      },
+    ])
   })
 
   it("restores only filters that belong to the selected event kind", () => {
