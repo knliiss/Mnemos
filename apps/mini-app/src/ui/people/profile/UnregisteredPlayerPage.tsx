@@ -30,12 +30,21 @@ type Props = {
   back: () => void
 }
 
+type DropsState =
+  | { key: string; status: "loading" }
+  | { key: string; status: "ready"; items: FeedEvent[] }
+  | { key: string; status: "error" }
+
 export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
-  const [drops, setDrops] = useState<FeedEvent[]>([])
-  const [dropsLoading, setDropsLoading] = useState(true)
-  const [dropsFailed, setDropsFailed] = useState(false)
   const [dropsRevision, setDropsRevision] = useState(0)
+  const requestKey = `${player.playerId}:${player.nickname.toLocaleLowerCase()}:${dropsRevision}`
+  const [dropsState, setDropsState] = useState<DropsState>({ key: requestKey, status: "loading" })
+  const activeDropsState: DropsState =
+    dropsState.key === requestKey ? dropsState : { key: requestKey, status: "loading" }
+  const drops = activeDropsState.status === "ready" ? activeDropsState.items : []
+  const dropsLoading = activeDropsState.status === "loading"
+  const dropsFailed = activeDropsState.status === "error"
   const subscription = usePresenceSubscription(player.playerId)
   const canSubscribe = canSubscribeToPresence(player.presenceStatus)
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -45,9 +54,6 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
   useEffect(() => {
     let cancelled = false
 
-    setDropsLoading(true)
-    setDropsFailed(false)
-
     void getEventFeed({
       types: ["ITEM_DROP"],
       droppedFor: player.nickname,
@@ -56,25 +62,24 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
     })
       .then((response) => {
         if (!cancelled) {
-          setDrops(response.items.map(toFeedEvent))
+          setDropsState({
+            key: requestKey,
+            status: "ready",
+            items: response.items.map(toFeedEvent),
+          })
         }
       })
       .catch((error) => {
         if (!cancelled) {
           handleError(error)
-          setDropsFailed(true)
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setDropsLoading(false)
+          setDropsState({ key: requestKey, status: "error" })
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [dropsRevision, player.nickname])
+  }, [player.nickname, requestKey])
 
   const openDropFeed = () => {
     navigate({
