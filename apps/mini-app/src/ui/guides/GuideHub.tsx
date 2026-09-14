@@ -188,7 +188,13 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
     <div className="screen guides-screen guides-hub-screen guides-hub-screen--redesign">
       <PageHeader title={ui.title} eyebrow={ui.eyebrow} back={back} />
 
-      <section className="guides-hub-intro guides-hub-intro--redesign">
+      <section className="guides-hub-intro guides-hub-intro--redesign guides-hub-intro--with-art">
+        <span className="guides-hub-intro__art" aria-hidden="true">
+          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--outer" />
+          <span className="guides-hub-intro__orbit guides-hub-intro__orbit--inner" />
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
+        </span>
+
         <span className="guides-hub-intro__copy">
           <small>{ui.eyebrow}</small>
           <strong>{ui.heroTitle}</strong>
