@@ -35,6 +35,7 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
   const [drops, setDrops] = useState<FeedEvent[]>([])
   const [dropsLoading, setDropsLoading] = useState(true)
   const [dropsFailed, setDropsFailed] = useState(false)
+  const [dropsRevision, setDropsRevision] = useState(0)
   const subscription = usePresenceSubscription(player.playerId)
   const canSubscribe = canSubscribeToPresence(player.presenceStatus)
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -73,7 +74,14 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
     return () => {
       cancelled = true
     }
-  }, [player.nickname])
+  }, [dropsRevision, player.nickname])
+
+  const openDropFeed = () => {
+    navigate({
+      id: "events",
+      params: { filter: "ITEM_DROP", query: player.nickname },
+    })
+  }
 
   return (
     <div className="screen public-profile-screen unregistered-player-screen">
@@ -158,25 +166,20 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
         <header>
           <span>
             <small>{t("people.profile.externalObservedData")}</small>
-            <strong>{t("people.profile.latestDrops")}</strong>
+            <strong>
+              {t("people.profile.latestDrops")}
+              {!dropsLoading && !dropsFailed && drops.length ? <b>{drops.length}</b> : null}
+            </strong>
           </span>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate({
-                id: "events",
-                params: { filter: "ITEM_DROP", query: player.nickname },
-              })
-            }
-          >
+          <button type="button" onClick={openDropFeed}>
             {t("people.profile.openInFeed")}
             <span aria-hidden="true">›</span>
           </button>
         </header>
 
         {dropsLoading ? (
-          <div className="unregistered-player-drops__state">
+          <div className="unregistered-player-drops__state" aria-label={t("common.loading")}>
             <span className="unregistered-player-drops__pulse" />
             <span className="unregistered-player-drops__pulse" />
             <span className="unregistered-player-drops__pulse" />
@@ -185,6 +188,10 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
           <div className="unregistered-player-drops__state is-message">
             <Glyph name="events" size={22} />
             <strong>{t("common.loadErrorTitle")}</strong>
+            <small>{t("common.loadErrorCopy")}</small>
+            <button type="button" onClick={() => setDropsRevision((value) => value + 1)}>
+              {t("common.retry")}
+            </button>
           </div>
         ) : drops.length ? (
           <div className="unregistered-player-drops__list">
@@ -199,7 +206,9 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
                 <span>
                   <small>{formatOccurredAt(drop.occurredAt, locale)}</small>
                   <strong>{eventTitle(t, drop)}</strong>
-                  <em>{drop.rarity ? t(`events.rarities.${drop.rarity}`) : t("people.profile.drop")}</em>
+                  <em>
+                    {drop.rarity ? t(`events.rarities.${drop.rarity}`) : t("people.profile.drop")}
+                  </em>
                 </span>
                 <b aria-hidden="true">›</b>
               </motion.button>
@@ -210,6 +219,9 @@ export function UnregisteredPlayerPage({ player, navigate, back }: Props) {
             <Glyph name="events" size={22} />
             <strong>{t("people.profile.noDrops")}</strong>
             <small>{t("people.profile.externalNoDropsCopy")}</small>
+            <button type="button" onClick={openDropFeed}>
+              {t("people.profile.openInFeed")}
+            </button>
           </div>
         )}
       </section>
