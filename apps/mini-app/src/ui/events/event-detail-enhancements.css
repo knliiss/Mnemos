@@ -153,7 +153,11 @@
   border-radius: 12px;
   color: inherit;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--event-accent, #c7f24a) 3%, transparent), transparent 52%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--event-accent, #c7f24a) 3%, transparent),
+      transparent 52%
+    ),
     rgba(255, 255, 255, 0.014);
   text-align: left;
   transition:
@@ -165,7 +169,11 @@
 .event-detail-feed-choice:hover {
   border-color: color-mix(in srgb, var(--event-accent, #c7f24a) 30%, rgba(230, 236, 216, 0.08));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--event-accent, #c7f24a) 5%, transparent), transparent 55%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--event-accent, #c7f24a) 5%, transparent),
+      transparent 55%
+    ),
     rgba(255, 255, 255, 0.019);
 }
 
