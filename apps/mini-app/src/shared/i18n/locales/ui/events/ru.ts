@@ -86,7 +86,8 @@ export const eventsRu = {
       allRules: "Все правила",
       feedBridgeEyebrow: "ПОИСК В ЛЕНТЕ",
       feedBridgeTitle: "Что именно найти?",
-      feedBridgeCopy: "Выбери связь с этим событием: игрока, такой же дроп, тип события или конкретную локацию.",
+      feedBridgeCopy:
+        "Выбери связь с этим событием: игрока, такой же дроп, тип события или конкретную локацию.",
       feedChoicePlayerTitle: "События {{player}}",
       feedChoicePlayerCopy: "Дропы и активации, связанные с этим игроком.",
       feedChoiceItemTitle: "Такой же дроп",
