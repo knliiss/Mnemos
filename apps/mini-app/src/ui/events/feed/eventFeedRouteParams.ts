@@ -11,6 +11,14 @@ export type EventFeedInitialFilters = {
   query: string
 }
 
+export type EventFeedRouteChoice = {
+  id: string
+  type: "PLAYER" | "ITEM" | "BOOSTER" | "GLOBAL" | "RAID_LOCATION"
+  value: string
+  params: Record<string, string>
+  location?: number
+}
+
 const eventKinds = new Set<EventKind>(["ITEM_DROP", "BOOSTER", "GLOBAL", "RAID"])
 const itemTypes = new Set<EventItemType>(["SWORD", "AURA", "PET", "BOOK", "JEWELRY"])
 const rarities = new Set<ItemRarity>(["MYTHICAL", "SECRET"])
@@ -33,43 +41,75 @@ export const emptyEventFeedFilters: EventFeedInitialFilters = {
   query: "",
 }
 
-function oneRaidLocation(event: FeedEvent): number | null {
+function raidLocations(event: FeedEvent): number[] {
   if (event.kind !== "RAID") {
-    return null
+    return []
   }
 
-  const locations = event.detail
-    .split("·")
-    .map((value) => Number(value.trim()))
-    .filter((value) => Number.isInteger(value) && value > 0)
-
-  return locations.length === 1 ? locations[0] : null
+  return Array.from(
+    new Set(
+      event.detail
+        .split("·")
+        .map((value) => Number(value.trim()))
+        .filter((value) => Number.isInteger(value) && value > 0),
+    ),
+  )
 }
 
-export function eventToFeedRouteParams(event: FeedEvent): Record<string, string> {
-  const params: Record<string, string> = { filter: event.kind }
+export function eventToFeedRouteChoices(event: FeedEvent): EventFeedRouteChoice[] {
+  const choices: EventFeedRouteChoice[] = []
 
-  if (event.kind === "ITEM_DROP") {
-    if (event.meta && itemTypes.has(event.meta as EventItemType)) {
-      params.itemType = event.meta
-    }
+  if (event.kind === "ITEM_DROP" || event.kind === "BOOSTER") {
+    const player = event.detail.trim()
 
-    if (event.rarity) {
-      params.rarity = event.rarity
-    }
-  } else if (event.kind === "BOOSTER" && boosterTypes.has(event.title as BoosterType)) {
-    params.boosterType = event.title
-  } else if (event.kind === "GLOBAL" && globalTypes.has(event.title as GlobalEventType)) {
-    params.globalType = event.title
-  } else if (event.kind === "RAID") {
-    const location = oneRaidLocation(event)
-
-    if (location !== null) {
-      params.raidLocation = String(location)
+    if (player) {
+      choices.push({
+        id: `player:${player.toLocaleLowerCase()}`,
+        type: "PLAYER",
+        value: player,
+        params: { query: player },
+      })
     }
   }
 
-  return params
+  if (event.kind === "ITEM_DROP") {
+    const item = event.title.trim()
+
+    if (item) {
+      choices.push({
+        id: `item:${item.toLocaleLowerCase()}`,
+        type: "ITEM",
+        value: item,
+        params: { filter: "ITEM_DROP", query: item },
+      })
+    }
+  } else if (event.kind === "BOOSTER" && boosterTypes.has(event.title as BoosterType)) {
+    choices.push({
+      id: `booster:${event.title}`,
+      type: "BOOSTER",
+      value: event.title,
+      params: { filter: "BOOSTER", boosterType: event.title },
+    })
+  } else if (event.kind === "GLOBAL" && globalTypes.has(event.title as GlobalEventType)) {
+    choices.push({
+      id: `global:${event.title}`,
+      type: "GLOBAL",
+      value: event.title,
+      params: { filter: "GLOBAL", globalType: event.title },
+    })
+  } else if (event.kind === "RAID") {
+    raidLocations(event).forEach((location) => {
+      choices.push({
+        id: `raid-location:${location}`,
+        type: "RAID_LOCATION",
+        value: String(location),
+        location,
+        params: { filter: "RAID", raidLocation: String(location) },
+      })
+    })
+  }
+
+  return choices
 }
 
 export function readEventFeedRouteParams(params?: Record<string, string>): EventFeedInitialFilters {
