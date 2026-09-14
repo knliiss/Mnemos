@@ -1,3 +1,40 @@
+.guides-hub-intro--redesign.guides-hub-intro--with-art {
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 126px;
+  padding: 13px 15px 13px 12px;
+  background:
+    radial-gradient(circle at 8% 48%, rgba(203, 255, 45, 0.075), transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(134, 189, 161, 0.035), transparent 24%),
+    var(--guide-surface);
+}
+
+.guides-hub-intro--with-art .guides-hub-intro__art {
+  width: 88px;
+  height: 92px;
+}
+
+.guides-hub-intro--with-art .guides-hub-intro__art img {
+  width: 88px;
+  height: 82px;
+  filter:
+    saturate(1.08)
+    contrast(1.05)
+    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+
+.guides-hub-intro--with-art .guides-hub-intro__orbit--outer {
+  width: 88px;
+  height: 52px;
+  border-color: rgba(203, 255, 45, 0.13);
+}
+
+.guides-hub-intro--with-art .guides-hub-intro__orbit--inner {
+  width: 64px;
+  height: 64px;
+  border-color: rgba(134, 189, 161, 0.12);
+}
+
 .guide-hub-card--redesign {
   --guide-card-accent: #b7d75a;
   --guide-card-accent-rgb: 183, 215, 90;
@@ -19,10 +56,15 @@
   --guide-card-accent-rgb: 134, 189, 161;
 }
 
+.guide-hub-card--redesign > * {
+  position: relative;
+  z-index: 1;
+}
+
 .guide-hub-card--redesign::before {
   content: "";
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   left: 0;
   top: 15px;
   bottom: 15px;
@@ -37,7 +79,7 @@
 .guide-hub-card--redesign::after {
   content: "";
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   right: -28px;
   bottom: -42px;
   width: 116px;
@@ -133,6 +175,35 @@
   opacity: 0.64;
 }
 
+@media (max-width: 560px) {
+  .guides-hub-intro--redesign.guides-hub-intro--with-art {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 112px;
+    padding: 11px 12px 11px 9px;
+  }
+
+  .guides-hub-intro--with-art .guides-hub-intro__art {
+    width: 70px;
+    height: 76px;
+  }
+
+  .guides-hub-intro--with-art .guides-hub-intro__art img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .guides-hub-intro--with-art .guides-hub-intro__orbit--outer {
+    width: 70px;
+    height: 42px;
+  }
+
+  .guides-hub-intro--with-art .guides-hub-intro__orbit--inner {
+    width: 52px;
+    height: 52px;
+  }
+}
+
 @media (max-width: 380px) {
   .guide-hub-card--redesign .guide-hub-card__illustration {
     width: 74px;
@@ -143,5 +214,15 @@
   .guide-hub-card--redesign .guide-hub-card__illustration img {
     width: 65px;
     height: 50px;
+  }
+
+  .guides-hub-intro--redesign.guides-hub-intro--with-art {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .guides-hub-intro--with-art .guides-hub-intro__art,
+  .guides-hub-intro--with-art .guides-hub-intro__art img {
+    width: 60px;
+    height: 64px;
   }
 }
