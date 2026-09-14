@@ -28,9 +28,11 @@ import {
   localeForLanguage,
 } from "../eventPresentation"
 import { EventKindMicroArt } from "./EventKindMicroArt"
+import { readEventFeedRouteParams } from "./eventFeedRouteParams"
 import "./feed-controls.css"
 
 type Props = {
+  params?: Record<string, string>
   activeAccount: Account
   navigate: (route: Route) => void
 }
@@ -50,8 +52,9 @@ function wipeStartedAt(wipe: Wipe): number {
   return new Date(wipe.startedAt).getTime()
 }
 
-export function EventsFeed({ activeAccount, navigate }: Props) {
+export function EventsFeed({ params, activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
+  const initialFilters = useMemo(() => readEventFeedRouteParams(params), [params])
   const {
     feed,
     eventsHasMore,
@@ -61,13 +64,13 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     refreshEvents,
     subscriptions,
   } = useMnemosData()
-  const [filter, setFilter] = useState<EventFilter>("ALL")
-  const [rarity, setRarity] = useState<ItemRarityFilter>("ALL")
-  const [itemType, setItemType] = useState<ItemTypeFilter>("ALL")
-  const [boosterType, setBoosterType] = useState<BoosterFilter>("ALL")
-  const [globalType, setGlobalType] = useState<GlobalFilter>("ALL")
-  const [raidLocation, setRaidLocation] = useState<number | null>(null)
-  const [query, setQuery] = useState("")
+  const [filter, setFilter] = useState<EventFilter>(() => initialFilters.filter)
+  const [rarity, setRarity] = useState<ItemRarityFilter>(() => initialFilters.rarity)
+  const [itemType, setItemType] = useState<ItemTypeFilter>(() => initialFilters.itemType)
+  const [boosterType, setBoosterType] = useState<BoosterFilter>(() => initialFilters.boosterType)
+  const [globalType, setGlobalType] = useState<GlobalFilter>(() => initialFilters.globalType)
+  const [raidLocation, setRaidLocation] = useState<number | null>(() => initialFilters.raidLocation)
+  const [query, setQuery] = useState(() => initialFilters.query)
   const [sort, setSort] = useState<FeedSort>("NEWEST")
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [wipeId, setWipeId] = useState<string | null>(null)
