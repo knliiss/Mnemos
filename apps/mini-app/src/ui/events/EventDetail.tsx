@@ -25,7 +25,10 @@ import {
   notificationRuleDescription,
 } from "./eventPresentation"
 import { createSubscriptionForEvent, subscriptionMatchesEvent } from "./eventSubscriptions"
-import { eventToFeedRouteParams } from "./feed/eventFeedRouteParams"
+import {
+  type EventFeedRouteChoice,
+  eventToFeedRouteChoices,
+} from "./feed/eventFeedRouteParams"
 
 type Props = {
   eventId?: string
@@ -160,20 +163,50 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
 
   const ownEvent = belongsToAccount(event, activeAccount)
   const visualTone = eventVisualTone(event)
-  const feedFilterParams = eventToFeedRouteParams(event)
-  const feedFilterChips = [eventKindLabel(t, event.kind)]
+  const feedChoices = eventToFeedRouteChoices(event)
 
-  if (event.kind === "ITEM_DROP") {
-    feedFilterChips.push(eventTypeLabel(t, event))
-    if (event.rarity) {
-      feedFilterChips.push(t(`events.rarities.${event.rarity}`))
+  function feedChoiceTitle(choice: EventFeedRouteChoice) {
+    if (choice.type === "PLAYER") {
+      return t("events.detail.feedChoicePlayerTitle", { player: choice.value })
     }
-  } else if (event.kind === "BOOSTER" || event.kind === "GLOBAL") {
-    feedFilterChips.push(eventTypeLabel(t, event))
-  } else if (feedFilterParams.raidLocation) {
-    feedFilterChips.push(
-      t("events.detail.locationFilter", { location: feedFilterParams.raidLocation }),
-    )
+
+    if (choice.type === "ITEM") {
+      return t("events.detail.feedChoiceItemTitle")
+    }
+
+    if (choice.type === "BOOSTER") {
+      return t("events.detail.feedChoiceBoosterTitle")
+    }
+
+    if (choice.type === "GLOBAL") {
+      return t("events.detail.feedChoiceGlobalTitle")
+    }
+
+    return t("events.detail.feedChoiceRaidTitle", { location: choice.location })
+  }
+
+  function feedChoiceCopy(choice: EventFeedRouteChoice) {
+    if (choice.type === "PLAYER") {
+      return t("events.detail.feedChoicePlayerCopy")
+    }
+
+    if (choice.type === "ITEM") {
+      return t("events.detail.feedChoiceItemCopy", { item: choice.value })
+    }
+
+    if (choice.type === "BOOSTER") {
+      return t("events.detail.feedChoiceBoosterCopy", {
+        booster: t(`events.boosters.${choice.value}`),
+      })
+    }
+
+    if (choice.type === "GLOBAL") {
+      return t("events.detail.feedChoiceGlobalCopy", {
+        event: t(`events.globals.${choice.value}`),
+      })
+    }
+
+    return t("events.detail.feedChoiceRaidCopy", { location: choice.location })
   }
 
   const toggleFollow = async () => {
@@ -296,7 +329,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         transition={{ delay: 0.04 }}
       >
         <span className="event-detail-feed-bridge__art" aria-hidden="true">
-          <Glyph name="events" size={24} />
+          <Glyph name="search" size={23} />
           <i />
           <i />
           <i />
@@ -306,21 +339,40 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           <small>{t("events.detail.feedBridgeEyebrow")}</small>
           <strong>{t("events.detail.feedBridgeTitle")}</strong>
           <em>{t("events.detail.feedBridgeCopy")}</em>
-          <span className="event-detail-feed-bridge__chips">
-            {feedFilterChips.map((chip) => (
-              <i key={chip}>{chip}</i>
-            ))}
-          </span>
         </span>
 
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.96 }}
-          onClick={() => navigate({ id: "events", params: feedFilterParams })}
-        >
-          <Glyph name="swap" size={15} />
-          {t("events.detail.openFilteredFeed")}
-        </motion.button>
+        <div className="event-detail-feed-bridge__choices">
+          {feedChoices.map((choice) => {
+            const glyph =
+              choice.type === "PLAYER"
+                ? "person"
+                : choice.type === "ITEM"
+                  ? "search"
+                  : "events"
+
+            return (
+              <motion.button
+                type="button"
+                className="event-detail-feed-choice"
+                key={choice.id}
+                whileTap={{ scale: 0.985 }}
+                onClick={() => navigate({ id: "events", params: choice.params })}
+              >
+                <span className="event-detail-feed-choice__icon" aria-hidden="true">
+                  <Glyph name={glyph} size={18} />
+                </span>
+                <span className="event-detail-feed-choice__copy">
+                  <strong>{feedChoiceTitle(choice)}</strong>
+                  <small>{feedChoiceCopy(choice)}</small>
+                </span>
+                <span className="event-detail-feed-choice__open">
+                  {t("events.detail.feedChoiceOpen")}
+                  <i aria-hidden="true">›</i>
+                </span>
+              </motion.button>
+            )
+          })}
+        </div>
       </motion.section>
 
       {ownEvent && event.kind === "ITEM_DROP" ? (
