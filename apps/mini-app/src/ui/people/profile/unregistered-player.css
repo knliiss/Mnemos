@@ -133,8 +133,7 @@
   border: 1px solid rgba(235, 241, 213, 0.085);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(203, 255, 45, 0.018), transparent 45%),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(135deg, rgba(203, 255, 45, 0.018), transparent 45%), rgba(255, 255, 255, 0.012);
 }
 
 .unregistered-player-drops > header {
@@ -213,8 +212,7 @@
   border-radius: 13px;
   color: inherit;
   background:
-    linear-gradient(90deg, rgba(203, 255, 45, 0.018), transparent 34%),
-    rgba(8, 11, 7, 0.54);
+    linear-gradient(90deg, rgba(203, 255, 45, 0.018), transparent 34%), rgba(8, 11, 7, 0.54);
   text-align: left;
   transition:
     border-color 150ms ease,
@@ -235,8 +233,7 @@
 .unregistered-player-drops__list > button:hover {
   border-color: rgba(203, 255, 45, 0.12);
   background:
-    linear-gradient(90deg, rgba(203, 255, 45, 0.028), transparent 36%),
-    rgba(10, 13, 9, 0.7);
+    linear-gradient(90deg, rgba(203, 255, 45, 0.028), transparent 36%), rgba(10, 13, 9, 0.7);
 }
 
 .unregistered-player-drops__list > button > span {
