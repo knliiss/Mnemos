@@ -59,6 +59,17 @@ export const peopleRu = {
       loading: "Загрузка профиля",
       notFoundTitle: "Профиль не найден",
       notFoundCopy: "Аккаунт мог быть деактивирован или удалён.",
+      externalEyebrow: "ИГРОК CRISTALIX",
+      externalBadge: "НЕТ ПРОФИЛЯ MNEMOS",
+      externalTitle: "Этот игрок ещё не зарегистрирован в Mnemos",
+      externalCopy:
+        "Профиля Mnemos пока нет, но статус Cristalix и зафиксированную Mnemos активность можно посмотреть здесь.",
+      externalObservedData: "ДАННЫЕ MNEMOS",
+      openInFeed: "Открыть в ленте",
+      externalNoDropsCopy: "Mnemos пока не зафиксировал дропы этого игрока в доступной истории.",
+      externalMnemosTitle: "Профиль Mnemos ещё не создан",
+      externalMnemosCopy:
+        "Комментарии, репутация, баланс и персонализация появятся после регистрации аккаунта в Mnemos.",
       ownAccount: "ТВОЙ ACCOUNT",
       accountCard: "ACCOUNT CARD",
       profileLabel: "ПРОФИЛЬ",

@@ -3,6 +3,7 @@ import type { Account, Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./event-detail.css"
+import "./event-detail-enhancements.css"
 import "./event-surfaces.css"
 import "./events.css"
 import "./feed/events-feed-visuals.css"
@@ -48,7 +49,14 @@ export function EventsArea(props: Props) {
   if (props.routeId === "bets") {
     content = <Bets activeAccount={props.activeAccount} navigate={props.navigate} />
   } else if (props.routeId === "events") {
-    content = <EventsFeed activeAccount={props.activeAccount} navigate={props.navigate} />
+    content = (
+      <EventsFeed
+        key={JSON.stringify(props.params ?? {})}
+        params={props.params}
+        activeAccount={props.activeAccount}
+        navigate={props.navigate}
+      />
+    )
   } else if (props.routeId === "event-detail") {
     content = (
       <EventDetail

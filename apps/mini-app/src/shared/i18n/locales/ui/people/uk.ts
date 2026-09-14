@@ -59,6 +59,17 @@ export const peopleUk = {
       loading: "Завантаження профілю",
       notFoundTitle: "Профіль не знайдено",
       notFoundCopy: "Аккаунт міг бути деактивований або видалений.",
+      externalEyebrow: "ГРАВЕЦЬ CRISTALIX",
+      externalBadge: "НЕМАЄ ПРОФІЛЮ MNEMOS",
+      externalTitle: "Цей гравець ще не зареєстрований у Mnemos",
+      externalCopy:
+        "Профілю Mnemos поки немає, але статус Cristalix і зафіксовану Mnemos активність можна переглянути тут.",
+      externalObservedData: "ДАНІ MNEMOS",
+      openInFeed: "Відкрити у стрічці",
+      externalNoDropsCopy: "Mnemos поки не зафіксував дропи цього гравця в доступній історії.",
+      externalMnemosTitle: "Профіль Mnemos ще не створено",
+      externalMnemosCopy:
+        "Коментарі, репутація, баланс і персоналізація з'являться після реєстрації аккаунта в Mnemos.",
       ownAccount: "ТВІЙ ACCOUNT",
       accountCard: "ACCOUNT CARD",
       profileLabel: "ПРОФІЛЬ",
