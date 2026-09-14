@@ -111,7 +111,9 @@ function NicknameProfileRoute({
   }
 
   if (activeResolution.status === "external") {
-    return <UnregisteredPlayerPage player={activeResolution.player} navigate={navigate} back={back} />
+    return (
+      <UnregisteredPlayerPage player={activeResolution.player} navigate={navigate} back={back} />
+    )
   }
 
   if (activeResolution.status === "error") {
