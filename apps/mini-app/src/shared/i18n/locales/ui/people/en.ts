@@ -60,6 +60,17 @@ export const peopleEn = {
       loading: "Loading profile",
       notFoundTitle: "Profile not found",
       notFoundCopy: "The account may have been deactivated or deleted.",
+      externalEyebrow: "CRISTALIX PLAYER",
+      externalBadge: "NO MNEMOS ACCOUNT",
+      externalTitle: "This player has not registered yet",
+      externalCopy:
+        "There is no Mnemos profile yet, but public Cristalix data can still be viewed here.",
+      externalObservedData: "OBSERVED DATA",
+      openInFeed: "Open in feed",
+      externalNoDropsCopy: "Mnemos has not recorded drops for this player in the available history yet.",
+      externalMnemosTitle: "Not a full Mnemos profile yet",
+      externalMnemosCopy:
+        "Comments, reputation, balance and personalization become available after the account is registered in Mnemos.",
       ownAccount: "YOUR ACCOUNT",
       accountCard: "ACCOUNT CARD",
       profileLabel: "PROFILE",
