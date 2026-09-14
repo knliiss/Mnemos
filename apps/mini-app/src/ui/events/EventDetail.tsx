@@ -318,7 +318,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           whileTap={{ scale: 0.96 }}
           onClick={() => navigate({ id: "events", params: feedFilterParams })}
         >
-          <Glyph name="filter" size={15} />
+          <Glyph name="swap" size={15} />
           {t("events.detail.openFilteredFeed")}
         </motion.button>
       </motion.section>
