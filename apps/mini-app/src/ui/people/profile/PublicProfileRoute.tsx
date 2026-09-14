@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { resolvePlayerByNickname, type PlayerResponse } from "@/shared/api/playerDirectoryApi"
 import { searchPublicProfiles } from "@/shared/api/profileSocialApi"
+import { ApiError } from "@/shared/api/httpClient"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Account, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
@@ -9,6 +11,7 @@ import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import "./profile-state.css"
 import { PublicProfilePage } from "./PublicProfilePage"
+import { UnregisteredPlayerPage } from "./UnregisteredPlayerPage"
 
 type Props = {
   activeAccount: Account
@@ -30,6 +33,7 @@ function NicknameProfileRoute({
 }: NicknameProfileRouteProps) {
   const { t } = useTranslation()
   const [resolvedAccountId, setResolvedAccountId] = useState<string | null>(null)
+  const [externalPlayer, setExternalPlayer] = useState<PlayerResponse | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [resolutionFailed, setResolutionFailed] = useState(false)
   const [revision, setRevision] = useState(0)
@@ -38,30 +42,49 @@ function NicknameProfileRoute({
     let cancelled = false
     const exactNickname = nickname.toLocaleLowerCase()
 
+    setResolvedAccountId(null)
+    setExternalPlayer(null)
+    setNotFound(false)
+    setResolutionFailed(false)
+
     void searchPublicProfiles(nickname, 0, 50)
-      .then((profiles) => {
+      .then(async (profiles) => {
         if (cancelled) {
           return
         }
-
-        setResolutionFailed(false)
 
         const exactProfile = profiles.content.find(
           (profile) => profile.cristalixNickname.toLocaleLowerCase() === exactNickname,
         )
 
-        if (!exactProfile) {
-          setNotFound(true)
+        if (exactProfile) {
+          setResolvedAccountId(exactProfile.accountId)
           return
         }
 
-        setNotFound(false)
-        setResolvedAccountId(exactProfile.accountId)
+        try {
+          const player = await resolvePlayerByNickname(nickname)
+
+          if (!cancelled) {
+            setExternalPlayer(player)
+          }
+        } catch (error) {
+          if (cancelled) {
+            return
+          }
+
+          if (error instanceof ApiError && error.status === 404) {
+            setNotFound(true)
+            return
+          }
+
+          handleError(error)
+          setResolutionFailed(true)
+        }
       })
       .catch((error) => {
         if (!cancelled) {
           handleError(error)
-          setNotFound(false)
           setResolutionFailed(true)
         }
       })
@@ -80,6 +103,10 @@ function NicknameProfileRoute({
         back={back}
       />
     )
+  }
+
+  if (externalPlayer) {
+    return <UnregisteredPlayerPage player={externalPlayer} navigate={navigate} back={back} />
   }
 
   if (resolutionFailed) {
