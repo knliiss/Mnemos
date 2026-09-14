@@ -86,7 +86,8 @@ export const eventsEn = {
       allRules: "All rules",
       feedBridgeEyebrow: "SEARCH THE FEED",
       feedBridgeTitle: "What do you want to find?",
-      feedBridgeCopy: "Choose how the next events should relate to this one: player, same drop, event type, or a specific location.",
+      feedBridgeCopy:
+        "Choose how the next events should relate to this one: player, same drop, event type, or a specific location.",
       feedChoicePlayerTitle: "Events for {{player}}",
       feedChoicePlayerCopy: "Drops and activations connected to this player.",
       feedChoiceItemTitle: "The same drop",
