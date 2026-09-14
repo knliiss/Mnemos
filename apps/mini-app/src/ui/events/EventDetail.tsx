@@ -25,10 +25,7 @@ import {
   notificationRuleDescription,
 } from "./eventPresentation"
 import { createSubscriptionForEvent, subscriptionMatchesEvent } from "./eventSubscriptions"
-import {
-  type EventFeedRouteChoice,
-  eventToFeedRouteChoices,
-} from "./feed/eventFeedRouteParams"
+import { type EventFeedRouteChoice, eventToFeedRouteChoices } from "./feed/eventFeedRouteParams"
 
 type Props = {
   eventId?: string
@@ -344,11 +341,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         <div className="event-detail-feed-bridge__choices">
           {feedChoices.map((choice) => {
             const glyph =
-              choice.type === "PLAYER"
-                ? "person"
-                : choice.type === "ITEM"
-                  ? "search"
-                  : "events"
+              choice.type === "PLAYER" ? "person" : choice.type === "ITEM" ? "search" : "events"
 
             return (
               <motion.button
