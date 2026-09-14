@@ -25,6 +25,13 @@ type NicknameProfileRouteProps = Omit<Props, "accountId"> & {
   nickname: string
 }
 
+type NicknameResolution =
+  | { key: string; status: "loading" }
+  | { key: string; status: "account"; accountId: string }
+  | { key: string; status: "external"; player: PlayerResponse }
+  | { key: string; status: "not-found" }
+  | { key: string; status: "error" }
+
 function NicknameProfileRoute({
   activeAccount,
   nickname,
@@ -32,20 +39,18 @@ function NicknameProfileRoute({
   back,
 }: NicknameProfileRouteProps) {
   const { t } = useTranslation()
-  const [resolvedAccountId, setResolvedAccountId] = useState<string | null>(null)
-  const [externalPlayer, setExternalPlayer] = useState<PlayerResponse | null>(null)
-  const [notFound, setNotFound] = useState(false)
-  const [resolutionFailed, setResolutionFailed] = useState(false)
   const [revision, setRevision] = useState(0)
+  const requestKey = `${nickname.toLocaleLowerCase()}:${revision}`
+  const [resolution, setResolution] = useState<NicknameResolution>({
+    key: requestKey,
+    status: "loading",
+  })
+  const activeResolution: NicknameResolution =
+    resolution.key === requestKey ? resolution : { key: requestKey, status: "loading" }
 
   useEffect(() => {
     let cancelled = false
     const exactNickname = nickname.toLocaleLowerCase()
-
-    setResolvedAccountId(null)
-    setExternalPlayer(null)
-    setNotFound(false)
-    setResolutionFailed(false)
 
     void searchPublicProfiles(nickname, 0, 50)
       .then(async (profiles) => {
@@ -58,7 +63,7 @@ function NicknameProfileRoute({
         )
 
         if (exactProfile) {
-          setResolvedAccountId(exactProfile.accountId)
+          setResolution({ key: requestKey, status: "account", accountId: exactProfile.accountId })
           return
         }
 
@@ -66,7 +71,7 @@ function NicknameProfileRoute({
           const player = await resolvePlayerByNickname(nickname)
 
           if (!cancelled) {
-            setExternalPlayer(player)
+            setResolution({ key: requestKey, status: "external", player })
           }
         } catch (error) {
           if (cancelled) {
@@ -74,42 +79,44 @@ function NicknameProfileRoute({
           }
 
           if (error instanceof ApiError && error.status === 404) {
-            setNotFound(true)
+            setResolution({ key: requestKey, status: "not-found" })
             return
           }
 
           handleError(error)
-          setResolutionFailed(true)
+          setResolution({ key: requestKey, status: "error" })
         }
       })
       .catch((error) => {
         if (!cancelled) {
           handleError(error)
-          setResolutionFailed(true)
+          setResolution({ key: requestKey, status: "error" })
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [nickname, revision])
+  }, [nickname, requestKey])
 
-  if (resolvedAccountId) {
+  if (activeResolution.status === "account") {
     return (
       <PublicProfilePage
         activeAccount={activeAccount}
-        accountId={resolvedAccountId}
+        accountId={activeResolution.accountId}
         navigate={navigate}
         back={back}
       />
     )
   }
 
-  if (externalPlayer) {
-    return <UnregisteredPlayerPage player={externalPlayer} navigate={navigate} back={back} />
+  if (activeResolution.status === "external") {
+    return (
+      <UnregisteredPlayerPage player={activeResolution.player} navigate={navigate} back={back} />
+    )
   }
 
-  if (resolutionFailed) {
+  if (activeResolution.status === "error") {
     return <FeatureError back={back} onRetry={() => setRevision((value) => value + 1)} />
   }
 
@@ -117,7 +124,7 @@ function NicknameProfileRoute({
     <div className="screen public-profile-screen">
       <PageHeader title={t("people.profile.title")} back={back} />
 
-      {notFound ? (
+      {activeResolution.status === "not-found" ? (
         <section className="public-profile-state">
           <Glyph name="profile-mark" size={24} />
           <strong>{t("people.profile.notFoundTitle")}</strong>

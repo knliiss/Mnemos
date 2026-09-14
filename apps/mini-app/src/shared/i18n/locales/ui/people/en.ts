@@ -67,7 +67,8 @@ export const peopleEn = {
         "There is no Mnemos profile yet, but Cristalix presence and activity recorded by Mnemos are still available here.",
       externalObservedData: "MNEMOS DATA",
       openInFeed: "Open in feed",
-      externalNoDropsCopy: "Mnemos has not recorded drops for this player in the available history yet.",
+      externalNoDropsCopy:
+        "Mnemos has not recorded drops for this player in the available history yet.",
       externalMnemosTitle: "The Mnemos profile has not been created yet",
       externalMnemosCopy:
         "Comments, reputation, balance and personalization become available after the account is registered in Mnemos.",

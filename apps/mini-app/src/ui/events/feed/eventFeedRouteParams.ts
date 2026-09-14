@@ -1,11 +1,5 @@
 import type { EventItemType } from "@/shared/api/eventApi"
-import type {
-  BoosterType,
-  EventKind,
-  FeedEvent,
-  GlobalEventType,
-  ItemRarity,
-} from "../../model"
+import type { BoosterType, EventKind, FeedEvent, GlobalEventType, ItemRarity } from "../../model"
 
 export type EventFeedInitialFilters = {
   filter: "ALL" | EventKind
@@ -78,16 +72,12 @@ export function eventToFeedRouteParams(event: FeedEvent): Record<string, string>
   return params
 }
 
-export function readEventFeedRouteParams(
-  params?: Record<string, string>,
-): EventFeedInitialFilters {
+export function readEventFeedRouteParams(params?: Record<string, string>): EventFeedInitialFilters {
   if (!params) {
     return emptyEventFeedFilters
   }
 
-  const filter = eventKinds.has(params.filter as EventKind)
-    ? (params.filter as EventKind)
-    : "ALL"
+  const filter = eventKinds.has(params.filter as EventKind) ? (params.filter as EventKind) : "ALL"
 
   const next: EventFeedInitialFilters = {
     ...emptyEventFeedFilters,
@@ -96,9 +86,7 @@ export function readEventFeedRouteParams(
   }
 
   if (filter === "ITEM_DROP") {
-    next.rarity = rarities.has(params.rarity as ItemRarity)
-      ? (params.rarity as ItemRarity)
-      : "ALL"
+    next.rarity = rarities.has(params.rarity as ItemRarity) ? (params.rarity as ItemRarity) : "ALL"
     next.itemType = itemTypes.has(params.itemType as EventItemType)
       ? (params.itemType as EventItemType)
       : "ALL"
