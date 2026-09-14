@@ -48,7 +48,14 @@ export function EventsArea(props: Props) {
   if (props.routeId === "bets") {
     content = <Bets activeAccount={props.activeAccount} navigate={props.navigate} />
   } else if (props.routeId === "events") {
-    content = <EventsFeed activeAccount={props.activeAccount} navigate={props.navigate} />
+    content = (
+      <EventsFeed
+        key={JSON.stringify(props.params ?? {})}
+        params={props.params}
+        activeAccount={props.activeAccount}
+        navigate={props.navigate}
+      />
+    )
   } else if (props.routeId === "event-detail") {
     content = (
       <EventDetail
