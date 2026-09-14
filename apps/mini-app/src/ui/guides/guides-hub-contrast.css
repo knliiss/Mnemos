@@ -17,10 +17,7 @@
 .guides-hub-intro--with-art .guides-hub-intro__art img {
   width: 88px;
   height: 82px;
-  filter:
-    saturate(1.08)
-    contrast(1.05)
-    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+  filter: saturate(1.08) contrast(1.05) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
 }
 
 .guides-hub-intro--with-art .guides-hub-intro__orbit--outer {
@@ -140,11 +137,7 @@
   object-fit: contain;
   transform: scale(1.04);
   image-rendering: pixelated;
-  filter:
-    saturate(1.14)
-    contrast(1.1)
-    brightness(1.07)
-    drop-shadow(0 7px 12px rgba(0, 0, 0, 0.3));
+  filter: saturate(1.14) contrast(1.1) brightness(1.07) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.3));
   opacity: 1;
 }
 
