@@ -25,6 +25,7 @@ import {
   notificationRuleDescription,
 } from "./eventPresentation"
 import { createSubscriptionForEvent, subscriptionMatchesEvent } from "./eventSubscriptions"
+import { eventToFeedRouteParams } from "./feed/eventFeedRouteParams"
 
 type Props = {
   eventId?: string
@@ -159,6 +160,21 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
 
   const ownEvent = belongsToAccount(event, activeAccount)
   const visualTone = eventVisualTone(event)
+  const feedFilterParams = eventToFeedRouteParams(event)
+  const feedFilterChips = [eventKindLabel(t, event.kind)]
+
+  if (event.kind === "ITEM_DROP") {
+    feedFilterChips.push(eventTypeLabel(t, event))
+    if (event.rarity) {
+      feedFilterChips.push(t(`events.rarities.${event.rarity}`))
+    }
+  } else if (event.kind === "BOOSTER" || event.kind === "GLOBAL") {
+    feedFilterChips.push(eventTypeLabel(t, event))
+  } else if (feedFilterParams.raidLocation) {
+    feedFilterChips.push(
+      t("events.detail.locationFilter", { location: feedFilterParams.raidLocation }),
+    )
+  }
 
   const toggleFollow = async () => {
     if (followBusyRef.current === actionScope) {
@@ -273,6 +289,40 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         </button>
       </section>
 
+      <motion.section
+        className="event-detail-feed-bridge"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04 }}
+      >
+        <span className="event-detail-feed-bridge__art" aria-hidden="true">
+          <Glyph name="events" size={24} />
+          <i />
+          <i />
+          <i />
+        </span>
+
+        <span className="event-detail-feed-bridge__copy">
+          <small>{t("events.detail.feedBridgeEyebrow")}</small>
+          <strong>{t("events.detail.feedBridgeTitle")}</strong>
+          <em>{t("events.detail.feedBridgeCopy")}</em>
+          <span className="event-detail-feed-bridge__chips">
+            {feedFilterChips.map((chip) => (
+              <i key={chip}>{chip}</i>
+            ))}
+          </span>
+        </span>
+
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          onClick={() => navigate({ id: "events", params: feedFilterParams })}
+        >
+          <Glyph name="filter" size={15} />
+          {t("events.detail.openFilteredFeed")}
+        </motion.button>
+      </motion.section>
+
       {ownEvent && event.kind === "ITEM_DROP" ? (
         <DropSpotlightPurchase event={event} activeAccount={activeAccount} locale={locale} />
       ) : null}
@@ -294,10 +344,24 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           <strong>{eventTypeLabel(t, event)}</strong>
         </article>
 
-        <article>
-          <small>{t("events.detail.source")}</small>
-          <strong>Cristalix</strong>
-        </article>
+        {event.kind === "ITEM_DROP" && event.rarity ? (
+          <article>
+            <small>{t("events.detail.rarity")}</small>
+            <strong>{t(`events.rarities.${event.rarity}`)}</strong>
+          </article>
+        ) : (
+          <article>
+            <small>{t("events.detail.source")}</small>
+            <strong>Cristalix</strong>
+          </article>
+        )}
+
+        {event.kind === "ITEM_DROP" && event.rarity ? (
+          <article className="is-wide event-detail-facts__source">
+            <small>{t("events.detail.source")}</small>
+            <strong>Cristalix</strong>
+          </article>
+        ) : null}
       </section>
     </div>
   )
