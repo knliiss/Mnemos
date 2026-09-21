@@ -45,10 +45,7 @@ export function readPersistedEventFeedState(accountId: string): PersistedEventFe
   }
 }
 
-export function persistEventFeedState(
-  accountId: string,
-  state: PersistedEventFeedState,
-): void {
+export function persistEventFeedState(accountId: string, state: PersistedEventFeedState): void {
   if (typeof window === "undefined") {
     return
   }
