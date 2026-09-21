@@ -17,6 +17,7 @@ import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.UUID
@@ -35,6 +36,16 @@ class LocalNotificationMessageRendererTest {
             activeNotificationPackRepository = repository,
             localizationResolver = NotificationLocalizationResolver { localization },
         )
+
+    @BeforeEach
+    fun resetRendererState() {
+        repository.active = null
+        localization =
+            NotificationLocalizationContext(
+                language = LocalizationLanguage.RU,
+                saoProperties = emptyMap(),
+            )
+    }
 
     @Test
     fun `solo item drop renders resolved message`() {
