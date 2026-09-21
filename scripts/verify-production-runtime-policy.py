@@ -301,7 +301,7 @@ def verify_workflow_authorization_boundary() -> None:
 
     required_request_fragments = (
         "deploy/production-runtime-policy",
-        "runs-on: ubuntu-24.04",
+        "runs-on: [self-hosted, Linux, X64, mnemos-backend]",
         "scripts/production_source_revision.py",
         "--trusted-ref origin/master",
     )
