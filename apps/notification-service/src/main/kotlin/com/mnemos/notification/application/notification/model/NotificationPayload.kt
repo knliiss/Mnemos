@@ -17,7 +17,17 @@ data class ItemDropNotificationPayload(
     val itemType: NotificationItemType,
     val itemRarity: NotificationItemRarity,
 ) : NotificationPayload {
+    init {
+        require(itemRarity != NotificationItemRarity.SECRET || itemType in SECRET_ITEM_TYPES) {
+            "Secret item drops are only supported for swords and pets"
+        }
+    }
+
     override val type = NotificationType.ITEM_DROP
+
+    private companion object {
+        val SECRET_ITEM_TYPES = setOf(NotificationItemType.SWORD, NotificationItemType.PET)
+    }
 }
 
 data class BoosterNotificationPayload(
