@@ -50,8 +50,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
                 .values
                 .toList()
 
-        assertEquals(120, definitions.size)
-        assertEquals(20, definitions.count { it.type == PersonalizationType.NOTIFICATION_PACK })
+        assertEquals(24, definitions.count { it.type == PersonalizationType.NOTIFICATION_PACK })
         assertEquals(20, definitions.count { it.type == PersonalizationType.NICK_STYLE })
         assertEquals(20, definitions.count { it.type == PersonalizationType.PROFILE_THEME })
         assertEquals(20, definitions.count { it.type == PersonalizationType.PROFILE_BACKGROUND })
@@ -63,7 +62,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertTrue(personalizations.all { it.origin == PersonalizationOrigin.SYSTEM })
         assertTrue(personalizations.all { it.status == PersonalizationStatus.PUBLISHED })
         assertTrue(personalizations.all { it.creatorUserId == null })
-        assertEquals(7, fixture.stateRepository.state.revision)
+        assertEquals(8, fixture.stateRepository.state.revision)
         assertEquals(now, fixture.stateRepository.state.updatedAt)
         assertEquals(1, fixture.stateRepository.updateCalls)
         assertTrue(fixture.publisher.events.isEmpty())
@@ -124,7 +123,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertEquals(firstDefinition.price, updated.price)
         assertEquals(1, fixture.personalizationStore.saveCalls)
         assertEquals(1, fixture.stateRepository.updateCalls)
-        assertEquals(7, fixture.stateRepository.state.revision)
+        assertEquals(8, fixture.stateRepository.state.revision)
         assertEquals(ownerUserId.id, payload.userId)
         assertEquals(existingId.id, payload.personalizationId)
         assertEquals(1L, payload.selectionRevision)
@@ -132,15 +131,58 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
     }
 
     @Test
+    fun `retires legacy default pack and clears active selection`() {
+        val sourceDefinition =
+            BuiltinPersonalizationCatalog.definitions
+                .first { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+        val legacy =
+            Personalization.createSystem(
+                catalogKey = PersonalizationCatalogKey("notification.classic"),
+                type = PersonalizationType.NOTIFICATION_PACK,
+                name = "Классика",
+                content = sourceDefinition.content,
+                price = sourceDefinition.price,
+                status = PersonalizationStatus.PUBLISHED,
+                now = now.minusSeconds(3_600),
+            )
+        val ownerUserId = UserId.generate()
+        val fixture =
+            fixture(
+                initialRevision = 7,
+                initialPersonalizations = listOf(legacy),
+                activeOwners =
+                    mapOf(
+                        legacy.id to listOf(PersonalizationOwner.User(ownerUserId)),
+                    ),
+            )
+
+        fixture.service.execute()
+
+        val retired =
+            fixture.personalizationStore.byCatalogKey
+                .getValue(PersonalizationCatalogKey("notification.classic"))
+        val payload =
+            fixture.publisher.events
+                .single()
+                .payload as NotificationPackSelectionChangedV1
+
+        assertEquals(PersonalizationStatus.UNLISTED, retired.status)
+        assertEquals(null, payload.personalizationId)
+        assertEquals(null, payload.pack)
+        assertEquals(ownerUserId.id, payload.userId)
+        assertEquals(8, fixture.stateRepository.state.revision)
+    }
+
+    @Test
     fun `does not let an older application instance downgrade newer catalog revision`() {
-        val fixture = fixture(initialRevision = 8)
+        val fixture = fixture(initialRevision = 9)
 
         fixture.service.execute()
 
         assertEquals(0, fixture.personalizationStore.lookupCalls)
         assertEquals(0, fixture.personalizationStore.saveCalls)
         assertEquals(0, fixture.stateRepository.updateCalls)
-        assertEquals(8, fixture.stateRepository.state.revision)
+        assertEquals(9, fixture.stateRepository.state.revision)
         assertTrue(fixture.publisher.events.isEmpty())
     }
 
@@ -155,9 +197,10 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         val publisher = RecordingIntegrationEventPublisher()
         val selectionRevisionStore = IncrementingNotificationPackSelectionRevisionStore()
         val profileAppearanceRevisionStore = IncrementingProfileAppearanceRevisionStore()
+        val ownershipRepository = EmptyOwnedPersonalizationRepository()
         val profileAppearanceSnapshotResolver =
             ProfileAppearanceSnapshotResolver(
-                ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                ownershipRepository = ownershipRepository,
                 personalizationRepository = personalizationStore,
             )
         val notificationPackSelectionEventPublisher =
@@ -179,6 +222,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
                 personalizationRepository = personalizationStore,
                 builtinPersonalizationLookup = personalizationStore,
                 ownershipReader = ownershipReader,
+                ownershipRepository = ownershipRepository,
                 notificationPackSelectionEventPublisher = notificationPackSelectionEventPublisher,
                 profileAppearanceEventPublisher = profileAppearanceEventPublisher,
                 clock = clock,

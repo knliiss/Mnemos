@@ -175,40 +175,40 @@ class StandardMessageResolver {
             LocalizationLanguage.EN ->
                 ResolvedNotification(
                     type = payload.type,
-                    soloTitle = "🌙 <b>Player went offline</b>",
+                    soloTitle = "👋 <b>Player went offline</b>",
                     soloBody =
                         if (realm == null) {
                             "<b>$player</b> is no longer online."
                         } else {
                             "<b>$player</b> is no longer online. Last realm: <b>$realm</b>."
                         },
-                    compact = "🌙 <b>$player</b> went offline",
+                    compact = "👋 <b>$player</b> went offline",
                 )
 
             LocalizationLanguage.RU ->
                 ResolvedNotification(
                     type = payload.type,
-                    soloTitle = "🌙 <b>Игрок вышел из игры</b>",
+                    soloTitle = "👋 <b>Игрок вышел из игры</b>",
                     soloBody =
                         if (realm == null) {
                             "<b>$player</b> больше не в сети."
                         } else {
                             "<b>$player</b> больше не в сети. Последний реалм — <b>$realm</b>."
                         },
-                    compact = "🌙 <b>$player</b> вышел из игры",
+                    compact = "👋 <b>$player</b> вышел из игры",
                 )
 
             LocalizationLanguage.UK ->
                 ResolvedNotification(
                     type = payload.type,
-                    soloTitle = "🌙 <b>Гравець вийшов із гри</b>",
+                    soloTitle = "👋 <b>Гравець вийшов із гри</b>",
                     soloBody =
                         if (realm == null) {
                             "<b>$player</b> більше не в мережі."
                         } else {
                             "<b>$player</b> більше не в мережі. Останній реалм — <b>$realm</b>."
                         },
-                    compact = "🌙 <b>$player</b> вийшов із гри",
+                    compact = "👋 <b>$player</b> вийшов із гри",
                 )
         }
     }
@@ -222,12 +222,19 @@ class StandardMessageResolver {
 
         return when (language) {
             LocalizationLanguage.EN ->
-                ItemPresentation(
-                    emoji = emoji,
-                    title = "${rarity.englishName()} ${type.englishName()} drop",
-                    accusative = "",
-                    compact = "${rarity.englishName().lowercase()} ${type.englishName().lowercase()}",
-                )
+                when (rarity to type) {
+                    NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
+                        ItemPresentation(emoji, "Secret weapon", "", "secret weapon")
+                    NotificationItemRarity.SECRET to NotificationItemType.PET ->
+                        ItemPresentation(emoji, "Secret pet", "", "secret pet")
+                    NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
+                    NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
+                    NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
+                    NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
+                    NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
+                    -> ItemPresentation(emoji, "Mythic find", "", "mythic item")
+                    else -> unsupportedItemPresentation(type, rarity)
+                }
 
             LocalizationLanguage.RU -> resolveRussianItem(type, rarity, emoji)
             LocalizationLanguage.UK -> resolveUkrainianItem(type, rarity, emoji)
@@ -241,34 +248,17 @@ class StandardMessageResolver {
     ): ItemPresentation =
         when (rarity to type) {
             NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Новое секретное оружие", "секретное оружие", "секретное оружие")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Новое мифическое оружие", "мифическое оружие", "мифическое оружие")
+                ItemPresentation(emoji, "Секретное оружие", "секретное оружие", "секретное оружие")
 
             NotificationItemRarity.SECRET to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Новый секретный питомец", "секретного питомца", "секретный питомец")
+                ItemPresentation(emoji, "Секретный питомец", "секретного питомца", "секретный питомец")
 
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Новый мифический питомец", "мифического питомца", "мифический питомец")
-
-            NotificationItemRarity.SECRET to NotificationItemType.AURA ->
-                ItemPresentation(emoji, "Новая секретная аура", "секретную ауру", "секретная аура")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA ->
-                ItemPresentation(emoji, "Новая мифическая аура", "мифическую ауру", "мифическая аура")
-
-            NotificationItemRarity.SECRET to NotificationItemType.BOOK ->
-                ItemPresentation(emoji, "Новая секретная книга", "секретную книгу", "секретная книга")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK ->
-                ItemPresentation(emoji, "Новая мифическая книга", "мифическую книгу", "мифическая книга")
-
-            NotificationItemRarity.SECRET to NotificationItemType.JEWELRY ->
-                ItemPresentation(emoji, "Новое секретное украшение", "секретное украшение", "секретное украшение")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY ->
-                ItemPresentation(emoji, "Новое мифическое украшение", "мифическое украшение", "мифическое украшение")
+            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
+            -> ItemPresentation(emoji, "Мифическая находка", "мифический предмет", "мифический предмет")
 
             else -> unsupportedItemPresentation(type, rarity)
         }
@@ -280,34 +270,17 @@ class StandardMessageResolver {
     ): ItemPresentation =
         when (rarity to type) {
             NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Нова секретна зброя", "секретну зброю", "секретна зброя")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Нова міфічна зброя", "міфічну зброю", "міфічна зброя")
+                ItemPresentation(emoji, "Секретна зброя", "секретну зброю", "секретна зброя")
 
             NotificationItemRarity.SECRET to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Новий секретний улюбленець", "секретного улюбленця", "секретний улюбленець")
+                ItemPresentation(emoji, "Секретний улюбленець", "секретного улюбленця", "секретний улюбленець")
 
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Новий міфічний улюбленець", "міфічного улюбленця", "міфічний улюбленець")
-
-            NotificationItemRarity.SECRET to NotificationItemType.AURA ->
-                ItemPresentation(emoji, "Нова секретна аура", "секретну ауру", "секретна аура")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA ->
-                ItemPresentation(emoji, "Нова міфічна аура", "міфічну ауру", "міфічна аура")
-
-            NotificationItemRarity.SECRET to NotificationItemType.BOOK ->
-                ItemPresentation(emoji, "Нова секретна книга", "секретну книгу", "секретна книга")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK ->
-                ItemPresentation(emoji, "Нова міфічна книга", "міфічну книгу", "міфічна книга")
-
-            NotificationItemRarity.SECRET to NotificationItemType.JEWELRY ->
-                ItemPresentation(emoji, "Нова секретна реліквія", "секретну реліквію", "секретна реліквія")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY ->
-                ItemPresentation(emoji, "Нова міфічна реліквія", "міфічну реліквію", "міфічна реліквія")
+            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
+            -> ItemPresentation(emoji, "Міфічна знахідка", "міфічний предмет", "міфічний предмет")
 
             else -> unsupportedItemPresentation(type, rarity)
         }
@@ -317,16 +290,14 @@ class StandardMessageResolver {
         rarity: NotificationItemRarity,
     ): String =
         when (rarity to type) {
-            NotificationItemRarity.SECRET to NotificationItemType.SWORD -> "🗡️"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD -> "⚔️"
+            NotificationItemRarity.SECRET to NotificationItemType.SWORD -> "⚔️"
             NotificationItemRarity.SECRET to NotificationItemType.PET -> "🐾"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET -> "🐲"
-            NotificationItemRarity.SECRET to NotificationItemType.AURA -> "✨"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA -> "🌌"
-            NotificationItemRarity.SECRET to NotificationItemType.BOOK -> "📕"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK -> "📜"
-            NotificationItemRarity.SECRET to NotificationItemType.JEWELRY -> "💍"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY -> "💎"
+            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
+            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
+            -> "✨"
             else -> unsupportedItemPresentation(type, rarity)
         }
 
@@ -343,8 +314,8 @@ class StandardMessageResolver {
             when (type) {
                 DomainBoosterType.LUCK -> "🍀"
                 DomainBoosterType.MONEY -> "💰"
-                DomainBoosterType.DAMAGE -> "⚔️"
-                DomainBoosterType.POWER -> "🔥"
+                DomainBoosterType.DAMAGE -> "💥"
+                DomainBoosterType.POWER -> "💪"
             }
 
         val title =
@@ -387,7 +358,7 @@ class StandardMessageResolver {
         when (type) {
             DomainDungeonType.EASY ->
                 DungeonPresentation(
-                    emoji = "🌿",
+                    emoji = "🟢",
                     title = "Easy dungeon opened",
                     compact = "Easy dungeon",
                     compactSuffix = "is open",
@@ -396,7 +367,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.MEDIUM ->
                 DungeonPresentation(
-                    emoji = "🏰",
+                    emoji = "🟡",
                     title = "Medium dungeon opened",
                     compact = "Medium dungeon",
                     compactSuffix = "is open",
@@ -405,7 +376,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.HARD ->
                 DungeonPresentation(
-                    emoji = "🔥",
+                    emoji = "🟠",
                     title = "Hard dungeon opened",
                     compact = "Hard dungeon",
                     compactSuffix = "is open",
@@ -414,7 +385,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.EXPERT ->
                 DungeonPresentation(
-                    emoji = "💀",
+                    emoji = "🔴",
                     title = "Expert dungeon opened",
                     compact = "Expert dungeon",
                     compactSuffix = "is open",
@@ -426,7 +397,7 @@ class StandardMessageResolver {
         when (type) {
             DomainDungeonType.EASY ->
                 DungeonPresentation(
-                    emoji = "🌿",
+                    emoji = "🟢",
                     title = "Открылось лёгкое подземелье",
                     compact = "Лёгкое подземелье",
                     compactSuffix = "уже открыто",
@@ -435,7 +406,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.MEDIUM ->
                 DungeonPresentation(
-                    emoji = "🏰",
+                    emoji = "🟡",
                     title = "Открылось среднее подземелье",
                     compact = "Среднее подземелье",
                     compactSuffix = "уже открыто",
@@ -444,7 +415,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.HARD ->
                 DungeonPresentation(
-                    emoji = "🔥",
+                    emoji = "🟠",
                     title = "Открылось сложное подземелье",
                     compact = "Сложное подземелье",
                     compactSuffix = "уже открыто",
@@ -453,7 +424,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.EXPERT ->
                 DungeonPresentation(
-                    emoji = "💀",
+                    emoji = "🔴",
                     title = "Открылось экспертное подземелье",
                     compact = "Экспертное подземелье",
                     compactSuffix = "уже открыто",
@@ -465,7 +436,7 @@ class StandardMessageResolver {
         when (type) {
             DomainDungeonType.EASY ->
                 DungeonPresentation(
-                    emoji = "🌿",
+                    emoji = "🟢",
                     title = "Відкрилося легке підземелля",
                     compact = "Легке підземелля",
                     compactSuffix = "вже відкрите",
@@ -474,7 +445,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.MEDIUM ->
                 DungeonPresentation(
-                    emoji = "🏰",
+                    emoji = "🟡",
                     title = "Відкрилося середнє підземелля",
                     compact = "Середнє підземелля",
                     compactSuffix = "вже відкрите",
@@ -483,7 +454,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.HARD ->
                 DungeonPresentation(
-                    emoji = "🔥",
+                    emoji = "🟠",
                     title = "Відкрилося складне підземелля",
                     compact = "Складне підземелля",
                     compactSuffix = "вже відкрите",
@@ -492,7 +463,7 @@ class StandardMessageResolver {
 
             DomainDungeonType.EXPERT ->
                 DungeonPresentation(
-                    emoji = "💀",
+                    emoji = "🔴",
                     title = "Відкрилося експертне підземелля",
                     compact = "Експертне підземелля",
                     compactSuffix = "вже відкрите",
@@ -507,7 +478,7 @@ class StandardMessageResolver {
         val emoji =
             when (type) {
                 DomainGlobalEventType.DARKNESS -> "🌑"
-                DomainGlobalEventType.EXPLOSION -> "☀️"
+                DomainGlobalEventType.EXPLOSION -> "💣"
                 DomainGlobalEventType.MOON -> "\uD83E\uDE78"
                 DomainGlobalEventType.ECLIPSE -> "🌘"
                 DomainGlobalEventType.COMET_CHAOS -> "☄️"
@@ -532,21 +503,6 @@ class StandardMessageResolver {
             compact = name,
         )
     }
-
-    private fun NotificationItemRarity.englishName(): String =
-        when (this) {
-            NotificationItemRarity.MYTHICAL -> "Mythic"
-            NotificationItemRarity.SECRET -> "Secret"
-        }
-
-    private fun NotificationItemType.englishName(): String =
-        when (this) {
-            NotificationItemType.SWORD -> "Weapon"
-            NotificationItemType.PET -> "Pet"
-            NotificationItemType.AURA -> "Aura"
-            NotificationItemType.BOOK -> "Book"
-            NotificationItemType.JEWELRY -> "Relic"
-        }
 
     private fun DomainBoosterType.englishName(): String =
         when (this) {

@@ -36,6 +36,7 @@ on:
       - "scripts/verify-redis-service-isolation-runtime.sh"
       - "scripts/verify-resource-server-audience.sh"
       - "build.gradle.kts"
+      - ".dockerignore"
       - "settings.gradle.kts"
       - "gradle/**"
       - ".github/ci/compose-isolation.override.yml"
@@ -55,6 +56,31 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Clean generated workspace state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "$GITHUB_WORKSPACE" ]; then
+            exit 0
+          fi
+
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            alpine:3.22 \
+            chown -R "$(id -u):$(id -g)" /workspace
+
+          find "$GITHUB_WORKSPACE" \
+            -type d \
+            \( \
+              -name build -o \
+              -name .gradle -o \
+              -name .kotlin -o \
+              -name __pycache__ \
+            \) \
+            -prune \
+            -exec rm -rf -- {} +
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -167,7 +193,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" build
+
+          ./gradlew clean build --console=plain --no-build-cache
+
+          while IFS= read -r -d '' artifact; do
+            echo "Verifying ${artifact}"
+            jar tf "$artifact" >/dev/null
+          done < <(
+            find apps \
+              -path '*/build/libs/*-service.jar' \
+              -type f \
+              -print0
+          )
+
+          $CI_COMPOSE_COMMAND build --no-cache --quiet
 
       - name: Start clean stack
         shell: bash

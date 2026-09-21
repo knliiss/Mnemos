@@ -17,36 +17,36 @@ object BuiltinNotificationPacksCulture {
     private fun nightShift(): BuiltinPersonalizationDefinition =
         definition(
             key = "notification.night-shift",
-            name = "Ночная смена",
+            name = "Сон",
             pricePrime = 25,
             mixedAggregateTitle = "Сон снова откладывается",
             itemDrop =
                 template(
                     emoji = "💤",
-                    title = "Ну наконец-то",
-                    body = "{player} дождался «{item}». Можно ещё пять минут и спать.",
-                    compact = "{player} не зря не спал → «{item}»",
-                    aggregateTitle = "Ночные находки",
+                    title = "И во сне дропает",
+                    body = "{player} выбил «{item}» почти не просыпаясь. Сон фарму не помеха.",
+                    compact = "{player} дропнул во сне → «{item}»",
+                    aggregateTitle = "Дропы между снами",
                     variants =
                         listOf(
                             variant(
                                 id = "secret",
                                 conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
                                 emoji = "😶",
-                                title = "Теперь точно не уснёшь",
-                                body = "{player} получил «{item}». Секретный дроп перед сном — отличный способ отменить сон.",
-                                compact = "Секретный дроп → {player}",
-                                aggregateTitle = "Причины не ложиться спать",
+                                title = "Вот теперь проснулся",
+                                body = "{player} выбил секретный «{item}». Такой будильник уже не проигнорируешь.",
+                                compact = "Проснулся от секретки → {player}",
+                                aggregateTitle = "Причины всё-таки проснуться",
                             ),
                         ),
                 ),
             booster =
                 template(
                     emoji = "☕",
-                    title = "Спать отменяется",
-                    body = "{player} активировал эффект {booster.genitive}. Смена официально продлена.",
-                    compact = "Ещё один заход · {booster}",
-                    aggregateTitle = "Ночная смена продолжается",
+                    title = "Сон поставлен на паузу",
+                    body = "{player} активировал эффект {booster.genitive}. Можно фармить с закрытыми глазами.",
+                    compact = "Сквозь сон · {booster}",
+                    aggregateTitle = "Сон снова отложили",
                     variants =
                         listOf(
                             variant(
@@ -63,9 +63,9 @@ object BuiltinNotificationPacksCulture {
                                 conditions = listOf(condition(NotificationPackVariantField.BOOSTER, "MONEY")),
                                 emoji = "💸",
                                 title = "Сон денег не приносит",
-                                body = "{player} активировал Доход. Ночная смена получила экономическое обоснование.",
-                                compact = "Доход включён · смена продолжается",
-                                aggregateTitle = "Ночная экономика",
+                                body = "{player} активировал Доход. Теперь отмену сна можно хотя бы оправдать экономически.",
+                                compact = "Доход включён · сон выключен",
+                                aggregateTitle = "Экономика без сна",
                             ),
                         ),
                 ),
@@ -95,15 +95,15 @@ object BuiltinNotificationPacksCulture {
                     title = "Кто не спит — тот в рейде",
                     body = "Рейд начался. Локации: {locations}.",
                     compact = "Ночной рейд → {locations}",
-                    aggregateTitle = "Рейды ночной смены",
+                    aggregateTitle = "Рейды вместо сна",
                 ),
             global =
                 template(
                     emoji = "🌙",
-                    title = "Ночная смена",
+                    title = "Сон — слабость",
                     body = "Началось событие {event}. Сон подождёт.",
                     compact = "Ночью началось: {event}",
-                    aggregateTitle = "События ночной смены",
+                    aggregateTitle = "События между снами",
                     variants =
                         listOf(
                             variant(
@@ -111,9 +111,9 @@ object BuiltinNotificationPacksCulture {
                                 conditions = listOf(condition(NotificationPackVariantField.GLOBAL_EVENT, "DARKNESS")),
                                 emoji = "🌑",
                                 title = "Наконец нормальное освещение",
-                                body = "Тьма наступила. Ночная смена чувствует себя как дома.",
+                                body = "Тьма наступила. Отлично: теперь можно фармить с закрытыми глазами официально.",
                                 compact = "Тьма. Всё по плану.",
-                                aggregateTitle = "Тёмная смена",
+                                aggregateTitle = "Тьма вместо сна",
                             ),
                             variant(
                                 id = "eclipse",
@@ -128,7 +128,7 @@ object BuiltinNotificationPacksCulture {
                                 id = "blood-moon",
                                 conditions = listOf(condition(NotificationPackVariantField.GLOBAL_EVENT, "MOON")),
                                 emoji = "🩸",
-                                title = "Ночной смене добавили декорации",
+                                title = "Сну добавили декорации",
                                 body = "Взошла кровавая луна. Атмосфера подозрительно уместная.",
                                 compact = "Взошла кровавая луна",
                                 aggregateTitle = "Ночные декорации",
@@ -138,11 +138,19 @@ object BuiltinNotificationPacksCulture {
                                 conditions = listOf(condition(NotificationPackVariantField.GLOBAL_EVENT, "EXPLOSION")),
                                 emoji = "💥",
                                 title = "Теперь не спят и соседи",
-                                body = "Произошёл взрыв. Ночная смена расширила аудиторию.",
+                                body = "Произошёл взрыв. Теперь проснулись вообще все.",
                                 compact = "Сон отменён взрывом",
-                                aggregateTitle = "Громкая смена",
+                                aggregateTitle = "Громкие будильники",
                             ),
                         ),
+                ),
+            playerOffline =
+                template(
+                    emoji = "😴",
+                    title = "Наконец-то спать",
+                    body = "{player} вышел из игры. Кажется, сон всё-таки победил.",
+                    compact = "{player} ушёл спать",
+                    aggregateTitle = "Сон победил",
                 ),
         )
 
@@ -151,14 +159,14 @@ object BuiltinNotificationPacksCulture {
             key = "notification.dep",
             name = "Деп",
             pricePrime = 40,
-            mixedAggregateTitle = "Рынок фарма резко оживился",
+            mixedAggregateTitle = "Депы снова начали принимать решения за игроков",
             itemDrop =
                 template(
                     emoji = "📈",
-                    title = "Позиция закрылась в плюс",
-                    body = "{player} конвертировал нервы в «{item}». Наконец-то зелёная свеча.",
-                    compact = "{player} вышел в плюс → «{item}»",
-                    aggregateTitle = "Зафиксирована прибыль",
+                    title = "Последний деп был не зря",
+                    body = "{player} выбил «{item}». Последний деп ради этого внезапно оказался не таким уж плохим решением.",
+                    compact = "Последний деп → «{item}»",
+                    aggregateTitle = "Окупившиеся депы",
                     variants =
                         listOf(
                             variant(
@@ -166,9 +174,9 @@ object BuiltinNotificationPacksCulture {
                                 conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
                                 emoji = "💸",
                                 title = "Деп окупился",
-                                body = "{player} получил «{item}». Последний деп внезапно перестал выглядеть ошибкой.",
+                                body = "{player} выбил секретный «{item}». Финансовый отдел просит больше так не делать.",
                                 compact = "Деп окупился → «{item}»",
-                                aggregateTitle = "Депы начали окупаться",
+                                aggregateTitle = "Депы, которые каким-то чудом окупились",
                             ),
                             variant(
                                 id = "secret-pet",
@@ -276,6 +284,14 @@ object BuiltinNotificationPacksCulture {
                                 aggregateTitle = "Массовые ликвидации",
                             ),
                         ),
+                ),
+            playerOffline =
+                template(
+                    emoji = "📉",
+                    title = "Позиция закрыта",
+                    body = "{player} вышел из игры. На сегодня торгов достаточно.",
+                    compact = "{player} закрыл позицию",
+                    aggregateTitle = "Позиции закрыты",
                 ),
         )
 
