@@ -27,23 +27,10 @@ object BuiltinNotificationPackSupport {
         playerOffline: NotificationTemplate = defaultPlayerOfflineTemplate(),
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition {
-        val authoredVariants = BuiltinNotificationPackVariantSets.forPack(key)
-        val itemDropVariants = authoredVariants?.itemDrop ?: itemDrop.variants
+        val itemDropVariants = BuiltinNotificationPackVariantSets.forPack(key)?.itemDrop ?: itemDrop.variants
         val itemDropTemplate =
             itemDrop.copy(
                 variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
-            )
-        val boosterTemplate =
-            booster.copy(
-                variants = authoredVariants?.booster ?: booster.variants,
-            )
-        val dungeonTemplate =
-            dungeon.copy(
-                variants = authoredVariants?.dungeon ?: dungeon.variants,
-            )
-        val baseGlobalTemplate =
-            global.copy(
-                variants = authoredVariants?.global ?: global.variants,
             )
 
         val cometCopy = BuiltinCometChaosNotificationVariants.forPack(key)
@@ -57,7 +44,7 @@ object BuiltinNotificationPackSupport {
                 compact = cometCopy.compact,
                 aggregateTitle = cometCopy.aggregateTitle,
             )
-        val globalTemplate = baseGlobalTemplate.copy(variants = baseGlobalTemplate.variants + cometVariant)
+        val globalTemplate = global.copy(variants = global.variants + cometVariant)
         val normalizedValueMappings = withCometChaosValue(key, valueMappings)
 
         return BuiltinPersonalizationDefinition(
@@ -70,8 +57,8 @@ object BuiltinNotificationPackSupport {
                     templates =
                         mapOf(
                             NotificationTemplateKey.ITEM_DROP to itemDropTemplate,
-                            NotificationTemplateKey.BOOSTER to boosterTemplate,
-                            NotificationTemplateKey.DUNGEON to dungeonTemplate,
+                            NotificationTemplateKey.BOOSTER to booster,
+                            NotificationTemplateKey.DUNGEON to dungeon,
                             NotificationTemplateKey.RAID to raid,
                             NotificationTemplateKey.GLOBAL to globalTemplate,
                             NotificationTemplateKey.PLAYER_OFFLINE to playerOffline,
