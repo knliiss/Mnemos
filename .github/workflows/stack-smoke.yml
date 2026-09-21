@@ -36,6 +36,7 @@ on:
       - "scripts/verify-redis-service-isolation-runtime.sh"
       - "scripts/verify-resource-server-audience.sh"
       - "build.gradle.kts"
+      - ".dockerignore"
       - "settings.gradle.kts"
       - "gradle/**"
       - ".github/ci/compose-isolation.override.yml"
