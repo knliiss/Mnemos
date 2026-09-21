@@ -9,81 +9,12 @@ import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 object BuiltinNotificationPacksMeme {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
-            classic(),
             dzhamshut(),
             shbshnik(),
             kaif(),
             gospodin(),
             lavash(),
             zaebalo(),
-        )
-
-    private fun classic(): BuiltinPersonalizationDefinition =
-        definition(
-            key = "notification.classic",
-            name = "Классика",
-            pricePrime = 12,
-            mixedAggregateTitle = "Сегодня произошло сразу несколько событий",
-            itemDrop =
-                template(
-                    emoji = "🎉",
-                    title = "Новый предмет!",
-                    body = "{player} выбил «{item}». Поздравляем с удачным дропом!",
-                    compact = "{player} → «{item}»",
-                    aggregateTitle = "Новые предметы",
-                    variants =
-                        listOf(
-                            variant(
-                                id = "secret",
-                                conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
-                                emoji = "✨",
-                                title = "Вот это дроп!",
-                                body = "{player} выбил секретный предмет «{item}». Такое хочется запомнить.",
-                                compact = "Секретный дроп → «{item}»",
-                                aggregateTitle = "Секретные находки",
-                            ),
-                        ),
-                ),
-            booster =
-                template(
-                    emoji = "⚡",
-                    title = "Бустер активирован",
-                    body = "{player} активировал {booster.accusative}. Самое время использовать эффект.",
-                    compact = "{booster} · {player}",
-                    aggregateTitle = "Активированные бустеры",
-                ),
-            dungeon =
-                template(
-                    emoji = "🗝️",
-                    title = "Подземелье открыто",
-                    body = "{dungeon} уже доступно. Можно заходить.",
-                    compact = "Открыто: {dungeon}",
-                    aggregateTitle = "Открытые подземелья",
-                ),
-            raid =
-                template(
-                    emoji = "⚔️",
-                    title = "Начался рейд",
-                    body = "Активность обнаружена на локациях: {locations}.",
-                    compact = "Рейд → {locations}",
-                    aggregateTitle = "Активные рейды",
-                ),
-            global =
-                template(
-                    emoji = "🌍",
-                    title = "Глобальное событие",
-                    body = "В мире началось событие {event}.",
-                    compact = "Событие: {event}",
-                    aggregateTitle = "Глобальные события",
-                ),
-            playerOffline =
-                template(
-                    emoji = "👋",
-                    title = "Игрок вышел",
-                    body = "{player} больше не в сети.",
-                    compact = "{player} вышел",
-                    aggregateTitle = "Игроки вышли",
-                ),
         )
 
     private fun dzhamshut(): BuiltinPersonalizationDefinition =
