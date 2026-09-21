@@ -47,6 +47,24 @@ object BuiltinNotificationPackSupport {
                 variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
             )
 
+        val authoredGlobalEventValues =
+            global.variants
+                .flatMap { variant -> variant.conditions }
+                .filter { condition -> condition.field == NotificationPackVariantField.GLOBAL_EVENT }
+                .map { condition -> condition.value }
+                .toSet()
+        val sparseGlobalVariants =
+            if (authoredGlobalEventValues.containsAll(BASE_GLOBAL_EVENT_VALUES)) {
+                global.variants.filterNot { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.GLOBAL_EVENT &&
+                            condition.value == "ECLIPSE"
+                    }
+                }
+            } else {
+                global.variants
+            }
+
         val cometCopy = BuiltinCometChaosNotificationVariants.forPack(key)
         val cometVariant =
             variant(
@@ -58,7 +76,7 @@ object BuiltinNotificationPackSupport {
                 compact = cometCopy.compact,
                 aggregateTitle = cometCopy.aggregateTitle,
             )
-        val globalTemplate = global.copy(variants = global.variants + cometVariant)
+        val globalTemplate = global.copy(variants = sparseGlobalVariants + cometVariant)
         val normalizedValueMappings = withCometChaosValue(key, valueMappings)
 
         return BuiltinPersonalizationDefinition(
@@ -158,6 +176,7 @@ object BuiltinNotificationPackSupport {
     }
 
     private val SECRET_ITEM_TYPES = setOf("SWORD", "PET")
+    private val BASE_GLOBAL_EVENT_VALUES = setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION")
     private const val COMET_CHAOS = "COMET_CHAOS"
     private const val PROTOCOL_PACK_KEY = "notification.protocol"
 }
