@@ -39,6 +39,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.night-shift" to
                 copy(
+                    emoji = "🌠",
                     title = "Небо тоже не спит",
                     body = "Комета пронеслась над миром. Ночная смена получила ещё одну причину не ложиться.",
                     compact = "Кометный хаос вместо сна",
@@ -46,6 +47,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.dep" to
                 copy(
+                    emoji = "📉🔥",
                     title = "Комета пробила сопротивление",
                     body = "Начался Кометный хаос. Волатильность теперь буквально падает с неба.",
                     compact = "Кометная волатильность",
@@ -74,6 +76,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.suspicious-luck" to
                 copy(
+                    emoji = "🪐",
                     title = "Даже комета вовремя",
                     body = "Начался Кометный хаос. Конечно, именно сейчас. Совпадение выглядит всё подозрительнее.",
                     compact = "Комета тоже прокнула",
@@ -95,6 +98,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.hunter" to
                 copy(
+                    emoji = "🦅",
                     title = "След в небе",
                     body = "Комета прошла над миром. Охота входит в Кометный хаос.",
                     compact = "След кометы найден",
@@ -130,6 +134,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.critical" to
                 copy(
+                    emoji = "☄️",
                     title = "Критическое небесное событие",
                     body = "Комета пересекла небо. Критический статус: Кометный хаос.",
                     compact = "CRIT → Кометный хаос",
@@ -137,6 +142,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.night-city" to
                 copy(
+                    emoji = "🛰️",
                     title = "Комета над ночным городом",
                     body = "Неон встретился с кометным следом. Начался Кометный хаос.",
                     compact = "Комета над городом",
@@ -151,21 +157,112 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.guild" to
                 copy(
+                    emoji = "🔭",
                     title = "Вестник увидел комету",
                     body = "Над миром прошла комета. Гильдия встречает Кометный хаос.",
                     compact = "Гильдия → Кометный хаос",
                     aggregateTitle = "Кометные вести гильдии",
                 ),
+
+            "notification.dzhamshut" to
+                copy(
+                    emoji = "🏚️",
+                    title = "Объекту пиздец",
+                    body = "Начался Кометный хаос. Теперь даже небо участвует в стройке без проекта.",
+                    compact = "Кометы над объектом",
+                    aggregateTitle = "Кометные происшествия на объекте",
+                ),
+            "notification.shbshnik" to
+                copy(
+                    emoji = "🪑",
+                    title = "Теперь прятаться поздно",
+                    body = "Начался Кометный хаос. Под столом от этого уже не спастись.",
+                    compact = "Кометы нашли ШБ",
+                    aggregateTitle = "Кометные проблемы ШБ",
+                ),
+            "notification.kaif" to
+                copy(
+                    emoji = "🌠",
+                    title = "Кайф из космоса",
+                    body = "Начался Кометный хаос. Даже небо решило добавить эффектов.",
+                    compact = "Космический кайф",
+                    aggregateTitle = "Космический кайф",
+                ),
+            "notification.gospodin" to
+                copy(
+                    emoji = "✨",
+                    title = "Небеса приветствуют господина",
+                    body = "Начался Кометный хаос. Небо подготовило для господина отдельное представление.",
+                    compact = "Небесное представление",
+                    aggregateTitle = "Небесные знамения",
+                ),
+            "notification.lavash" to
+                copy(
+                    emoji = "🛸",
+                    title = "Доставка прямо с неба",
+                    body = "Начался Кометный хаос. Похоже, курьер выбрал очень странный маршрут.",
+                    compact = "Космическая доставка",
+                    aggregateTitle = "Доставки с неба",
+                ),
+            "notification.zaebalo" to
+                copy(
+                    emoji = "🤯",
+                    title = "А КОМЕТЫ-ТО НАХУЯ",
+                    body = "Начался Кометный хаос. Потому что обычных проблем, видимо, было мало.",
+                    compact = "Ещё и кометы",
+                    aggregateTitle = "Кометный пиздец",
+                ),
+            "notification.casino" to
+                copy(
+                    emoji = "🪐",
+                    title = "Космический джекпот",
+                    body = "Начался Кометный хаос. Колесо мира докрутилось до космического сектора.",
+                    compact = "COSMIC JACKPOT",
+                    aggregateTitle = "Космические джекпоты",
+                ),
+            "notification.support" to
+                copy(
+                    emoji = "🛰️",
+                    title = "INCIDENT CASCADE",
+                    body = "Начался Кометный хаос. Инциденты падают с неба, созвон уже создан.",
+                    compact = "INCIDENT CASCADE",
+                    aggregateTitle = "Каскадные инциденты",
+                ),
+            "notification.gossip" to
+                copy(
+                    emoji = "📡",
+                    title = "ВСЕ УЖЕ ОБ ЭТОМ ГОВОРЯТ",
+                    body = "Начался Кометный хаос. Версий произошедшего уже больше, чем комет.",
+                    compact = "Главная сплетня дня",
+                    aggregateTitle = "Кометные слухи",
+                ),
+            "notification.commentator" to
+                copy(
+                    emoji = "🛰️",
+                    title = "НЕБО ВСТУПАЕТ В ИГРУ!",
+                    body = "Начался Кометный хаос! Даже космос подключился к сегодняшнему матчу!",
+                    compact = "КОСМОС В ИГРЕ",
+                    aggregateTitle = "Космические моменты эфира",
+                ),
+            "notification.deadline" to
+                copy(
+                    emoji = "📥",
+                    title = "Задачи посыпались с неба",
+                    body = "Начался Кометный хаос. Бэклог теперь буквально падает сверху.",
+                    compact = "BACKLOG FROM SKY",
+                    aggregateTitle = "Космический бэклог",
+                ),
         )
 
     private fun copy(
+        emoji: String = "☄️",
         title: String,
         body: String,
         compact: String,
         aggregateTitle: String,
     ): Copy =
         Copy(
-            emoji = "☄️",
+            emoji = emoji,
             title = title,
             body = body,
             compact = compact,
