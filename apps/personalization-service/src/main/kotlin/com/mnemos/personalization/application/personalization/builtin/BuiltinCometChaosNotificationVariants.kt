@@ -163,7 +163,6 @@ object BuiltinCometChaosNotificationVariants {
                     compact = "Гильдия → Кометный хаос",
                     aggregateTitle = "Кометные вести гильдии",
                 ),
-
             "notification.dzhamshut" to
                 copy(
                     emoji = "🏚️",
