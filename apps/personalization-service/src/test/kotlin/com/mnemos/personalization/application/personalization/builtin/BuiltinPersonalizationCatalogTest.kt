@@ -78,7 +78,7 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
-    fun `authored notification packs keep the complete event variant matrix`() {
+    fun `authored notification packs keep the complete event matrix while base drops stay reachable`() {
         val authored =
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
@@ -98,10 +98,17 @@ class BuiltinPersonalizationCatalogTest {
             val dungeonVariants = content.templates.getValue(NotificationTemplateKey.DUNGEON).variants
             val globalVariants = content.templates.getValue(NotificationTemplateKey.GLOBAL).variants
 
-            assertEquals(
-                setOf("MYTHICAL", "SECRET"),
-                itemVariants.conditionValues(NotificationPackVariantField.ITEM_RARITY),
-                "Unexpected item rarity coverage for $key",
+            assertTrue(
+                itemVariants.none { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "MYTHICAL"
+                    } &&
+                        variant.conditions.none { condition ->
+                            condition.field == NotificationPackVariantField.ITEM_TYPE
+                        }
+                },
+                "Generic MYTHICAL variants must not shadow the base drop copy for $key",
             )
 
             val secretVariants =
@@ -146,20 +153,79 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
-    fun `all item drop variants inherit their pack emoji`() {
+    fun `secret drop variants are limited to sword and pet across every built in pack`() {
         val packs =
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
 
         packs.forEach { definition ->
             val content = definition.content as PersonalizationContent.NotificationPack
-            val itemTemplate = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+            val variants = content.templates.getValue(NotificationTemplateKey.ITEM_DROP).variants
+
+            variants
+                .filter { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    }
+                }
+                .forEach { variant ->
+                    val itemType =
+                        variant.conditions
+                            .singleOrNull { condition ->
+                                condition.field == NotificationPackVariantField.ITEM_TYPE
+                            }
+                            ?.value
+
+                    assertTrue(
+                        itemType == "SWORD" || itemType == "PET",
+                        "SECRET variant ${variant.id} must be SECRET+SWORD or SECRET+PET for ${definition.catalogKey.value}",
+                    )
+                }
+        }
+    }
+
+    @Test
+    fun `drop emoji inheritance is curated instead of forced for every pack`() {
+        val packs =
+            BuiltinPersonalizationCatalog.definitions
+                .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+
+        val dropVariants =
+            packs.flatMap { definition ->
+                val content = definition.content as PersonalizationContent.NotificationPack
+                val template = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+                template.variants.map { variant -> template.emoji to variant.emoji }
+            }
+
+        val inherited = dropVariants.count { (base, variant) -> base == variant }
+        val custom = dropVariants.count { (base, variant) -> base != variant }
+
+        assertTrue(inherited > custom, "Most drop variants should keep the pack's signature emoji")
+        assertTrue(custom > 0, "Some packs should intentionally keep subtype-specific drop emoji")
+
+        listOf("notification.dep", "notification.gospodin").forEach { key ->
+            val definition = packs.single { definition -> definition.catalogKey.value == key }
+            val content = definition.content as PersonalizationContent.NotificationPack
+            val template = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
 
             assertTrue(
-                itemTemplate.variants.all { variant -> variant.emoji == itemTemplate.emoji },
-                "Item-drop variants must inherit the base pack emoji for ${definition.catalogKey.value}",
+                template.variants.all { variant -> variant.emoji == template.emoji },
+                "$key must keep its signature drop emoji in sword/pet variants",
             )
         }
+    }
+
+    @Test
+    fun `dep keeps its signature drop copy`() {
+        val dep =
+            BuiltinPersonalizationCatalog.definitions
+                .single { definition -> definition.catalogKey.value == "notification.dep" }
+        val content = dep.content as PersonalizationContent.NotificationPack
+        val drop = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+
+        assertEquals("💸", drop.emoji)
+        assertEquals("Деп окупился", drop.soloTitle)
     }
 
     @Test
