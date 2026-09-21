@@ -15,10 +15,13 @@ build/
 **/build/tmp/
 gradle-wrapper.jar
 
-# Keep application JARs for Docker images
-!apps/account-service/build/
-!apps/account-service/build/libs/
-!apps/account-service/build/libs/account-service.jar
+# Keep runtime JARs required by Docker images
+!apps/*-service/build/
+!apps/*-service/build/libs/
+!apps/*-service/build/libs/*-service.jar
+!keycloak-extensions/telegram-authenticator/build/
+!keycloak-extensions/telegram-authenticator/build/libs/
+!keycloak-extensions/telegram-authenticator/build/libs/mnemos-telegram-authenticator.jar
 
 # IDE
 .idea/
