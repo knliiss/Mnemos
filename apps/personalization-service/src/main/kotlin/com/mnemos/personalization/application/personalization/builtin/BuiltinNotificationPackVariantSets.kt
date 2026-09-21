@@ -19,14 +19,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "📈",
-                        "Вышли в плюс",
-                        "{player} забрал мифический «{item}». Можно зафиксировать прибыль.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -48,14 +40,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🌠",
-                        "Вещий сон",
-                        "{player} выбил мифический «{item}». Хорошо, что не проснулся раньше.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -79,14 +63,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🎲",
-                        "Шанс забыл про математику",
-                        "{player} выбил мифический «{item}». Вероятность снова решила не участвовать.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -108,14 +84,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🦌",
-                        "Редкий зверь пал",
-                        "{player} добыл мифический «{item}». За таким следом стоило идти.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -139,14 +107,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "✴️",
-                        "Мифический крит",
-                        "{player} выбил мифический «{item}». Обычного результата игре показалось мало.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -168,14 +128,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "💜",
-                        "Редкость из подполья",
-                        "{player} достал мифический «{item}». Такие вещи в витринах не лежат.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -199,14 +151,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🏆",
-                        "Реликвия зала славы",
-                        "{player} принёс мифический «{item}». Писарь уже освободил страницу.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -228,14 +172,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🏗️",
-                        "Прораб удивлён",
-                        "{player} накопал мифический «{item}». В смете такого не было.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -259,14 +195,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🪑",
-                        "Битошка впечатлён",
-                        "{player} выбил мифический «{item}». Под столом стало теснее от трофеев.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -288,14 +216,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "✨",
-                        "Кайф повышенной редкости",
-                        "{player} выбил мифический «{item}». Вот теперь действительно красиво.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -319,14 +239,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "💎",
-                        "Достойно коллекции",
-                        "Господин {player} получил мифический «{item}». Экземпляр достоин витрины.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -348,14 +260,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🌯",
-                        "Особый заказ",
-                        "{player} получил мифический «{item}». Такой позиции в обычном меню нет.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -379,14 +283,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "😮‍💨",
-                        "Хотя бы не зря",
-                        "{player} выбил мифический «{item}». Хоть что-то сегодня не бесит.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -408,14 +304,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🃏",
-                        "Крупный выигрыш",
-                        "{player} забрал мифический «{item}». Казино начинает считать убытки.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -439,14 +327,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "✅",
-                        "Не воспроизводится",
-                        "{player} каким-то образом получил мифический «{item}». Закрываем тикет.",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -468,14 +348,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🤭",
-                        "Есть очень интересная информация",
-                        "Говорят, {player} выбил мифический «{item}». Но ты это не от меня услышал.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
@@ -499,14 +371,6 @@ object BuiltinNotificationPackVariantSets {
                     itemDrop =
                         listOf(
                         item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "🏆",
-                        "НЕВЕРОЯТНЫЙ РЕЗУЛЬТАТ!",
-                        "{player} забирает мифический «{item}»! Вот это исполнение!",
-                        ),
-                        item(
                         "secret-sword",
                         "SECRET",
                         "SWORD",
@@ -528,14 +392,6 @@ object BuiltinNotificationPackVariantSets {
                 VariantSet(
                     itemDrop =
                         listOf(
-                        item(
-                        "mythical",
-                        "MYTHICAL",
-                        null,
-                        "✅",
-                        "Успели невозможное",
-                        "{player} выбил мифический «{item}». Планирование снова чудом не понадобилось.",
-                        ),
                         item(
                         "secret-sword",
                         "SECRET",
