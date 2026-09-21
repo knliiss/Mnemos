@@ -45,7 +45,7 @@ export const eventsRu = {
       rarityFilterAria: "Редкость предмета",
       all: "Все",
       allRarities: "Все редкости",
-      searchPlaceholder: "Предмет, ник или событие",
+      searchPlaceholder: "Ник, предмет или вместе: ник + предмет",
       clear: "Очистить",
       newest: "Сначала новые",
       oldest: "Сначала старые",
