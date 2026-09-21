@@ -112,15 +112,22 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                 AND (CAST(:to AS timestamptz) IS NULL OR occurred_at < CAST(:to AS timestamptz))
                 AND (
                     CAST(:searchTerm AS text) IS NULL
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(item_name, ''))) > 0
-                    OR lower(item_name) % CAST(:searchTerm AS text)
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(dropped_for, ''))) > 0
-                    OR lower(dropped_for) % CAST(:searchTerm AS text)
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(activated_by, ''))) > 0
-                    OR lower(activated_by) % CAST(:searchTerm AS text)
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(booster_type, ''))) > 0
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(global_type, ''))) > 0
-                    OR position(CAST(:searchTerm AS text) in lower(coalesce(raid_locations, ''))) > 0
+                    OR NOT EXISTS (
+                        SELECT 1
+                        FROM regexp_split_to_table(CAST(:searchTerm AS text), E'\\s+') AS search_token(value)
+                        WHERE search_token.value <> ''
+                          AND NOT (
+                              position(search_token.value in lower(coalesce(item_name, ''))) > 0
+                              OR lower(coalesce(item_name, '')) % search_token.value
+                              OR position(search_token.value in lower(coalesce(dropped_for, ''))) > 0
+                              OR lower(coalesce(dropped_for, '')) % search_token.value
+                              OR position(search_token.value in lower(coalesce(activated_by, ''))) > 0
+                              OR lower(coalesce(activated_by, '')) % search_token.value
+                              OR position(search_token.value in lower(coalesce(booster_type, ''))) > 0
+                              OR position(search_token.value in lower(coalesce(global_type, ''))) > 0
+                              OR position(search_token.value in lower(coalesce(raid_locations, ''))) > 0
+                          )
+                    )
                 )
                 AND (
                     CAST(:droppedFor AS text) IS NULL
