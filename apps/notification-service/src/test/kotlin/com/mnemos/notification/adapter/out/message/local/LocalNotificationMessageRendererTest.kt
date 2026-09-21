@@ -140,9 +140,29 @@ class LocalNotificationMessageRendererTest {
 
         val message = renderer.renderNotification(userId, items)
 
-        assertTrue(message.text.startsWith("❄️ &lt;b&gt;Custom loot&lt;/b&gt;"))
+        assertTrue(message.text.startsWith("🎁 <b>Дропы</b> · ❄️ &lt;b&gt;Custom loot&lt;/b&gt;"))
         assertTrue(message.text.contains("&lt;Knalis&gt;"))
         assertTrue(message.text.contains("Sword &amp; Shield"))
+    }
+
+    @Test
+    fun `active pack mixed aggregation names the event category explicitly`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = activePack(userId)
+        val items =
+            listOf(
+                itemDrop(now, "Knalis", "Elucidator", NotificationItemRarity.SECRET),
+                booster(now, "Asuna", DomainBoosterType.MONEY),
+            )
+
+        val message = renderer.renderNotification(userId, items)
+
+        assertTrue(
+            message.text.startsWith(
+                "🔔 <b>Сразу несколько событий</b> · 🔔 &lt;b&gt;Custom events&lt;/b&gt;",
+            ),
+        )
     }
 
     @Test
