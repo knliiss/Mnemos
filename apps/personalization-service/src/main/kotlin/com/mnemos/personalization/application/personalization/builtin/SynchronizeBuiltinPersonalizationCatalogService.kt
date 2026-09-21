@@ -8,6 +8,7 @@ import com.mnemos.personalization.application.personalization.builtin.port.out.B
 import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationLookup
 import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationOwnershipReader
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
+import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
@@ -24,6 +25,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     private val personalizationRepository: PersonalizationRepository,
     private val builtinPersonalizationLookup: BuiltinPersonalizationLookup,
     private val ownershipReader: BuiltinPersonalizationOwnershipReader,
+    private val ownershipRepository: OwnedPersonalizationRepository,
     private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val profileAppearanceEventPublisher: ProfileAppearanceEventPublisher,
     private val clock: Clock,
@@ -50,6 +52,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
                 )
             }
 
+        retireRemovedBuiltins(now)
         changedPersonalizations.forEach(::republishActiveSnapshots)
 
         if (state.revision != CATALOG_REVISION || changedPersonalizations.isNotEmpty()) {
@@ -110,6 +113,43 @@ class SynchronizeBuiltinPersonalizationCatalogService(
         return personalizationRepository.save(existing)
     }
 
+    private fun retireRemovedBuiltins(now: Instant) {
+        RETIRED_CATALOG_KEYS.forEach { catalogKey ->
+            val personalization =
+                builtinPersonalizationLookup.findByCatalogKeyForUpdate(
+                    com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey(catalogKey),
+                ) ?: return@forEach
+
+            require(personalization.origin == PersonalizationOrigin.SYSTEM) {
+                "Retired built-in catalog key $catalogKey is occupied by non-system personalization"
+            }
+
+            val activeOwners = ownershipReader.findActiveOwners(personalization.id)
+            activeOwners.forEach { owner ->
+                ownershipRepository.deactivateActive(
+                    owner = owner,
+                    type = personalization.type,
+                )
+                if (owner is PersonalizationOwner.User) {
+                    notificationPackSelectionEventPublisher.publishCleared(UserId(owner.id))
+                }
+            }
+
+            val changed =
+                personalization.synchronizeSystem(
+                    name = personalization.name,
+                    content = personalization.content,
+                    price = requireNotNull(personalization.price),
+                    desiredStatus = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.UNLISTED,
+                    now = now,
+                )
+
+            if (changed) {
+                personalizationRepository.save(personalization)
+            }
+        }
+    }
+
     private fun republishActiveSnapshots(personalization: Personalization) {
         ownershipReader
             .findActiveOwners(personalization.id)
@@ -152,7 +192,9 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     private companion object {
         val logger = LoggerFactory.getLogger(SynchronizeBuiltinPersonalizationCatalogService::class.java)
 
-        const val CATALOG_REVISION = 7
+        val RETIRED_CATALOG_KEYS = setOf("notification.classic")
+
+        const val CATALOG_REVISION = 8
 
         val definitions = BuiltinPersonalizationCatalog.definitions
     }
