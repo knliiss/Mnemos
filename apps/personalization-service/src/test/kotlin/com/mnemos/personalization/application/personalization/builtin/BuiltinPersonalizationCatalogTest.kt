@@ -78,6 +78,72 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
+    fun `authored notification packs cover every supported event variant`() {
+        val authored =
+            BuiltinPersonalizationCatalog.definitions
+                .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+                .mapNotNull { definition ->
+                    BuiltinNotificationPackVariantSets.forPack(definition.catalogKey.value)
+                        ?.let { variants -> definition.catalogKey.value to variants }
+                }
+
+        assertEquals(AUTHORED_PACK_COUNT, authored.size)
+
+        authored.forEach { (key, variants) ->
+            assertEquals(
+                setOf("MYTHICAL", "SECRET"),
+                variants.itemDrop
+                    .flatMap { variant -> variant.conditions }
+                    .filter { condition -> condition.field == NotificationPackVariantField.ITEM_RARITY }
+                    .map { condition -> condition.value }
+                    .toSet(),
+                "Unexpected rarity coverage for $key",
+            )
+
+            val secretVariants =
+                variants.itemDrop.filter { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    }
+                }
+
+            assertEquals(2, secretVariants.size, "Expected sword and pet secret variants for $key")
+            assertEquals(
+                setOf("SWORD", "PET"),
+                secretVariants
+                    .flatMap { variant -> variant.conditions }
+                    .filter { condition -> condition.field == NotificationPackVariantField.ITEM_TYPE }
+                    .map { condition -> condition.value }
+                    .toSet(),
+                "Secret variants must be limited to swords and pets for $key",
+            )
+            assertTrue(
+                secretVariants.all { variant ->
+                    variant.conditions.any { condition -> condition.field == NotificationPackVariantField.ITEM_TYPE }
+                },
+                "Generic SECRET variant is not allowed for $key",
+            )
+
+            assertEquals(
+                setOf("LUCK", "MONEY", "DAMAGE", "POWER"),
+                variants.booster.singleConditionValues(NotificationPackVariantField.BOOSTER),
+                "Unexpected booster coverage for $key",
+            )
+            assertEquals(
+                setOf("EASY", "MEDIUM", "HARD", "EXPERT"),
+                variants.dungeon.singleConditionValues(NotificationPackVariantField.DUNGEON),
+                "Unexpected dungeon coverage for $key",
+            )
+            assertEquals(
+                setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION"),
+                variants.global.singleConditionValues(NotificationPackVariantField.GLOBAL_EVENT),
+                "Unexpected global event coverage for $key",
+            )
+        }
+    }
+
+    @Test
     fun `every built-in notification pack defines comet chaos copy`() {
         val packs =
             BuiltinPersonalizationCatalog.definitions
@@ -108,8 +174,16 @@ class BuiltinPersonalizationCatalogTest {
         }
     }
 
+    private fun List<com.mnemos.personalization.domain.personalization.model.NotificationTemplateVariant>.singleConditionValues(
+        field: NotificationPackVariantField,
+    ): Set<String> =
+        map { variant ->
+            variant.conditions.single { condition -> condition.field == field }.value
+        }.toSet()
+
     private companion object {
         const val MIN_DEFINITIONS_PER_TYPE = 20
+        const val AUTHORED_PACK_COUNT = 18
         const val COMET_CHAOS = "COMET_CHAOS"
     }
 }
