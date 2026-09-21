@@ -504,21 +504,6 @@ class StandardMessageResolver {
         )
     }
 
-    private fun NotificationItemRarity.englishName(): String =
-        when (this) {
-            NotificationItemRarity.MYTHICAL -> "Mythic"
-            NotificationItemRarity.SECRET -> "Secret"
-        }
-
-    private fun NotificationItemType.englishName(): String =
-        when (this) {
-            NotificationItemType.SWORD -> "Weapon"
-            NotificationItemType.PET -> "Pet"
-            NotificationItemType.AURA -> "Aura"
-            NotificationItemType.BOOK -> "Book"
-            NotificationItemType.JEWELRY -> "Relic"
-        }
-
     private fun DomainBoosterType.englishName(): String =
         when (this) {
             DomainBoosterType.LUCK -> "Luck Booster"
