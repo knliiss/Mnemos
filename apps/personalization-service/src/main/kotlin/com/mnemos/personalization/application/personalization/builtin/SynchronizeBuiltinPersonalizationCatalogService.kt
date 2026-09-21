@@ -10,7 +10,9 @@ import com.mnemos.personalization.application.personalization.builtin.port.out.B
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
+import com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
+import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.slf4j.LoggerFactory
@@ -117,7 +119,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
         RETIRED_CATALOG_KEYS.forEach { catalogKey ->
             val personalization =
                 builtinPersonalizationLookup.findByCatalogKeyForUpdate(
-                    com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey(catalogKey),
+                    PersonalizationCatalogKey(catalogKey),
                 ) ?: return@forEach
 
             require(personalization.origin == PersonalizationOrigin.SYSTEM) {
@@ -140,7 +142,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
                     name = personalization.name,
                     content = personalization.content,
                     price = requireNotNull(personalization.price),
-                    desiredStatus = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.UNLISTED,
+                    desiredStatus = PersonalizationStatus.UNLISTED,
                     now = now,
                 )
 
