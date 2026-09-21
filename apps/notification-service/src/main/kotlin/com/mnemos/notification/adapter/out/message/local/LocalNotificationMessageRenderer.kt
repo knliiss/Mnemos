@@ -169,7 +169,7 @@ class LocalNotificationMessageRenderer(
         when (language) {
             LocalizationLanguage.EN ->
                 when (type) {
-                    NotificationType.ITEM_DROP -> "🎁 <b>New drops</b>"
+                    NotificationType.ITEM_DROP -> "🎉 <b>New items</b>"
                     NotificationType.BOOSTER -> "⚡ <b>Boosters activated</b>"
                     NotificationType.DUNGEON -> "🏰 <b>Dungeons opened</b>"
                     NotificationType.RAID -> "⚔️ <b>Raids started</b>"
@@ -179,7 +179,7 @@ class LocalNotificationMessageRenderer(
 
             LocalizationLanguage.RU ->
                 when (type) {
-                    NotificationType.ITEM_DROP -> "🎁 <b>Новые находки</b>"
+                    NotificationType.ITEM_DROP -> "🎉 <b>Новые предметы</b>"
                     NotificationType.BOOSTER -> "⚡ <b>Активированы бустеры</b>"
                     NotificationType.DUNGEON -> "🏰 <b>Открылись подземелья</b>"
                     NotificationType.RAID -> "⚔️ <b>Начались рейды</b>"
@@ -189,7 +189,7 @@ class LocalNotificationMessageRenderer(
 
             LocalizationLanguage.UK ->
                 when (type) {
-                    NotificationType.ITEM_DROP -> "🎁 <b>Нові знахідки</b>"
+                    NotificationType.ITEM_DROP -> "🎉 <b>Нові предмети</b>"
                     NotificationType.BOOSTER -> "⚡ <b>Бустери активовано</b>"
                     NotificationType.DUNGEON -> "🏰 <b>Відкрилися підземелля</b>"
                     NotificationType.RAID -> "⚔️ <b>Почалися рейди</b>"

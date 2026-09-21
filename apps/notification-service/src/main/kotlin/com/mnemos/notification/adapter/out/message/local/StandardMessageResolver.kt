@@ -7,8 +7,6 @@ import com.mnemos.notification.application.notification.model.DungeonNotificatio
 import com.mnemos.notification.application.notification.model.GlobalNotificationPayload
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
-import com.mnemos.notification.application.notification.model.NotificationItemRarity
-import com.mnemos.notification.application.notification.model.NotificationItemType
 import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
@@ -37,23 +35,34 @@ class StandardMessageResolver {
         payload: ItemDropNotificationPayload,
         localization: NotificationLocalizationContext,
     ): ResolvedNotification {
-        val presentation = resolveItem(payload.itemType, payload.itemRarity, localization.language)
         val player = payload.droppedFor.escapeHtml()
         val itemName = localization.itemName(payload).escapeHtml()
 
-        val body =
-            when (localization.language) {
-                LocalizationLanguage.EN -> "Player <b>$player</b> dropped <b>“$itemName”</b>."
-                LocalizationLanguage.RU -> "Игрок <b>$player</b> выбил ${presentation.accusative} <b>«$itemName»</b>."
-                LocalizationLanguage.UK -> "Гравець <b>$player</b> вибив ${presentation.accusative} <b>«$itemName»</b>."
-            }
+        return when (localization.language) {
+            LocalizationLanguage.EN ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🎉 <b>Player $player got a new item</b>",
+                    soloBody = "They dropped <b>“$itemName”</b>. Let’s congratulate them on the lucky drop! 🎯",
+                    compact = "🎉 <b>$player</b> got <b>“$itemName”</b>",
+                )
 
-        return ResolvedNotification(
-            type = payload.type,
-            soloTitle = "${presentation.emoji} <b>${presentation.title}</b>",
-            soloBody = body,
-            compact = "${presentation.emoji} <b>$player</b> — ${presentation.compact} <b>«$itemName»</b>",
-        )
+            LocalizationLanguage.RU ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🎉 <b>Игрок $player выбил новый предмет</b>",
+                    soloBody = "Ему выпал <b>«$itemName»</b>. Поздравим его с этим событием! 🎯",
+                    compact = "🎉 <b>$player</b> выбил <b>«$itemName»</b>",
+                )
+
+            LocalizationLanguage.UK ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🎉 <b>Гравець $player вибив новий предмет</b>",
+                    soloBody = "Йому випав <b>«$itemName»</b>. Привітаємо його з цією подією! 🎯",
+                    compact = "🎉 <b>$player</b> вибив <b>«$itemName»</b>",
+                )
+        }
     }
 
     private fun resolve(
@@ -212,99 +221,6 @@ class StandardMessageResolver {
                 )
         }
     }
-
-    private fun resolveItem(
-        type: NotificationItemType,
-        rarity: NotificationItemRarity,
-        language: LocalizationLanguage,
-    ): ItemPresentation {
-        val emoji = itemEmoji(type, rarity)
-
-        return when (language) {
-            LocalizationLanguage.EN ->
-                when (rarity to type) {
-                    NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
-                        ItemPresentation(emoji, "Secret weapon", "", "secret weapon")
-                    NotificationItemRarity.SECRET to NotificationItemType.PET ->
-                        ItemPresentation(emoji, "Secret pet", "", "secret pet")
-                    NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
-                    NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
-                    NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
-                    NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
-                    NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
-                    -> ItemPresentation(emoji, "Mythic find", "", "mythic item")
-                    else -> unsupportedItemPresentation(type, rarity)
-                }
-
-            LocalizationLanguage.RU -> resolveRussianItem(type, rarity, emoji)
-            LocalizationLanguage.UK -> resolveUkrainianItem(type, rarity, emoji)
-        }
-    }
-
-    private fun resolveRussianItem(
-        type: NotificationItemType,
-        rarity: NotificationItemRarity,
-        emoji: String,
-    ): ItemPresentation =
-        when (rarity to type) {
-            NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Секретное оружие", "секретное оружие", "секретное оружие")
-
-            NotificationItemRarity.SECRET to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Секретный питомец", "секретного питомца", "секретный питомец")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
-            -> ItemPresentation(emoji, "Мифическая находка", "мифический предмет", "мифический предмет")
-
-            else -> unsupportedItemPresentation(type, rarity)
-        }
-
-    private fun resolveUkrainianItem(
-        type: NotificationItemType,
-        rarity: NotificationItemRarity,
-        emoji: String,
-    ): ItemPresentation =
-        when (rarity to type) {
-            NotificationItemRarity.SECRET to NotificationItemType.SWORD ->
-                ItemPresentation(emoji, "Секретна зброя", "секретну зброю", "секретна зброя")
-
-            NotificationItemRarity.SECRET to NotificationItemType.PET ->
-                ItemPresentation(emoji, "Секретний улюбленець", "секретного улюбленця", "секретний улюбленець")
-
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
-            -> ItemPresentation(emoji, "Міфічна знахідка", "міфічний предмет", "міфічний предмет")
-
-            else -> unsupportedItemPresentation(type, rarity)
-        }
-
-    private fun itemEmoji(
-        type: NotificationItemType,
-        rarity: NotificationItemRarity,
-    ): String =
-        when (rarity to type) {
-            NotificationItemRarity.SECRET to NotificationItemType.SWORD -> "⚔️"
-            NotificationItemRarity.SECRET to NotificationItemType.PET -> "🐾"
-            NotificationItemRarity.MYTHICAL to NotificationItemType.SWORD,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.PET,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.AURA,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK,
-            NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY,
-            -> "✨"
-            else -> unsupportedItemPresentation(type, rarity)
-        }
-
-    private fun unsupportedItemPresentation(
-        type: NotificationItemType,
-        rarity: NotificationItemRarity,
-    ): Nothing = error("Unsupported item presentation: type=$type, rarity=$rarity")
 
     private fun resolveBooster(
         type: DomainBoosterType,
@@ -516,13 +432,6 @@ class StandardMessageResolver {
         replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
-
-    private data class ItemPresentation(
-        val emoji: String,
-        val title: String,
-        val accusative: String,
-        val compact: String,
-    )
 
     private data class BoosterPresentation(
         val emoji: String,

@@ -55,8 +55,8 @@ class LocalNotificationMessageRendererTest {
         val message = renderer.renderNotification(UserId.generate(), listOf(item))
 
         assertEquals(
-            "⚔️ <b>Секретное оружие</b>\n" +
-                "Игрок <b>Knalis</b> выбил секретное оружие <b>«Elucidator»</b>.",
+            "🎉 <b>Игрок Knalis выбил новый предмет</b>\n" +
+                "Ему выпал <b>«Elucidator»</b>. Поздравим его с этим событием! 🎯",
             message.text,
         )
     }
@@ -84,7 +84,7 @@ class LocalNotificationMessageRendererTest {
         val message = renderer.renderNotification(UserId.generate(), listOf(item))
 
         assertTrue(message.text.contains("<b>“Elucidator”</b>"))
-        assertTrue(message.text.contains("Player <b>Knalis</b> dropped"))
+        assertTrue(message.text.contains("<b>Player Knalis got a new item</b>"))
         assertFalse(message.text.contains("Элюцидатор"))
     }
 
@@ -101,11 +101,11 @@ class LocalNotificationMessageRendererTest {
 
         assertEquals(
             """
-            🎁 <b>Новые находки</b>
+            🎉 <b>Новые предметы</b>
 
-            ⚔️ <b>Knalis</b> — секретное оружие <b>«Elucidator»</b>
+            🎉 <b>Knalis</b> выбил <b>«Elucidator»</b>
 
-            ✨ <b>Asuna</b> — мифический предмет <b>«Lambent Light»</b>
+            🎉 <b>Asuna</b> выбил <b>«Lambent Light»</b>
             """.trimIndent(),
             message.text,
         )
@@ -179,8 +179,8 @@ class LocalNotificationMessageRendererTest {
         val message = renderer.renderNotification(userId, listOf(item))
 
         assertEquals(
-            "⚔️ <b>Секретное оружие</b>\n" +
-                "Игрок <b>Knalis</b> выбил секретное оружие <b>«Elucidator»</b>.",
+            "🎉 <b>Игрок Knalis выбил новый предмет</b>\n" +
+                "Ему выпал <b>«Elucidator»</b>. Поздравим его с этим событием! 🎯",
             message.text,
         )
     }
