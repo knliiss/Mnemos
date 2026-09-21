@@ -28,11 +28,13 @@ object BuiltinNotificationPackSupport {
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition {
         val authoredVariants = BuiltinNotificationPackVariantSets.forPack(key)
-        val itemDropVariants = authoredVariants?.itemDrop ?: itemDrop.variants
-        val itemDropTemplate =
-            itemDrop.copy(
-                variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
+        val itemDropVariants =
+            normalizeItemDropVariants(
+                key = key,
+                baseEmoji = itemDrop.emoji,
+                variants = authoredVariants?.itemDrop ?: itemDrop.variants,
             )
+        val itemDropTemplate = itemDrop.copy(variants = itemDropVariants)
         val boosterTemplate =
             booster.copy(
                 variants = authoredVariants?.booster ?: booster.variants,
@@ -140,6 +142,68 @@ object BuiltinNotificationPackSupport {
             aggregateTitle = "Игроки вышли из игры",
         )
 
+    private fun normalizeItemDropVariants(
+        key: String,
+        baseEmoji: String?,
+        variants: List<NotificationTemplateVariant>,
+    ): List<NotificationTemplateVariant> {
+        val explicitSecretTypes =
+            variants
+                .filter { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    }
+                }
+                .mapNotNull { variant ->
+                    variant.conditions
+                        .firstOrNull { condition -> condition.field == NotificationPackVariantField.ITEM_TYPE }
+                        ?.value
+                }
+                .toSet()
+
+        return variants
+            .flatMap { variant ->
+                val rarity =
+                    variant.conditions
+                        .firstOrNull { condition -> condition.field == NotificationPackVariantField.ITEM_RARITY }
+                        ?.value
+                val itemType =
+                    variant.conditions
+                        .firstOrNull { condition -> condition.field == NotificationPackVariantField.ITEM_TYPE }
+                        ?.value
+
+                when {
+                    // A generic MYTHICAL variant made the pack's base drop copy unreachable.
+                    rarity == "MYTHICAL" && itemType == null -> emptyList()
+
+                    // SECRET drops only exist as sword/pet variants. Expand legacy generic SECRET
+                    // copy only for a type that does not already have an explicitly authored variant.
+                    rarity == "SECRET" && itemType == null ->
+                        listOf("SWORD", "PET")
+                            .filterNot { type -> type in explicitSecretTypes }
+                            .map { type ->
+                                variant.copy(
+                                    id = "${variant.id}-${type.lowercase()}",
+                                    conditions =
+                                        variant.conditions +
+                                            condition(NotificationPackVariantField.ITEM_TYPE, type),
+                                )
+                            }
+
+                    rarity == "SECRET" && itemType !in SECRET_ITEM_TYPES -> emptyList()
+                    else -> listOf(variant)
+                }
+            }
+            .map { variant ->
+                if (key in BASE_DROP_EMOJI_PACKS) {
+                    variant.copy(emoji = baseEmoji)
+                } else {
+                    variant
+                }
+            }
+    }
+
     private fun withCometChaosValue(
         key: String,
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>>,
@@ -155,6 +219,30 @@ object BuiltinNotificationPackSupport {
         return valueMappings +
             (NotificationPackValueKey.GLOBAL_EVENT to (eventValues + (COMET_CHAOS to cometValue)))
     }
+
+    private val SECRET_ITEM_TYPES = setOf("SWORD", "PET")
+
+    // Most packs keep their signature drop emoji across base/sword/pet copy.
+    // A smaller set intentionally keeps authored subtype emoji where it adds to the pack's joke/theme.
+    private val BASE_DROP_EMOJI_PACKS =
+        setOf(
+            "notification.mnemos-archive",
+            "notification.protocol",
+            "notification.night-shift",
+            "notification.dep",
+            "notification.deadpan",
+            "notification.anomaly",
+            "notification.frontier",
+            "notification.suspicious-luck",
+            "notification.critical",
+            "notification.shbshnik",
+            "notification.kaif",
+            "notification.gospodin",
+            "notification.lavash",
+            "notification.gossip",
+            "notification.commentator",
+            "notification.deadline",
+        )
 
     private const val COMET_CHAOS = "COMET_CHAOS"
     private const val PROTOCOL_PACK_KEY = "notification.protocol"
