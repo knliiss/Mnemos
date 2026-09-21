@@ -57,7 +57,10 @@ export function EventsFeed({ params, activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const routeFilters = useMemo(() => readEventFeedRouteParams(params), [params])
   const persistedState = useMemo(
-    () => (params && Object.keys(params).length > 0 ? null : readPersistedEventFeedState(activeAccount.id)),
+    () =>
+      params && Object.keys(params).length > 0
+        ? null
+        : readPersistedEventFeedState(activeAccount.id),
     [activeAccount.id, params],
   )
   const initialFilters = persistedState ?? routeFilters
