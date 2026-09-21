@@ -183,7 +183,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertEquals(0, fixture.personalizationStore.lookupCalls)
         assertEquals(0, fixture.personalizationStore.saveCalls)
         assertEquals(0, fixture.stateRepository.updateCalls)
-        assertEquals(8, fixture.stateRepository.state.revision)
+        assertEquals(9, fixture.stateRepository.state.revision)
         assertTrue(fixture.publisher.events.isEmpty())
     }
 
