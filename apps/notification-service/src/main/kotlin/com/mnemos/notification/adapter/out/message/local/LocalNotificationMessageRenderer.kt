@@ -383,8 +383,7 @@ class LocalNotificationMessageRenderer(
                 }
 
             NotificationType.RAID,
-            NotificationType.PLAYER_OFFLINE,
-            -> null
+            NotificationType.PLAYER_OFFLINE -> null
         }
     }
 
