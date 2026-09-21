@@ -39,7 +39,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.night-shift" to
                 copy(
-                    emoji = "🌠",
+                    emoji = "🌌",
                     title = "Небо тоже не спит",
                     body = "Комета пронеслась над миром. Ночная смена получила ещё одну причину не ложиться.",
                     compact = "Кометный хаос вместо сна",
@@ -174,7 +174,7 @@ object BuiltinCometChaosNotificationVariants {
                 ),
             "notification.shbshnik" to
                 copy(
-                    emoji = "🪑",
+                    emoji = "🫣",
                     title = "Теперь прятаться поздно",
                     body = "Начался Кометный хаос. Под столом от этого уже не спастись.",
                     compact = "Кометы нашли ШБ",
