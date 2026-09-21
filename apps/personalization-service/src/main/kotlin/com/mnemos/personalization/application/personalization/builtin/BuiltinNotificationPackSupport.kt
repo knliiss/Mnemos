@@ -42,10 +42,7 @@ object BuiltinNotificationPackSupport {
                 isGenericSecret
             }
         val itemDropVariants = BuiltinNotificationPackVariantSets.forPack(key)?.itemDrop ?: localItemDropVariants
-        val itemDropTemplate =
-            itemDrop.copy(
-                variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
-            )
+        val itemDropTemplate = itemDrop.copy(variants = itemDropVariants)
 
         val authoredGlobalEventValues =
             global.variants
