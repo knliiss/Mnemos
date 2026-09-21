@@ -40,7 +40,6 @@ class BuiltinPersonalizationCatalogTest {
 
         val expected =
             mapOf(
-                "notification.classic" to "Классика",
                 "notification.dzhamshut" to "Джамшут",
                 "notification.shbshnik" to "ШБшник",
                 "notification.dep" to "Деп",
