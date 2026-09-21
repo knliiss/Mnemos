@@ -45,7 +45,7 @@ export const eventsEn = {
       rarityFilterAria: "Item rarity",
       all: "All",
       allRarities: "All rarities",
-      searchPlaceholder: "Item, nickname or event",
+      searchPlaceholder: "Nickname, item, or both: nickname + item",
       clear: "Clear",
       newest: "Newest first",
       oldest: "Oldest first",

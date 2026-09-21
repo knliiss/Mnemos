@@ -45,7 +45,7 @@ export const eventsUk = {
       rarityFilterAria: "Рідкість предмета",
       all: "Усі",
       allRarities: "Усі рідкості",
-      searchPlaceholder: "Предмет, нік або подія",
+      searchPlaceholder: "Нік, предмет або разом: нік + предмет",
       clear: "Очистити",
       newest: "Спочатку нові",
       oldest: "Спочатку старі",
