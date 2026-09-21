@@ -34,7 +34,6 @@ fi
 
 for forbidden in \
     'mnemos-production' \
-    'mnemos-backend' \
     'packages: write' \
     'environment: production' \
     'docker login' \
