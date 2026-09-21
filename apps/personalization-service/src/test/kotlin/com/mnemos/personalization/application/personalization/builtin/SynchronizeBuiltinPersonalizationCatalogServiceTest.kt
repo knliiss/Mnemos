@@ -63,7 +63,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertTrue(personalizations.all { it.origin == PersonalizationOrigin.SYSTEM })
         assertTrue(personalizations.all { it.status == PersonalizationStatus.PUBLISHED })
         assertTrue(personalizations.all { it.creatorUserId == null })
-        assertEquals(9, fixture.stateRepository.state.revision)
+        assertEquals(8, fixture.stateRepository.state.revision)
         assertEquals(now, fixture.stateRepository.state.updatedAt)
         assertEquals(1, fixture.stateRepository.updateCalls)
         assertTrue(fixture.publisher.events.isEmpty())
@@ -129,6 +129,49 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertEquals(existingId.id, payload.personalizationId)
         assertEquals(1L, payload.selectionRevision)
         assertEquals(now, payload.occurredAt)
+    }
+
+    @Test
+    fun `retires legacy default pack and clears active selection`() {
+        val sourceDefinition =
+            BuiltinPersonalizationCatalog.definitions
+                .first { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+        val legacy =
+            Personalization.createSystem(
+                catalogKey = PersonalizationCatalogKey("notification.classic"),
+                type = PersonalizationType.NOTIFICATION_PACK,
+                name = "Классика",
+                content = sourceDefinition.content,
+                price = sourceDefinition.price,
+                status = PersonalizationStatus.PUBLISHED,
+                now = now.minusSeconds(3_600),
+            )
+        val ownerUserId = UserId.generate()
+        val fixture =
+            fixture(
+                initialRevision = 7,
+                initialPersonalizations = listOf(legacy),
+                activeOwners =
+                    mapOf(
+                        legacy.id to listOf(PersonalizationOwner.User(ownerUserId)),
+                    ),
+            )
+
+        fixture.service.execute()
+
+        val retired =
+            fixture.personalizationStore.byCatalogKey
+                .getValue(PersonalizationCatalogKey("notification.classic"))
+        val payload =
+            fixture.publisher.events
+                .single()
+                .payload as NotificationPackSelectionChangedV1
+
+        assertEquals(PersonalizationStatus.UNLISTED, retired.status)
+        assertEquals(null, payload.personalizationId)
+        assertEquals(null, payload.pack)
+        assertEquals(ownerUserId.id, payload.userId)
+        assertEquals(8, fixture.stateRepository.state.revision)
     }
 
     @Test
