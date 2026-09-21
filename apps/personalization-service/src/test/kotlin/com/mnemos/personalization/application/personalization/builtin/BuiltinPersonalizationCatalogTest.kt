@@ -58,6 +58,27 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
+    fun `fresh notification pack concepts are present`() {
+        val packs =
+            BuiltinPersonalizationCatalog.definitions
+                .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+                .associateBy { definition -> definition.catalogKey.value }
+
+        val expected =
+            mapOf(
+                "notification.casino" to "Казино",
+                "notification.support" to "Техподдержка",
+                "notification.gossip" to "Сплетни",
+                "notification.commentator" to "Комментатор",
+                "notification.deadline" to "Дедлайн",
+            )
+
+        expected.forEach { (key, name) ->
+            assertEquals(name, packs[key]?.name, "Expected fresh notification pack $key")
+        }
+    }
+
+    @Test
     fun `every built-in notification pack defines comet chaos copy`() {
         val packs =
             BuiltinPersonalizationCatalog.definitions
