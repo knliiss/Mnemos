@@ -28,12 +28,10 @@ object BuiltinNotificationPackSupport {
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition {
         val authoredVariants = BuiltinNotificationPackVariantSets.forPack(key)
+        val itemDropVariants = authoredVariants?.itemDrop ?: itemDrop.variants
         val itemDropTemplate =
             itemDrop.copy(
-                variants =
-                    authoredVariants?.itemDrop
-                        ?.map { variant -> variant.copy(emoji = itemDrop.emoji) }
-                        ?: itemDrop.variants,
+                variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
             )
         val boosterTemplate =
             booster.copy(
