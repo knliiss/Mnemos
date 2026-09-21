@@ -272,44 +272,44 @@ object BuiltinNotificationPacksAtmosphere {
     private fun suspiciousLuck(): BuiltinPersonalizationDefinition =
         definition(
             key = "notification.suspicious-luck",
-            name = "Подозрительно везёт",
+            name = "Удача",
             pricePrime = 30,
-            mixedAggregateTitle = "Сегодня кому-то явно слишком удобно",
+            mixedAggregateTitle = "Сегодня удача явно решила играть за одну сторону",
             itemDrop =
                 template(
                     emoji = "🍀",
-                    title = "Опять повезло",
-                    body = "{player} получил «{item}». Совпадение. Наверное.",
-                    compact = "{player} снова повезло → «{item}»",
-                    aggregateTitle = "Подозрительно удачные находки",
+                    title = "Критическая удача",
+                    body = "{player} выбил «{item}». Твоя удача сегодня уже выглядит как отдельная механика.",
+                    compact = "Удача → {player} → «{item}»",
+                    aggregateTitle = "Критически удачные находки",
                     variants =
                         listOf(
                             variant(
                                 id = "secret",
                                 conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
                                 emoji = "🧐",
-                                title = "Это уже не смешно",
-                                body = "{player} получил «{item}». Секретный дроп снова оказался у нужного человека.",
-                                compact = "Секретный дроп → {player}. Опять.",
-                                aggregateTitle = "Совпадений стало слишком много",
+                                title = "Так, таблицу шансов сюда",
+                                body = "{player} выбил секретный «{item}». Кажется, шанс выпадения просто забыл быть маленьким.",
+                                compact = "Слишком везучий {player} → «{item}»",
+                                aggregateTitle = "Удача вышла из-под контроля",
                             ),
                         ),
                 ),
             booster =
                 template(
                     emoji = "🎰",
-                    title = "Шансы решили помочь",
-                    body = "{player} активировал эффект {booster.genitive}.",
+                    title = "Удачу решили подкрутить ещё сильнее",
+                    body = "{player} активировал эффект {booster.genitive}. Видимо, естественного везения уже мало.",
                     compact = "{player} добавил себе {booster}",
-                    aggregateTitle = "Шансы стали ещё подозрительнее",
+                    aggregateTitle = "Подкрученные шансы",
                     variants =
                         listOf(
                             variant(
                                 id = "luck",
                                 conditions = listOf(condition(NotificationPackVariantField.BOOSTER, "LUCK")),
                                 emoji = "🍀",
-                                title = "Ну конечно, ещё и Удача",
-                                body = "{player} активировал Удачу. Как будто без неё было недостаточно подозрительно.",
+                                title = "Читы на удачу включены",
+                                body = "{player} активировал Удачу. Теперь можно официально делать вид, что RNG честный.",
                                 compact = "Ещё и Удача · {player}",
                                 aggregateTitle = "Удачи стало неприлично много",
                             ),
@@ -377,6 +377,14 @@ object BuiltinNotificationPacksAtmosphere {
                                 aggregateTitle = "Слишком много совпадений",
                             ),
                         ),
+                ),
+            playerOffline =
+                template(
+                    emoji = "🍀",
+                    title = "Удача вышла вместе с игроком",
+                    body = "{player} вышел из игры. Остальным наконец-то вернули нормальные шансы.",
+                    compact = "{player} унёс удачу с собой",
+                    aggregateTitle = "Удача покинула сервер",
                 ),
         )
 }
