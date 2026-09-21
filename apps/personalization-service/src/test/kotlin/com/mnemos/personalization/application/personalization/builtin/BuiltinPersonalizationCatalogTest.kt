@@ -83,7 +83,8 @@ class BuiltinPersonalizationCatalogTest {
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
                 .mapNotNull { definition ->
-                    BuiltinNotificationPackVariantSets.forPack(definition.catalogKey.value)
+                    BuiltinNotificationPackVariantSets
+                        .forPack(definition.catalogKey.value)
                         ?.let { variants -> definition.catalogKey.value to variants }
                 }
 
