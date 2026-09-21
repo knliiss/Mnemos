@@ -192,7 +192,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" build
+
+          ./gradlew clean build --console=plain --no-build-cache
+
+          while IFS= read -r -d '' artifact; do
+            echo "Verifying ${artifact}"
+            jar tf "$artifact" >/dev/null
+          done < <(
+            find apps \
+              -path '*/build/libs/*-service.jar' \
+              -type f \
+              -print0
+          )
+
+          $CI_COMPOSE_COMMAND build --quiet
 
       - name: Start clean stack
         shell: bash
