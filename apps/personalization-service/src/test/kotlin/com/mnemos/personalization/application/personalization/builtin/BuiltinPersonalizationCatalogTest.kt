@@ -78,42 +78,71 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
-    fun `built in notification pack variants stay sparse so base templates remain reachable`() {
-        val packs =
+    fun `authored notification packs keep the complete event variant matrix`() {
+        val authored =
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+                .mapNotNull { definition ->
+                    BuiltinNotificationPackVariantSets
+                        .forPack(definition.catalogKey.value)
+                        ?.let { variants -> definition to variants }
+                }
 
-        packs.forEach { definition ->
-            val content = definition.content as PersonalizationContent.NotificationPack
+        assertEquals(AUTHORED_PACK_COUNT, authored.size)
+
+        authored.forEach { (definition, variants) ->
             val key = definition.catalogKey.value
+            val content = definition.content as PersonalizationContent.NotificationPack
+            val itemTemplate = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
 
-            val itemRarities =
-                content.templates
-                    .getValue(NotificationTemplateKey.ITEM_DROP)
-                    .variants
-                    .conditionValues(NotificationPackVariantField.ITEM_RARITY)
-            val boosters =
-                content.templates
-                    .getValue(NotificationTemplateKey.BOOSTER)
-                    .variants
-                    .conditionValues(NotificationPackVariantField.BOOSTER)
-            val dungeons =
-                content.templates
-                    .getValue(NotificationTemplateKey.DUNGEON)
-                    .variants
-                    .conditionValues(NotificationPackVariantField.DUNGEON)
+            assertEquals(
+                setOf("MYTHICAL", "SECRET"),
+                variants.itemDrop.conditionValues(NotificationPackVariantField.ITEM_RARITY),
+                "Unexpected item rarity coverage for $key",
+            )
 
-            assertTrue(
-                itemRarities != setOf("MYTHICAL", "SECRET"),
-                "Item-drop variants must not shadow the base template for $key",
+            val secretVariants =
+                variants.itemDrop.filter { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    }
+                }
+
+            assertEquals(2, secretVariants.size, "Expected SECRET+SWORD and SECRET+PET for $key")
+            assertEquals(
+                setOf("SWORD", "PET"),
+                secretVariants.conditionValues(NotificationPackVariantField.ITEM_TYPE),
+                "Secret variants must be limited to swords and pets for $key",
             )
             assertTrue(
-                boosters != setOf("LUCK", "MONEY", "DAMAGE", "POWER"),
-                "Booster variants must not shadow the base template for $key",
+                secretVariants.all { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_TYPE
+                    }
+                },
+                "Generic SECRET variant is not allowed for $key",
             )
+
+            assertEquals(
+                setOf("LUCK", "MONEY", "DAMAGE", "POWER"),
+                variants.booster.conditionValues(NotificationPackVariantField.BOOSTER),
+                "Unexpected booster coverage for $key",
+            )
+            assertEquals(
+                setOf("EASY", "MEDIUM", "HARD", "EXPERT"),
+                variants.dungeon.conditionValues(NotificationPackVariantField.DUNGEON),
+                "Unexpected dungeon coverage for $key",
+            )
+            assertEquals(
+                setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION"),
+                variants.global.conditionValues(NotificationPackVariantField.GLOBAL_EVENT),
+                "Unexpected global event coverage for $key",
+            )
+
             assertTrue(
-                dungeons != setOf("EASY", "MEDIUM", "HARD", "EXPERT"),
-                "Dungeon variants must not shadow the base template for $key",
+                itemTemplate.variants.all { variant -> variant.emoji == itemTemplate.emoji },
+                "Item-drop variants must inherit the base pack emoji for $key",
             )
         }
     }
@@ -159,6 +188,7 @@ class BuiltinPersonalizationCatalogTest {
 
     private companion object {
         const val MIN_DEFINITIONS_PER_TYPE = 20
+        const val AUTHORED_PACK_COUNT = 18
         const val COMET_CHAOS = "COMET_CHAOS"
     }
 }
