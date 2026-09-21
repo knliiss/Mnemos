@@ -17,36 +17,36 @@ object BuiltinNotificationPacksCulture {
     private fun nightShift(): BuiltinPersonalizationDefinition =
         definition(
             key = "notification.night-shift",
-            name = "Ночная смена",
+            name = "Сон",
             pricePrime = 25,
             mixedAggregateTitle = "Сон снова откладывается",
             itemDrop =
                 template(
                     emoji = "💤",
-                    title = "Ну наконец-то",
-                    body = "{player} дождался «{item}». Можно ещё пять минут и спать.",
-                    compact = "{player} не зря не спал → «{item}»",
-                    aggregateTitle = "Ночные находки",
+                    title = "И во сне дропает",
+                    body = "{player} выбил «{item}» почти не просыпаясь. Сон фарму не помеха.",
+                    compact = "{player} дропнул во сне → «{item}»",
+                    aggregateTitle = "Дропы между снами",
                     variants =
                         listOf(
                             variant(
                                 id = "secret",
                                 conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
                                 emoji = "😶",
-                                title = "Теперь точно не уснёшь",
-                                body = "{player} получил «{item}». Секретный дроп перед сном — отличный способ отменить сон.",
-                                compact = "Секретный дроп → {player}",
-                                aggregateTitle = "Причины не ложиться спать",
+                                title = "Вот теперь проснулся",
+                                body = "{player} выбил секретный «{item}». Такой будильник уже не проигнорируешь.",
+                                compact = "Проснулся от секретки → {player}",
+                                aggregateTitle = "Причины всё-таки проснуться",
                             ),
                         ),
                 ),
             booster =
                 template(
                     emoji = "☕",
-                    title = "Спать отменяется",
-                    body = "{player} активировал эффект {booster.genitive}. Смена официально продлена.",
-                    compact = "Ещё один заход · {booster}",
-                    aggregateTitle = "Ночная смена продолжается",
+                    title = "Сон поставлен на паузу",
+                    body = "{player} активировал эффект {booster.genitive}. Можно фармить с закрытыми глазами.",
+                    compact = "Сквозь сон · {booster}",
+                    aggregateTitle = "Сон снова отложили",
                     variants =
                         listOf(
                             variant(
@@ -151,14 +151,14 @@ object BuiltinNotificationPacksCulture {
             key = "notification.dep",
             name = "Деп",
             pricePrime = 40,
-            mixedAggregateTitle = "Рынок фарма резко оживился",
+            mixedAggregateTitle = "Депы снова начали принимать решения за игроков",
             itemDrop =
                 template(
                     emoji = "📈",
-                    title = "Позиция закрылась в плюс",
-                    body = "{player} конвертировал нервы в «{item}». Наконец-то зелёная свеча.",
-                    compact = "{player} вышел в плюс → «{item}»",
-                    aggregateTitle = "Зафиксирована прибыль",
+                    title = "Последний деп был не зря",
+                    body = "{player} выбил «{item}». Последний деп ради этого внезапно оказался не таким уж плохим решением.",
+                    compact = "Последний деп → «{item}»",
+                    aggregateTitle = "Окупившиеся депы",
                     variants =
                         listOf(
                             variant(
@@ -166,9 +166,9 @@ object BuiltinNotificationPacksCulture {
                                 conditions = listOf(condition(NotificationPackVariantField.ITEM_RARITY, "SECRET")),
                                 emoji = "💸",
                                 title = "Деп окупился",
-                                body = "{player} получил «{item}». Последний деп внезапно перестал выглядеть ошибкой.",
+                                body = "{player} выбил секретный «{item}». Финансовый отдел просит больше так не делать.",
                                 compact = "Деп окупился → «{item}»",
-                                aggregateTitle = "Депы начали окупаться",
+                                aggregateTitle = "Депы, которые каким-то чудом окупились",
                             ),
                             variant(
                                 id = "secret-pet",
