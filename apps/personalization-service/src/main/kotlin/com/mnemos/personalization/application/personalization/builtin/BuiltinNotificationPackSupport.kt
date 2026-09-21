@@ -27,7 +27,21 @@ object BuiltinNotificationPackSupport {
         playerOffline: NotificationTemplate = defaultPlayerOfflineTemplate(),
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition {
-        val itemDropVariants = BuiltinNotificationPackVariantSets.forPack(key)?.itemDrop ?: itemDrop.variants
+        val localItemDropVariants =
+            itemDrop.variants.filterNot { variant ->
+                val isGenericSecret =
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    } &&
+                        variant.conditions.none { condition ->
+                            condition.field == NotificationPackVariantField.ITEM_TYPE &&
+                                condition.value in SECRET_ITEM_TYPES
+                        }
+
+                isGenericSecret
+            }
+        val itemDropVariants = BuiltinNotificationPackVariantSets.forPack(key)?.itemDrop ?: localItemDropVariants
         val itemDropTemplate =
             itemDrop.copy(
                 variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
@@ -143,6 +157,7 @@ object BuiltinNotificationPackSupport {
             (NotificationPackValueKey.GLOBAL_EVENT to (eventValues + (COMET_CHAOS to cometValue)))
     }
 
+    private val SECRET_ITEM_TYPES = setOf("SWORD", "PET")
     private const val COMET_CHAOS = "COMET_CHAOS"
     private const val PROTOCOL_PACK_KEY = "notification.protocol"
 }
