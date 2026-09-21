@@ -29,6 +29,7 @@ import {
 } from "../eventPresentation"
 import { EventKindMicroArt } from "./EventKindMicroArt"
 import { readEventFeedRouteParams } from "./eventFeedRouteParams"
+import { persistEventFeedState, readPersistedEventFeedState } from "./eventFeedSession"
 import "./feed-controls.css"
 
 type Props = {
@@ -54,7 +55,12 @@ function wipeStartedAt(wipe: Wipe): number {
 
 export function EventsFeed({ params, activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
-  const initialFilters = useMemo(() => readEventFeedRouteParams(params), [params])
+  const routeFilters = useMemo(() => readEventFeedRouteParams(params), [params])
+  const persistedState = useMemo(
+    () => (params && Object.keys(params).length > 0 ? null : readPersistedEventFeedState(activeAccount.id)),
+    [activeAccount.id, params],
+  )
+  const initialFilters = persistedState ?? routeFilters
   const {
     feed,
     eventsHasMore,
@@ -71,9 +77,9 @@ export function EventsFeed({ params, activeAccount, navigate }: Props) {
   const [globalType, setGlobalType] = useState<GlobalFilter>(() => initialFilters.globalType)
   const [raidLocation, setRaidLocation] = useState<number | null>(() => initialFilters.raidLocation)
   const [query, setQuery] = useState(() => initialFilters.query)
-  const [sort, setSort] = useState<FeedSort>("NEWEST")
+  const [sort, setSort] = useState<FeedSort>(() => persistedState?.sort ?? "NEWEST")
   const [wipes, setWipes] = useState<Wipe[]>([])
-  const [wipeId, setWipeId] = useState<string | null>(null)
+  const [wipeId, setWipeId] = useState<string | null>(() => persistedState?.wipeId ?? null)
   const [referenceNow, setReferenceNow] = useState(() => Date.now())
 
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -121,7 +127,11 @@ export function EventsFeed({ params, activeAccount, navigate }: Props) {
         }
 
         setWipes(result)
-        setWipeId(result.find((wipe) => wipe.active)?.id ?? null)
+        setWipeId((current) =>
+          current && result.some((wipe) => wipe.id === current)
+            ? current
+            : (result.find((wipe) => wipe.active)?.id ?? null),
+        )
       })
       .catch((error) => {
         if (!cancelled) {
@@ -133,6 +143,31 @@ export function EventsFeed({ params, activeAccount, navigate }: Props) {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    persistEventFeedState(activeAccount.id, {
+      filter,
+      rarity,
+      itemType,
+      boosterType,
+      globalType,
+      raidLocation,
+      query,
+      sort,
+      wipeId,
+    })
+  }, [
+    activeAccount.id,
+    boosterType,
+    filter,
+    globalType,
+    itemType,
+    query,
+    raidLocation,
+    rarity,
+    sort,
+    wipeId,
+  ])
 
   useEffect(() => {
     const timeout = window.setTimeout(
