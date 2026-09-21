@@ -138,17 +138,19 @@ class LocalNotificationMessageRenderer(
 
         if (pack != null) {
             if (types.size > 1) {
-                return TelegramHtmlEscaper.escape(pack.mixedAggregateTitle)
+                return "${resolvePersonalizedMixedAggregateLabel(language)} · ${TelegramHtmlEscaper.escape(pack.mixedAggregateTitle)}"
             }
 
             val variantIds = notifications.map { notification -> notification.variantId }.toSet()
             val first = notifications.first()
+            val themedTitle =
+                if (variantIds.size == 1) {
+                    requireNotNull(first.aggregateTitle)
+                } else {
+                    requireNotNull(first.defaultAggregateTitle)
+                }
 
-            return if (variantIds.size == 1) {
-                requireNotNull(first.aggregateTitle)
-            } else {
-                requireNotNull(first.defaultAggregateTitle)
-            }
+            return "${resolvePersonalizedAggregateTypeLabel(types.single(), language)} · $themedTitle"
         }
 
         if (types.size > 1) {
@@ -161,6 +163,49 @@ class LocalNotificationMessageRenderer(
 
         return resolveStandardAggregateHeader(types.single(), language)
     }
+
+    private fun resolvePersonalizedMixedAggregateLabel(language: LocalizationLanguage): String =
+        when (language) {
+            LocalizationLanguage.EN -> "🔔 <b>Several events</b>"
+            LocalizationLanguage.RU -> "🔔 <b>Сразу несколько событий</b>"
+            LocalizationLanguage.UK -> "🔔 <b>Одразу кілька подій</b>"
+        }
+
+    private fun resolvePersonalizedAggregateTypeLabel(
+        type: NotificationType,
+        language: LocalizationLanguage,
+    ): String =
+        when (language) {
+            LocalizationLanguage.EN ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>Drops</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Boosters</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Dungeons</b>"
+                    NotificationType.RAID -> "⚔️ <b>Raids</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>World events</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Players offline</b>"
+                }
+
+            LocalizationLanguage.RU ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>Дропы</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Бустеры</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Подземелья</b>"
+                    NotificationType.RAID -> "⚔️ <b>Рейды</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>Глобальные события</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Игроки офлайн</b>"
+                }
+
+            LocalizationLanguage.UK ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>Дропи</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Бустери</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Підземелля</b>"
+                    NotificationType.RAID -> "⚔️ <b>Рейди</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>Глобальні події</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Гравці офлайн</b>"
+                }
+        }
 
     private fun resolveStandardAggregateHeader(
         type: NotificationType,
