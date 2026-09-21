@@ -8,5 +8,6 @@ object BuiltinNotificationPackCatalog {
             addAll(BuiltinNotificationPacksAtmosphere.definitions)
             addAll(BuiltinNotificationPacksThemes.definitions)
             addAll(BuiltinNotificationPacksMeme.definitions)
+            addAll(BuiltinNotificationPacksFresh.definitions)
         }
 }
