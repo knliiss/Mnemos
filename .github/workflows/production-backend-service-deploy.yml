@@ -467,7 +467,7 @@ jobs:
 
     if: needs.plan.outputs.has_action == 'true'
 
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
 
     permissions:
       contents: read

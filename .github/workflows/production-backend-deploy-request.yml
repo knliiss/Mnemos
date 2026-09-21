@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   request:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
     timeout-minutes: 5
 
     steps:

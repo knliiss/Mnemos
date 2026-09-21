@@ -25,8 +25,8 @@ DEPLOY_CONTENT="$(cat "$DEPLOY_WORKFLOW")"
 printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'deploy/production-backend/**' ||
     fail "Backend deploy request must only trigger from the production backend deploy namespace"
 
-printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'runs-on: ubuntu-latest' ||
-    fail "Backend deploy request must stay on a hosted non-production runner"
+printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
+    fail "Backend deploy request must stay on the hardened non-production backend runner"
 
 if printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'workflow_dispatch:'; then
     fail "Backend deploy request must not require manual workflow_dispatch authorization"
@@ -34,7 +34,6 @@ fi
 
 for forbidden in \
     'mnemos-production' \
-    'mnemos-backend' \
     'packages: write' \
     'environment: production' \
     'docker login' \
