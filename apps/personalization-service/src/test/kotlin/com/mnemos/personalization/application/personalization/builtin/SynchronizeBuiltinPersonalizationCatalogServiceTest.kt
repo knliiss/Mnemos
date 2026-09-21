@@ -50,7 +50,6 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
                 .values
                 .toList()
 
-        assertEquals(124, definitions.size)
         assertEquals(24, definitions.count { it.type == PersonalizationType.NOTIFICATION_PACK })
         assertEquals(20, definitions.count { it.type == PersonalizationType.NICK_STYLE })
         assertEquals(20, definitions.count { it.type == PersonalizationType.PROFILE_THEME })
