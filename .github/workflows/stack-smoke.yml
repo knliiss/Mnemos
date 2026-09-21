@@ -205,7 +205,7 @@ jobs:
               -print0
           )
 
-          $CI_COMPOSE_COMMAND build --quiet
+          $CI_COMPOSE_COMMAND build --no-cache --quiet
 
       - name: Start clean stack
         shell: bash
