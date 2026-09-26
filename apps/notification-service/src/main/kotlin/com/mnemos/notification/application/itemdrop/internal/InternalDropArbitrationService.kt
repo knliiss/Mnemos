@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -24,9 +25,9 @@ class InternalDropArbitrationService(
             }
         }
 
-    private val pending = mutableMapOf<DropKey, PendingInternalDrop>()
-    private val recentStandard = mutableMapOf<DropKey, Instant>()
-    private val recentInternal = mutableMapOf<DropKey, Instant>()
+    private val pending = mutableMapOf<UUID, PendingInternalDrop>()
+    private val recentStandard = mutableMapOf<DropKey, MutableList<RecentObservation>>()
+    private val recentInternal = mutableMapOf<DropKey, MutableList<RecentObservation>>()
 
     fun submitInternal(command: ProcessItemDropEventCommand) {
         if (!isSupportedInternalDrop(command)) return
@@ -37,18 +38,32 @@ class InternalDropArbitrationService(
         synchronized(this) {
             prune(now)
 
-            if (recentStandard.containsKey(key) || pending.containsKey(key)) {
+            if (recentStandard.hasMatching(key, command.occurredAt)) {
+                return
+            }
+
+            if (
+                pending.values.any {
+                    it.key == key &&
+                        matchesTime(it.command.occurredAt, command.occurredAt)
+                }
+            ) {
                 return
             }
 
             val future =
                 executor.schedule(
-                    { dispatchInternal(key, command) },
+                    { dispatchInternal(command.messageId) },
                     INTERNAL_GRACE.toMillis(),
                     TimeUnit.MILLISECONDS,
                 )
 
-            pending[key] = PendingInternalDrop(future)
+            pending[command.messageId] =
+                PendingInternalDrop(
+                    key = key,
+                    command = command,
+                    future = future,
+                )
         }
     }
 
@@ -58,34 +73,86 @@ class InternalDropArbitrationService(
 
         synchronized(this) {
             prune(now)
-            recentStandard[key] = now
-            pending.remove(key)?.future?.cancel(false)
+            recentStandard.add(key, command.occurredAt, now)
 
-            return !recentInternal.containsKey(key)
+            val matchingPending =
+                pending
+                    .filterValues {
+                        it.key == key &&
+                            matchesTime(it.command.occurredAt, command.occurredAt)
+                    }.keys
+                    .toList()
+
+            matchingPending.forEach { messageId ->
+                pending.remove(messageId)?.future?.cancel(false)
+            }
+
+            return !recentInternal.hasMatching(key, command.occurredAt)
         }
     }
 
-    private fun dispatchInternal(
-        key: DropKey,
-        command: ProcessItemDropEventCommand,
-    ) {
-        synchronized(this) {
-            val now = Instant.now()
-            prune(now)
+    private fun dispatchInternal(messageId: UUID) {
+        val command =
+            synchronized(this) {
+                val now = Instant.now()
+                prune(now)
 
-            if (pending.remove(key) == null) return
-            if (recentStandard.containsKey(key)) return
+                val pendingDrop = pending.remove(messageId) ?: return
 
-            recentInternal[key] = now
-        }
+                if (recentStandard.hasMatching(pendingDrop.key, pendingDrop.command.occurredAt)) {
+                    return
+                }
+
+                recentInternal.add(
+                    key = pendingDrop.key,
+                    observedAt = pendingDrop.command.occurredAt,
+                    receivedAt = now,
+                )
+
+                pendingDrop.command
+            }
 
         processItemDropEventUseCase.execute(command)
     }
 
     private fun prune(now: Instant) {
-        recentStandard.entries.removeIf { Duration.between(it.value, now) > SUPPRESSION_TTL }
-        recentInternal.entries.removeIf { Duration.between(it.value, now) > SUPPRESSION_TTL }
+        recentStandard.prune(now)
+        recentInternal.prune(now)
     }
+
+    private fun MutableMap<DropKey, MutableList<RecentObservation>>.prune(now: Instant) {
+        entries.removeIf { entry ->
+            entry.value.removeIf {
+                Duration.between(it.receivedAt, now) > SUPPRESSION_TTL
+            }
+            entry.value.isEmpty()
+        }
+    }
+
+    private fun MutableMap<DropKey, MutableList<RecentObservation>>.add(
+        key: DropKey,
+        observedAt: Instant,
+        receivedAt: Instant,
+    ) {
+        computeIfAbsent(key) { mutableListOf() }
+            .add(
+                RecentObservation(
+                    observedAt = observedAt,
+                    receivedAt = receivedAt,
+                ),
+            )
+    }
+
+    private fun Map<DropKey, List<RecentObservation>>.hasMatching(
+        key: DropKey,
+        observedAt: Instant,
+    ): Boolean =
+        this[key]?.any { matchesTime(it.observedAt, observedAt) } == true
+
+    private fun matchesTime(
+        first: Instant,
+        second: Instant,
+    ): Boolean = Duration.between(first, second).abs() <= MATCHING_WINDOW
 
     private fun isSupportedInternalDrop(command: ProcessItemDropEventCommand): Boolean {
         if (command.itemRarity !in INTERNAL_RARITIES) return false
@@ -125,11 +192,19 @@ class InternalDropArbitrationService(
     )
 
     private data class PendingInternalDrop(
+        val key: DropKey,
+        val command: ProcessItemDropEventCommand,
         val future: ScheduledFuture<*>,
+    )
+
+    private data class RecentObservation(
+        val observedAt: Instant,
+        val receivedAt: Instant,
     )
 
     private companion object {
         val INTERNAL_GRACE: Duration = Duration.ofSeconds(5)
+        val MATCHING_WINDOW: Duration = Duration.ofSeconds(5)
         val SUPPRESSION_TTL: Duration = Duration.ofSeconds(30)
 
         val INTERNAL_RARITIES =
