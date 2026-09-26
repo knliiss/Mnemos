@@ -4,69 +4,45 @@ import com.mnemos.notification.application.itemdrop.usecase.process.ProcessItemD
 import com.mnemos.notification.application.itemdrop.usecase.process.ProcessItemDropEventUseCase
 import com.mnemos.notification.application.notification.model.NotificationItemRarity
 import com.mnemos.notification.application.notification.model.NotificationItemType
-import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.util.Locale
-import java.util.UUID
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
 @Service
 class InternalDropArbitrationService(
     private val processItemDropEventUseCase: ProcessItemDropEventUseCase,
 ) {
-    private val executor =
-        Executors.newSingleThreadScheduledExecutor { runnable ->
-            Thread(runnable, "mnemos-internal-drop-arbiter").apply {
-                isDaemon = true
-            }
-        }
-
-    private val pending = mutableMapOf<UUID, PendingInternalDrop>()
     private val recentStandard = mutableMapOf<DropKey, MutableList<RecentObservation>>()
     private val recentInternal = mutableMapOf<DropKey, MutableList<RecentObservation>>()
 
     fun submitInternal(command: ProcessItemDropEventCommand) {
         if (!isSupportedInternalDrop(command)) return
 
-        val key = command.dropKey()
-        val now = Instant.now()
+        val shouldDispatch =
+            synchronized(this) {
+                val key = command.dropKey()
+                val now = Instant.now()
 
-        synchronized(this) {
-            prune(now)
+                prune(now)
 
-            if (
-                recentStandard.hasMatching(key, command.occurredAt) ||
-                recentInternal.hasMatching(key, command.occurredAt)
-            ) {
-                return
-            }
-
-            if (
-                pending.values.any {
-                    it.key == key &&
-                        matchesTime(it.command.occurredAt, command.occurredAt)
+                if (
+                    recentStandard.hasMatching(key, command.occurredAt) ||
+                    recentInternal.hasMatching(key, command.occurredAt)
+                ) {
+                    false
+                } else {
+                    recentInternal.add(
+                        key = key,
+                        observedAt = command.occurredAt,
+                        receivedAt = now,
+                    )
+                    true
                 }
-            ) {
-                return
             }
 
-            val future =
-                executor.schedule(
-                    { dispatchInternal(command.messageId) },
-                    INTERNAL_GRACE.toMillis(),
-                    TimeUnit.MILLISECONDS,
-                )
-
-            pending[command.messageId] =
-                PendingInternalDrop(
-                    key = key,
-                    command = command,
-                    future = future,
-                )
+        if (shouldDispatch) {
+            processItemDropEventUseCase.execute(command)
         }
     }
 
@@ -74,48 +50,16 @@ class InternalDropArbitrationService(
         val key = command.dropKey()
         val now = Instant.now()
 
-        synchronized(this) {
+        return synchronized(this) {
             prune(now)
-            recentStandard.add(key, command.occurredAt, now)
 
-            val matchingPending =
-                pending
-                    .filterValues {
-                        it.key == key &&
-                            matchesTime(it.command.occurredAt, command.occurredAt)
-                    }.keys
-                    .toList()
-
-            matchingPending.forEach { messageId ->
-                pending.remove(messageId)?.future?.cancel(false)
+            if (recentInternal.hasMatching(key, command.occurredAt)) {
+                false
+            } else {
+                recentStandard.add(key, command.occurredAt, now)
+                true
             }
-
-            return !recentInternal.hasMatching(key, command.occurredAt)
         }
-    }
-
-    private fun dispatchInternal(messageId: UUID) {
-        val command =
-            synchronized(this) {
-                val now = Instant.now()
-                prune(now)
-
-                val pendingDrop = pending.remove(messageId) ?: return
-
-                if (recentStandard.hasMatching(pendingDrop.key, pendingDrop.command.occurredAt)) {
-                    return
-                }
-
-                recentInternal.add(
-                    key = pendingDrop.key,
-                    observedAt = pendingDrop.command.occurredAt,
-                    receivedAt = now,
-                )
-
-                pendingDrop.command
-            }
-
-        processItemDropEventUseCase.execute(command)
     }
 
     private fun prune(now: Instant) {
@@ -163,18 +107,6 @@ class InternalDropArbitrationService(
             command.itemType in SECRET_ITEM_TYPES
     }
 
-    @PreDestroy
-    fun shutdown() {
-        synchronized(this) {
-            pending.values.forEach { it.future.cancel(false) }
-            pending.clear()
-            recentStandard.clear()
-            recentInternal.clear()
-        }
-
-        executor.shutdownNow()
-    }
-
     private fun ProcessItemDropEventCommand.dropKey(): DropKey =
         DropKey(
             droppedFor = droppedFor.normalize(),
@@ -193,19 +125,12 @@ class InternalDropArbitrationService(
         val itemType: NotificationItemType,
     )
 
-    private data class PendingInternalDrop(
-        val key: DropKey,
-        val command: ProcessItemDropEventCommand,
-        val future: ScheduledFuture<*>,
-    )
-
     private data class RecentObservation(
         val observedAt: Instant,
         val receivedAt: Instant,
     )
 
     private companion object {
-        val INTERNAL_GRACE: Duration = Duration.ofSeconds(5)
         val MATCHING_WINDOW: Duration = Duration.ofSeconds(5)
         val SUPPRESSION_TTL: Duration = Duration.ofSeconds(30)
 
