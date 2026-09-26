@@ -65,9 +65,7 @@ class InternalDropArbitrationServiceTest {
         assertEquals(listOf(first), dispatched)
     }
 
-    private fun service(
-        dispatched: MutableList<ProcessItemDropEventCommand>,
-    ): InternalDropArbitrationService =
+    private fun service(dispatched: MutableList<ProcessItemDropEventCommand>): InternalDropArbitrationService =
         InternalDropArbitrationService(
             processItemDropEventUseCase =
                 object : ProcessItemDropEventUseCase {
