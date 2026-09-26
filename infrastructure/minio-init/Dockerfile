@@ -1,6 +1,6 @@
 ARG MINIO_MC_VERSION=RELEASE.2025-08-13T08-35-41Z
 
-FROM quay.io/minio/mc:${MINIO_MC_VERSION} AS minio-client
+FROM minio/mc:${MINIO_MC_VERSION} AS minio-client
 
 FROM alpine:3.22
 
