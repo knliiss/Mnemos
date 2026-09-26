@@ -6,10 +6,12 @@ import com.mnemos.event.application.collector.usecase.submit.SubmitEventReportMa
 import com.mnemos.event.application.collector.usecase.submit.SubmitEventReportMapper.toSubmitStatus
 import com.mnemos.event.application.collector.verification.EventConfirmationPolicy
 import com.mnemos.event.configuration.collector.EventVerificationProperties
+import com.mnemos.event.application.internaldrop.InternalDropFallbackService
 import com.mnemos.event.domain.verification.model.EventCandidate
 import com.mnemos.event.domain.verification.model.EventCandidateStatus
 import com.mnemos.event.domain.verification.model.EventFingerprint
 import com.mnemos.event.domain.verification.model.EventObservation
+import com.mnemos.event.domain.verification.model.report.ItemDropCollectorEventReport
 import com.mnemos.event.domain.verification.model.report.allowsRepeatedObservationFromSameCollector
 import com.mnemos.event.domain.verification.model.report.fingerprint
 import com.mnemos.event.domain.verification.repository.EventCandidateRepository
@@ -22,8 +24,13 @@ class SubmitEventReportService(
     private val confirmationPolicy: EventConfirmationPolicy,
     private val confirmedEventRecorder: ConfirmedEventRecorder,
     private val properties: EventVerificationProperties,
+    private val internalDropFallbackService: InternalDropFallbackService,
 ) : SubmitEventReportUseCase {
     override fun execute(command: SubmitEventReportCommand): SubmitEventReportResult {
+        if (command.report is ItemDropCollectorEventReport) {
+            internalDropFallbackService.primaryObserved(command.report)
+        }
+
         val fingerprint = command.report.fingerprint()
 
         val processingResult =
