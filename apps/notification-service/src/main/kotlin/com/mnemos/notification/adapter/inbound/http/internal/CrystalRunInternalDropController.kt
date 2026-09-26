@@ -58,7 +58,7 @@ data class CrystalRunInternalDropRequest(
     val itemType: NotificationItemType,
     val itemRarity: NotificationItemRarity,
     @field:NotBlank
-    @field:Size(min = 4, max = 20)
+    @field:Size(min = 3, max = 20)
     @field:Pattern(regexp = "^[\\p{L}0-9_]+$")
     val droppedFor: String,
 )

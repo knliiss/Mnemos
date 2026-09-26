@@ -38,7 +38,10 @@ class InternalDropArbitrationService(
         synchronized(this) {
             prune(now)
 
-            if (recentStandard.hasMatching(key, command.occurredAt)) {
+            if (
+                recentStandard.hasMatching(key, command.occurredAt) ||
+                recentInternal.hasMatching(key, command.occurredAt)
+            ) {
                 return
             }
 

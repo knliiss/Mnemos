@@ -103,12 +103,11 @@ services:
       test:
         - CMD-SHELL
         - >-
-          printf '%s\n' 'security.protocol=SASL_SSL' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka_admin" password="${KAFKA_ADMIN_PASSWORD}";' 'ssl.truststore.location=/etc/kafka/client-tls/kafka.truststore.p12' 'ssl.truststore.password=${KAFKA_TLS_STORE_PASSWORD}' 'ssl.truststore.type=PKCS12' > /tmp/kafka-health.properties &&
-          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:${KAFKA_INTERNAL_PORT} --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
-      interval: 2s
-      timeout: 10s
-      retries: 12
-      start_period: 20s
+          /bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${KAFKA_INTERNAL_PORT}; exec 3>&-; exec 3<&-'
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 45s
 
     networks:
       - mnemos-network
