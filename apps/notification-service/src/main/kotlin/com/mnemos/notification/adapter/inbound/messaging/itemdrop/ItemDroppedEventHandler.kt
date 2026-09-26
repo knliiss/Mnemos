@@ -9,12 +9,14 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.notification.adapter.inbound.messaging.itemdrop.ItemDroppedEventMapper.toCommand
+import com.mnemos.notification.application.itemdrop.internal.InternalDropArbitrationService
 import com.mnemos.notification.application.itemdrop.usecase.process.ProcessItemDropEventUseCase
 import org.springframework.stereotype.Component
 
 @Component
 class ItemDroppedEventHandler(
     private val processItemDropEventUseCase: ProcessItemDropEventUseCase,
+    private val internalDropArbitrationService: InternalDropArbitrationService,
 ) : KafkaMessageHandler<ItemDroppedV1> {
     override val definition: KafkaMessageDefinition<ItemDroppedV1> =
         kafkaMessageDefinition(
@@ -27,6 +29,10 @@ class ItemDroppedEventHandler(
     override val consumer = "notification-service.item-dropped"
 
     override fun handle(message: ConsumedMessage<ItemDroppedV1>) {
-        processItemDropEventUseCase.execute(message.toCommand())
+        val command = message.toCommand()
+
+        if (internalDropArbitrationService.shouldDispatchStandard(command)) {
+            processItemDropEventUseCase.execute(command)
+        }
     }
 }

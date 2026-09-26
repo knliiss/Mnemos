@@ -204,6 +204,8 @@ for key in $NEW_GENERATED_SECRETS; do
     ensure_generated_secret "$key"
 done
 
+set_env "CRYSTALRUN_NOTIFICATION_API_KEY" "crystalrun-internal-v1"
+
 MNEMOS_PRODUCTION_ENV_FILE="$WORKING_ENV" sh "$VALIDATOR"
 
 backup_path="${TARGET_ENV}.backup-$(date -u +%Y%m%dT%H%M%SZ)"

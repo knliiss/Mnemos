@@ -84,6 +84,12 @@ PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY
 EOF
 }
 
+list_static_secret_keys() {
+    cat <<'EOF'
+CRYSTALRUN_NOTIFICATION_API_KEY
+EOF
+}
+
 list_external_secret_keys() {
     cat <<'EOF'
 MNEMOS_TELEGRAM_BOT_TOKEN
@@ -98,6 +104,7 @@ EOF
 
 list_required_secret_keys() {
     list_generated_secret_keys
+    list_static_secret_keys
     list_external_secret_keys
 }
 

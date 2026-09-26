@@ -70,6 +70,7 @@ set_env "MNEMOS_API_ORIGIN" "https://api.knalis.rest"
 set_env "MNEMOS_AUTH_ORIGIN" "https://auth.knalis.rest"
 set_env "MNEMOS_HOST_BIND_ADDRESS" "127.0.0.1"
 set_env "TELEGRAM_BOT_ENABLED" "false"
+set_env "CRYSTALRUN_NOTIFICATION_API_KEY" "crystalrun-internal-v1"
 
 for key in $(sh "$SECRET_VALIDATOR" --list-generated); do
     generate_secret "$key"
