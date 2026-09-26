@@ -86,7 +86,6 @@ EOF
 
 list_static_secret_keys() {
     cat <<'EOF'
-CRYSTALRUN_NOTIFICATION_API_KEY
 EOF
 }
 
