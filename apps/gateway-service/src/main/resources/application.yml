@@ -58,6 +58,11 @@ spring:
               predicates:
                 - Path=/api/v1/subscriptions/**
 
+            - id: crystalrun-internal-drop
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/internal/v1/crystalrun/item-drops
+
             - id: reward-api
               uri: ${REWARD_SERVICE_URL:http://localhost:8085}
               predicates:
