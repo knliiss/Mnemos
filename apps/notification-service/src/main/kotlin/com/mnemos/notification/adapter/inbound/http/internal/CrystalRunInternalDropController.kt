@@ -40,10 +40,24 @@ class CrystalRunInternalDropController(
             occurredAt = observedAt,
             droppedFor = droppedFor,
             itemKey = itemKey,
-            itemName = itemName,
+            itemName = itemName.cleanGameFormatting(),
             itemRarity = itemRarity,
             itemType = itemType,
         )
+
+    private fun String.cleanGameFormatting(): String =
+        replace(HEX_STYLE_REGEX, "")
+            .replace(SECTION_STYLE_REGEX, "")
+            .replace(AMP_STYLE_REGEX, "")
+            .replace(WHITESPACE_REGEX, " ")
+            .trim()
+
+    private companion object {
+        val HEX_STYLE_REGEX = Regex("¨[0-9A-Fa-f]{6}")
+        val SECTION_STYLE_REGEX = Regex("§.")
+        val AMP_STYLE_REGEX = Regex("(?i)&[0-9A-FK-OR]")
+        val WHITESPACE_REGEX = Regex("\\s+")
+    }
 }
 
 data class CrystalRunInternalDropRequest(
