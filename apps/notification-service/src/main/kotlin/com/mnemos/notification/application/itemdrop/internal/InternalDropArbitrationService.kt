@@ -143,10 +143,7 @@ class InternalDropArbitrationService(
             )
     }
 
-    private fun Map<DropKey, List<RecentObservation>>.hasMatching(
-        key: DropKey,
-        observedAt: Instant,
-    ): Boolean =
+    private fun Map<DropKey, List<RecentObservation>>.hasMatching(key: DropKey, observedAt: Instant): Boolean =
         this[key]?.any { matchesTime(it.observedAt, observedAt) } == true
 
     private fun matchesTime(
