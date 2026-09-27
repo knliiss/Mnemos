@@ -23,7 +23,7 @@ The frontend is a React + TypeScript mini-app designed as a real product surface
 ## Product
 
 <p align="center">
-  <img src="docs/assets/readme/home.jpg" width="430" alt="Mnemos account home" />
+  <img src="docs/assets/readme/home.webp" width="430" alt="Mnemos account home" />
 </p>
 
 The account home brings together the current account, daily reward, wallet, team management and recent activity.
@@ -31,10 +31,10 @@ The account home brings together the current account, daily reward, wallet, team
 <table>
 <tr>
 <td width="50%" valign="top">
-<img src="docs/assets/readme/events.jpg" width="100%" alt="Mnemos event feed" />
+<img src="docs/assets/readme/events.webp" width="100%" alt="Mnemos event feed" />
 </td>
 <td width="50%" valign="top">
-<img src="docs/assets/readme/event-detail.jpg" width="100%" alt="Mnemos event detail" />
+<img src="docs/assets/readme/event-detail.webp" width="100%" alt="Mnemos event detail" />
 </td>
 </tr>
 <tr>
@@ -46,10 +46,10 @@ The account home brings together the current account, daily reward, wallet, team
 <table>
 <tr>
 <td width="50%" valign="top">
-<img src="docs/assets/readme/profile.jpg" width="100%" alt="Mnemos player profile" />
+<img src="docs/assets/readme/profile.webp" width="100%" alt="Mnemos player profile" />
 </td>
 <td width="50%" valign="top">
-<img src="docs/assets/readme/wallet.jpg" width="100%" alt="Mnemos wallet" />
+<img src="docs/assets/readme/wallet.webp" width="100%" alt="Mnemos wallet" />
 </td>
 </tr>
 <tr>
@@ -62,7 +62,7 @@ The account home brings together the current account, daily reward, wallet, team
 <summary><b>More UI: bets</b></summary>
 <br/>
 <p align="center">
-  <img src="docs/assets/readme/bets.jpg" width="430" alt="Mnemos betting interface" />
+  <img src="docs/assets/readme/bets.webp" width="430" alt="Mnemos betting interface" />
 </p>
 </details>
 
