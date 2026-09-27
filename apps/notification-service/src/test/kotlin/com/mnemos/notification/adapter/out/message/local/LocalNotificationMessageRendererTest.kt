@@ -12,6 +12,9 @@ import com.mnemos.notification.application.notification.model.NotificationItemTy
 import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
+import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplateCondition
+import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplateVariant
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -166,6 +169,44 @@ class LocalNotificationMessageRendererTest {
     }
 
     @Test
+    fun `single personalized booster variant is named in aggregate header`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = activeVariantPack(userId)
+
+        val message =
+            renderer.renderNotification(
+                userId,
+                listOf(
+                    booster(now, "Knalis", DomainBoosterType.LUCK),
+                    booster(now.plusMillis(200), "Asuna", DomainBoosterType.LUCK),
+                ),
+            )
+
+        assertTrue(message.text.startsWith("⚡ <b>Бустеры</b> · Удача · 🍀 Lucky boosts"))
+    }
+
+    @Test
+    fun `mixed personalized booster variants are named on each aggregate entry`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = activeVariantPack(userId)
+
+        val message =
+            renderer.renderNotification(
+                userId,
+                listOf(
+                    booster(now, "Knalis", DomainBoosterType.LUCK),
+                    booster(now.plusMillis(200), "Asuna", DomainBoosterType.MONEY),
+                ),
+            )
+
+        assertTrue(message.text.startsWith("⚡ <b>Бустеры</b> · BOOSTER events"))
+        assertTrue(message.text.contains("Удача · 🍀 Luck · Knalis"))
+        assertTrue(message.text.contains("Доход · 💰 Money · Asuna"))
+    }
+
+    @Test
     fun `custom pack text stays untouched while canonical item value is localized`() {
         val now = Instant.parse("2026-08-11T16:00:00Z")
         val userId = UserId.generate()
@@ -296,6 +337,60 @@ class LocalNotificationMessageRendererTest {
                             soloBody = "{player} found {item}",
                             compact = "{player} — {item}",
                             aggregateTitle = "<b>Custom loot</b>",
+                        )
+                    } else {
+                        defaultTemplate(type)
+                    }
+                },
+        )
+
+    private fun activeVariantPack(userId: UserId): ActiveNotificationPack =
+        ActiveNotificationPack(
+            userId = userId,
+            personalizationId = UUID.randomUUID(),
+            mixedAggregateTitle = "Variant events",
+            templates =
+                NotificationType.entries.associateWith { type ->
+                    if (type == NotificationType.BOOSTER) {
+                        NotificationPackTemplate(
+                            emoji = null,
+                            soloTitle = "Boost",
+                            soloBody = "Event",
+                            compact = "Base boost",
+                            aggregateTitle = "BOOSTER events",
+                            variants =
+                                listOf(
+                                    NotificationPackTemplateVariant(
+                                        id = "luck",
+                                        conditions =
+                                            listOf(
+                                                NotificationPackTemplateCondition(
+                                                    field = NotificationPackVariantField.BOOSTER,
+                                                    value = "LUCK",
+                                                ),
+                                            ),
+                                        emoji = "🍀",
+                                        soloTitle = "Luck",
+                                        soloBody = "Event",
+                                        compact = "Luck · {player}",
+                                        aggregateTitle = "Lucky boosts",
+                                    ),
+                                    NotificationPackTemplateVariant(
+                                        id = "money",
+                                        conditions =
+                                            listOf(
+                                                NotificationPackTemplateCondition(
+                                                    field = NotificationPackVariantField.BOOSTER,
+                                                    value = "MONEY",
+                                                ),
+                                            ),
+                                        emoji = "💰",
+                                        soloTitle = "Money",
+                                        soloBody = "Event",
+                                        compact = "Money · {player}",
+                                        aggregateTitle = "Money boosts",
+                                    ),
+                                ),
                         )
                     } else {
                         defaultTemplate(type)

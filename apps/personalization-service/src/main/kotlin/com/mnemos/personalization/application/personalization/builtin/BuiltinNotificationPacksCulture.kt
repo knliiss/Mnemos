@@ -162,10 +162,10 @@ object BuiltinNotificationPacksCulture {
             mixedAggregateTitle = "Депы снова начали принимать решения за игроков",
             itemDrop =
                 template(
-                    emoji = "📈",
-                    title = "Последний деп был не зря",
-                    body = "{player} выбил «{item}». Последний деп ради этого внезапно оказался не таким уж плохим решением.",
-                    compact = "Последний деп → «{item}»",
+                    emoji = "💸",
+                    title = "Деп окупился",
+                    body = "{player} выбил «{item}». Последний деп ради этого всё-таки был не зря.",
+                    compact = "Деп окупился → «{item}»",
                     aggregateTitle = "Окупившиеся депы",
                     variants =
                         listOf(

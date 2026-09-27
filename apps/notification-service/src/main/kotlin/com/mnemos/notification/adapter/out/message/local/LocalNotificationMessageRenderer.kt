@@ -113,11 +113,30 @@ class LocalNotificationMessageRenderer(
         val header = resolveAggregateHeader(notifications, pack, language)
         val truncationSuffix = truncationSuffix(language)
 
+        val showPerEntryVariantLabel =
+            pack != null && notifications.map { notification -> notification.variantId }.toSet().size > 1
+
         return buildString {
             append(header)
 
             notifications.forEach { notification ->
-                val entry = "\n\n${notification.compact}"
+                val variantLabel =
+                    if (showPerEntryVariantLabel) {
+                        resolvePersonalizedVariantLabel(
+                            type = notification.type,
+                            variantId = notification.variantId,
+                            language = language,
+                        )
+                    } else {
+                        null
+                    }
+                val compact =
+                    if (variantLabel == null) {
+                        notification.compact
+                    } else {
+                        "$variantLabel · ${notification.compact}"
+                    }
+                val entry = "\n\n$compact"
 
                 if (length + entry.length > MAX_MESSAGE_LENGTH - truncationSuffix.length) {
                     append(truncationSuffix)
@@ -143,14 +162,29 @@ class LocalNotificationMessageRenderer(
 
             val variantIds = notifications.map { notification -> notification.variantId }.toSet()
             val first = notifications.first()
+            val type = types.single()
             val themedTitle =
                 if (variantIds.size == 1) {
                     requireNotNull(first.aggregateTitle)
                 } else {
                     requireNotNull(first.defaultAggregateTitle)
                 }
+            val variantLabel =
+                if (variantIds.size == 1) {
+                    resolvePersonalizedVariantLabel(
+                        type = type,
+                        variantId = first.variantId,
+                        language = language,
+                    )
+                } else {
+                    null
+                }
 
-            return "${resolvePersonalizedAggregateTypeLabel(types.single(), language)} · $themedTitle"
+            return listOfNotNull(
+                resolvePersonalizedAggregateTypeLabel(type, language),
+                variantLabel,
+                themedTitle,
+            ).joinToString(" · ")
         }
 
         if (types.size > 1) {
@@ -206,6 +240,152 @@ class LocalNotificationMessageRenderer(
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Гравці офлайн</b>"
                 }
         }
+
+    private fun resolvePersonalizedVariantLabel(
+        type: NotificationType,
+        variantId: String?,
+        language: LocalizationLanguage,
+    ): String? {
+        if (variantId == null) {
+            return null
+        }
+
+        val normalizedId =
+            when (variantId) {
+                "blood-moon" -> "moon"
+                else -> variantId
+            }
+
+        return when (type) {
+            NotificationType.ITEM_DROP ->
+                when (normalizedId) {
+                    "secret-sword" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Secret sword"
+                            LocalizationLanguage.RU -> "Секретный меч"
+                            LocalizationLanguage.UK -> "Секретний меч"
+                        }
+
+                    "secret-pet" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Secret pet"
+                            LocalizationLanguage.RU -> "Секретный питомец"
+                            LocalizationLanguage.UK -> "Секретний улюбленець"
+                        }
+
+                    else -> null
+                }
+
+            NotificationType.BOOSTER ->
+                when (normalizedId) {
+                    "luck" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Luck"
+                            LocalizationLanguage.RU -> "Удача"
+                            LocalizationLanguage.UK -> "Удача"
+                        }
+
+                    "money" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Income"
+                            LocalizationLanguage.RU -> "Доход"
+                            LocalizationLanguage.UK -> "Дохід"
+                        }
+
+                    "damage" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Damage"
+                            LocalizationLanguage.RU -> "Урон"
+                            LocalizationLanguage.UK -> "Шкода"
+                        }
+
+                    "power" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Power"
+                            LocalizationLanguage.RU -> "Сила"
+                            LocalizationLanguage.UK -> "Сила"
+                        }
+
+                    else -> null
+                }
+
+            NotificationType.DUNGEON ->
+                when (normalizedId) {
+                    "easy" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Easy"
+                            LocalizationLanguage.RU -> "Лёгкое"
+                            LocalizationLanguage.UK -> "Легке"
+                        }
+
+                    "medium" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Medium"
+                            LocalizationLanguage.RU -> "Среднее"
+                            LocalizationLanguage.UK -> "Середнє"
+                        }
+
+                    "hard" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Hard"
+                            LocalizationLanguage.RU -> "Сложное"
+                            LocalizationLanguage.UK -> "Складне"
+                        }
+
+                    "expert" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Expert"
+                            LocalizationLanguage.RU -> "Экспертное"
+                            LocalizationLanguage.UK -> "Експертне"
+                        }
+
+                    else -> null
+                }
+
+            NotificationType.GLOBAL ->
+                when (normalizedId) {
+                    "darkness" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Darkness"
+                            LocalizationLanguage.RU -> "Тьма"
+                            LocalizationLanguage.UK -> "Темрява"
+                        }
+
+                    "moon" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Blood Moon"
+                            LocalizationLanguage.RU -> "Кровавая луна"
+                            LocalizationLanguage.UK -> "Кривавий місяць"
+                        }
+
+                    "eclipse" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Eclipse"
+                            LocalizationLanguage.RU -> "Затмение"
+                            LocalizationLanguage.UK -> "Затемнення"
+                        }
+
+                    "explosion" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Explosion"
+                            LocalizationLanguage.RU -> "Взрыв"
+                            LocalizationLanguage.UK -> "Вибух"
+                        }
+
+                    "comet-chaos" ->
+                        when (language) {
+                            LocalizationLanguage.EN -> "Comet Chaos"
+                            LocalizationLanguage.RU -> "Кометный хаос"
+                            LocalizationLanguage.UK -> "Кометний хаос"
+                        }
+
+                    else -> null
+                }
+
+            NotificationType.RAID,
+            NotificationType.PLAYER_OFFLINE -> null
+        }
+    }
 
     private fun resolveStandardAggregateHeader(
         type: NotificationType,
