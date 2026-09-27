@@ -27,24 +27,40 @@ object BuiltinNotificationPackSupport {
         playerOffline: NotificationTemplate = defaultPlayerOfflineTemplate(),
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition {
-        val authoredVariants = BuiltinNotificationPackVariantSets.forPack(key)
-        val itemDropVariants = authoredVariants?.itemDrop ?: itemDrop.variants
-        val itemDropTemplate =
-            itemDrop.copy(
-                variants = itemDropVariants.map { variant -> variant.copy(emoji = itemDrop.emoji) },
-            )
-        val boosterTemplate =
-            booster.copy(
-                variants = authoredVariants?.booster ?: booster.variants,
-            )
-        val dungeonTemplate =
-            dungeon.copy(
-                variants = authoredVariants?.dungeon ?: dungeon.variants,
-            )
-        val baseGlobalTemplate =
-            global.copy(
-                variants = authoredVariants?.global ?: global.variants,
-            )
+        val localItemDropVariants =
+            itemDrop.variants.filterNot { variant ->
+                val isGenericSecret =
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.ITEM_RARITY &&
+                            condition.value == "SECRET"
+                    } &&
+                        variant.conditions.none { condition ->
+                            condition.field == NotificationPackVariantField.ITEM_TYPE &&
+                                condition.value in SECRET_ITEM_TYPES
+                        }
+
+                isGenericSecret
+            }
+        val itemDropVariants = BuiltinNotificationPackVariantSets.forPack(key)?.itemDrop ?: localItemDropVariants
+        val itemDropTemplate = itemDrop.copy(variants = itemDropVariants)
+
+        val authoredGlobalEventValues =
+            global.variants
+                .flatMap { variant -> variant.conditions }
+                .filter { condition -> condition.field == NotificationPackVariantField.GLOBAL_EVENT }
+                .map { condition -> condition.value }
+                .toSet()
+        val sparseGlobalVariants =
+            if (authoredGlobalEventValues.containsAll(BASE_GLOBAL_EVENT_VALUES)) {
+                global.variants.filterNot { variant ->
+                    variant.conditions.any { condition ->
+                        condition.field == NotificationPackVariantField.GLOBAL_EVENT &&
+                            condition.value == "ECLIPSE"
+                    }
+                }
+            } else {
+                global.variants
+            }
 
         val cometCopy = BuiltinCometChaosNotificationVariants.forPack(key)
         val cometVariant =
@@ -57,7 +73,7 @@ object BuiltinNotificationPackSupport {
                 compact = cometCopy.compact,
                 aggregateTitle = cometCopy.aggregateTitle,
             )
-        val globalTemplate = baseGlobalTemplate.copy(variants = baseGlobalTemplate.variants + cometVariant)
+        val globalTemplate = global.copy(variants = sparseGlobalVariants + cometVariant)
         val normalizedValueMappings = withCometChaosValue(key, valueMappings)
 
         return BuiltinPersonalizationDefinition(
@@ -70,8 +86,8 @@ object BuiltinNotificationPackSupport {
                     templates =
                         mapOf(
                             NotificationTemplateKey.ITEM_DROP to itemDropTemplate,
-                            NotificationTemplateKey.BOOSTER to boosterTemplate,
-                            NotificationTemplateKey.DUNGEON to dungeonTemplate,
+                            NotificationTemplateKey.BOOSTER to booster,
+                            NotificationTemplateKey.DUNGEON to dungeon,
                             NotificationTemplateKey.RAID to raid,
                             NotificationTemplateKey.GLOBAL to globalTemplate,
                             NotificationTemplateKey.PLAYER_OFFLINE to playerOffline,
@@ -156,6 +172,8 @@ object BuiltinNotificationPackSupport {
             (NotificationPackValueKey.GLOBAL_EVENT to (eventValues + (COMET_CHAOS to cometValue)))
     }
 
+    private val SECRET_ITEM_TYPES = setOf("SWORD", "PET")
+    private val BASE_GLOBAL_EVENT_VALUES = setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION")
     private const val COMET_CHAOS = "COMET_CHAOS"
     private const val PROTOCOL_PACK_KEY = "notification.protocol"
 }

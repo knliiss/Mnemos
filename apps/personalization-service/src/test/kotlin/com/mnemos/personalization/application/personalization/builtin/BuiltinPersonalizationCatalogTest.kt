@@ -78,30 +78,19 @@ class BuiltinPersonalizationCatalogTest {
     }
 
     @Test
-    fun `authored notification packs keep the complete event variant matrix`() {
-        val authored =
+    fun `item drop variants keep mythical on base and type every secret variant`() {
+        val packs =
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
-                .mapNotNull { definition ->
-                    BuiltinNotificationPackVariantSets
-                        .forPack(definition.catalogKey.value)
-                        ?.let { variants -> definition to variants }
-                }
 
-        assertEquals(AUTHORED_PACK_COUNT, authored.size)
-
-        authored.forEach { (definition, _) ->
-            val key = definition.catalogKey.value
+        packs.forEach { definition ->
             val content = definition.content as PersonalizationContent.NotificationPack
             val itemVariants = content.templates.getValue(NotificationTemplateKey.ITEM_DROP).variants
-            val boosterVariants = content.templates.getValue(NotificationTemplateKey.BOOSTER).variants
-            val dungeonVariants = content.templates.getValue(NotificationTemplateKey.DUNGEON).variants
-            val globalVariants = content.templates.getValue(NotificationTemplateKey.GLOBAL).variants
+            val key = definition.catalogKey.value
 
-            assertEquals(
-                setOf("MYTHICAL", "SECRET"),
-                itemVariants.conditionValues(NotificationPackVariantField.ITEM_RARITY),
-                "Unexpected item rarity coverage for $key",
+            assertTrue(
+                "MYTHICAL" !in itemVariants.conditionValues(NotificationPackVariantField.ITEM_RARITY),
+                "MYTHICAL drops must keep using the base template for $key",
             )
 
             val secretVariants =
@@ -112,54 +101,68 @@ class BuiltinPersonalizationCatalogTest {
                     }
                 }
 
-            assertEquals(2, secretVariants.size, "Expected SECRET+SWORD and SECRET+PET for $key")
-            assertEquals(
-                setOf("SWORD", "PET"),
-                secretVariants.conditionValues(NotificationPackVariantField.ITEM_TYPE),
-                "Secret variants must be limited to swords and pets for $key",
-            )
             assertTrue(
                 secretVariants.all { variant ->
-                    variant.conditions.any { condition ->
-                        condition.field == NotificationPackVariantField.ITEM_TYPE
-                    }
-                },
-                "Generic SECRET variant is not allowed for $key",
-            )
+                    val itemTypes =
+                        variant.conditions
+                            .filter { condition -> condition.field == NotificationPackVariantField.ITEM_TYPE }
+                            .map { condition -> condition.value }
+                            .toSet()
 
-            assertEquals(
-                setOf("LUCK", "MONEY", "DAMAGE", "POWER"),
-                boosterVariants.conditionValues(NotificationPackVariantField.BOOSTER),
-                "Unexpected booster coverage for $key",
-            )
-            assertEquals(
-                setOf("EASY", "MEDIUM", "HARD", "EXPERT"),
-                dungeonVariants.conditionValues(NotificationPackVariantField.DUNGEON),
-                "Unexpected dungeon coverage for $key",
-            )
-            assertEquals(
-                setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", COMET_CHAOS),
-                globalVariants.conditionValues(NotificationPackVariantField.GLOBAL_EVENT),
-                "Unexpected global event coverage for $key",
+                    itemTypes.size == 1 && itemTypes.single() in SECRET_ITEM_TYPES
+                },
+                "SECRET variants must target exactly SWORD or PET for $key",
             )
         }
     }
 
     @Test
-    fun `all item drop variants inherit their pack emoji`() {
+    fun `booster dungeon and global variants keep their base templates reachable`() {
         val packs =
             BuiltinPersonalizationCatalog.definitions
                 .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
 
         packs.forEach { definition ->
             val content = definition.content as PersonalizationContent.NotificationPack
-            val itemTemplate = content.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+            val key = definition.catalogKey.value
+            val boosterVariants = content.templates.getValue(NotificationTemplateKey.BOOSTER).variants
+            val dungeonVariants = content.templates.getValue(NotificationTemplateKey.DUNGEON).variants
+            val globalVariants = content.templates.getValue(NotificationTemplateKey.GLOBAL).variants
 
             assertTrue(
-                itemTemplate.variants.all { variant -> variant.emoji == itemTemplate.emoji },
-                "Item-drop variants must inherit the base pack emoji for ${definition.catalogKey.value}",
+                boosterVariants.conditionValues(NotificationPackVariantField.BOOSTER) != ALL_BOOSTERS,
+                "Booster variants must not shadow the base template for $key",
+            )
+            assertTrue(
+                dungeonVariants.conditionValues(NotificationPackVariantField.DUNGEON) != ALL_DUNGEONS,
+                "Dungeon variants must not shadow the base template for $key",
+            )
+            assertTrue(
+                globalVariants.conditionValues(NotificationPackVariantField.GLOBAL_EVENT) != ALL_GLOBAL_EVENTS,
+                "Global variants must not shadow the base template for $key",
             )
         }
+    }
+
+    @Test
+    fun `legacy drop identities stay intact`() {
+        val packs =
+            BuiltinPersonalizationCatalog.definitions
+                .filter { definition -> definition.type == PersonalizationType.NOTIFICATION_PACK }
+                .associateBy { definition -> definition.catalogKey.value }
+
+        val dep = packs.getValue("notification.dep").content as PersonalizationContent.NotificationPack
+        val depDrop = dep.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+        assertEquals("💸", depDrop.emoji)
+        assertEquals("Деп окупился", depDrop.soloTitle)
+        assertTrue(depDrop.soloBody.contains("Последний деп ради дропа того стоил! 💸"))
+        assertTrue(depDrop.variants.all { variant -> variant.emoji == "💸" })
+
+        val gospodin = packs.getValue("notification.gospodin").content as PersonalizationContent.NotificationPack
+        val gospodinDrop = gospodin.templates.getValue(NotificationTemplateKey.ITEM_DROP)
+        assertEquals("👑", gospodinDrop.emoji)
+        assertEquals("Ваша удача безгранична", gospodinDrop.soloTitle)
+        assertTrue(gospodinDrop.variants.all { variant -> variant.emoji == "👑" })
     }
 
     @Test
@@ -203,7 +206,10 @@ class BuiltinPersonalizationCatalogTest {
 
     private companion object {
         const val MIN_DEFINITIONS_PER_TYPE = 20
-        const val AUTHORED_PACK_COUNT = 18
+        val SECRET_ITEM_TYPES = setOf("SWORD", "PET")
+        val ALL_BOOSTERS = setOf("LUCK", "MONEY", "DAMAGE", "POWER")
+        val ALL_DUNGEONS = setOf("EASY", "MEDIUM", "HARD", "EXPERT")
+        val ALL_GLOBAL_EVENTS = setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", COMET_CHAOS)
         const val COMET_CHAOS = "COMET_CHAOS"
     }
 }
