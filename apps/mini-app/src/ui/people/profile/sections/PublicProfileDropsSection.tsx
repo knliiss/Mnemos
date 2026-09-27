@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { EventArt } from "../../../components/events/EventArt"
 import { eventVisualTone } from "../../../eventVisualTone"
+import { eventTitle } from "../../../events/eventPresentation"
 import type { FeedEvent, Route } from "../../../model"
 import { formatOccurredAt } from "../../../timePresentation"
 import { rarityLabel } from "../profilePresentation"
@@ -71,7 +72,7 @@ export function PublicProfileDropsSection({
 
             <span className="public-profile-drop__copy">
               <small>{rarityLabel(drop.rarity, t)}</small>
-              <strong>{drop.title}</strong>
+              <strong>{eventTitle(t, drop)}</strong>
               <em>{formatOccurredAt(drop.occurredAt, locale)}</em>
             </span>
 
