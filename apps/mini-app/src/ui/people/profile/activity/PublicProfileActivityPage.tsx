@@ -6,6 +6,7 @@ import { getPublicProfile } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt } from "../../../components/events/EventArt"
 import { eventVisualTone } from "../../../eventVisualTone"
+import { eventTitle } from "../../../events/eventPresentation"
 import { useEventFeedData } from "../../../events/feed/useEventFeedData"
 import type { Route } from "../../../model"
 import { PageHeader } from "../../../shared/Primitives"
@@ -179,7 +180,7 @@ export function PublicProfileActivityPage({
 
             <span className="profile-activity-row__copy">
               <small>{rarityLabel(drop.rarity, t)}</small>
-              <strong>{drop.title}</strong>
+              <strong>{eventTitle(t, drop)}</strong>
               <em>{drop.meta}</em>
             </span>
 
