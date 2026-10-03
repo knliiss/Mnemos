@@ -23,6 +23,8 @@ interface UserRepository {
 
     fun existsByTelegramId(telegramId: TelegramId): Boolean
 
+    fun findAllByActiveAccountNickname(nickname: String): List<User>
+
     fun clearActiveAccountByAccountId(
         accountId: AccountId,
         now: Instant,
