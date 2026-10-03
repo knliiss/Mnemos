@@ -14,6 +14,7 @@ object NotificationPackPreviewFormatter {
             NotificationPackTemplateType.DUNGEON,
             NotificationPackTemplateType.RAID,
             NotificationPackTemplateType.GLOBAL,
+            NotificationPackTemplateType.PING,
             NotificationPackTemplateType.PLAYER_OFFLINE,
         )
 
@@ -105,6 +106,14 @@ object NotificationPackPreviewFormatter {
             NotificationPackTemplateType.DUNGEON -> mapOf("dungeon" to "EXPERT")
             NotificationPackTemplateType.RAID -> mapOf("locations" to "2 · 4 · 7")
             NotificationPackTemplateType.GLOBAL -> mapOf("event" to "ECLIPSE")
+            NotificationPackTemplateType.PING ->
+                mapOf(
+                    "player" to "TranZorXx",
+                    "message" to "MVP ┃ TranZorXx [#401] » @knaliz привет как дела?",
+                    "target" to "knaliz",
+                    "text" to "@knaliz привет как дела?",
+                )
+
             NotificationPackTemplateType.PLAYER_OFFLINE ->
                 mapOf(
                     "player" to "KoTuK_PvP",
