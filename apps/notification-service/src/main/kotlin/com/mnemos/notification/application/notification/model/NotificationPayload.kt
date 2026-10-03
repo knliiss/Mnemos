@@ -55,6 +55,15 @@ data class GlobalNotificationPayload(
     override val type = NotificationType.GLOBAL
 }
 
+data class PingNotificationPayload(
+    val player: String,
+    val message: String,
+    val text: String,
+    val target: String,
+) : NotificationPayload {
+    override val type = NotificationType.PING
+}
+
 data class PlayerOfflineNotificationPayload(
     val playerId: UUID,
     val player: String,
