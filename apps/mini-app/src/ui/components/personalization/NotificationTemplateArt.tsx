@@ -1,5 +1,6 @@
 import type { NotificationTemplateKey } from "../../model"
 import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "../events/EventArt"
+import { Glyph } from "../../shared/MnemosIcon"
 import { PlayerOfflineArt } from "../people/PlayerOfflineArt"
 
 type Props = {
@@ -26,6 +27,10 @@ export function NotificationTemplateArt({ templateKey, size }: Props) {
 
   if (templateKey === "GLOBAL") {
     return <GlobalEventArt eventType="ECLIPSE" size={size} />
+  }
+
+  if (templateKey === "PING") {
+    return <Glyph name="bell" size={size} />
   }
 
   return <PlayerOfflineArt size={size} />
