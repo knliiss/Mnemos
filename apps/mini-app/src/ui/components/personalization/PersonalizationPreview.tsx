@@ -151,7 +151,9 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
 
 function NotificationPackShowcase({ content }: { content: NotificationPackContent }) {
   const { t } = useTranslation()
-  const templateSamples = createTemplateSamples(t).filter((sample) => Boolean(content.templates[sample.key]))
+  const templateSamples = createTemplateSamples(t).filter((sample) =>
+    Boolean(content.templates[sample.key]),
+  )
 
   return (
     <section className="notification-pack-showcase">
