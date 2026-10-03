@@ -8,6 +8,7 @@ import com.mnemos.messaging.core.transport.EventDestination
 import com.mnemos.messaging.core.transport.EventMessage
 import com.mnemos.messaging.core.transport.EventTransport
 import com.mnemos.realtime.application.collector.port.out.CollectorIngressPublisher
+import com.mnemos.realtime.contracts.collector.CollectorChatPingQueuedV2
 import com.mnemos.realtime.contracts.collector.CollectorIngressContract
 import com.mnemos.realtime.contracts.collector.CollectorIngressType
 import com.mnemos.realtime.contracts.collector.CollectorPresenceChangedV2
@@ -41,6 +42,38 @@ class KafkaCollectorIngressPublisher(
                     ingressId = ingressId,
                     collectorId = collectorId.id,
                     rawMessage = rawMessage,
+                    activeCollectors = activeCollectors,
+                    receivedAt = receivedAt,
+                ),
+        )
+
+    override fun publishChatPing(
+        ingressId: UUID,
+        collectorId: CollectorCredentialId,
+        messageId: UUID,
+        observedAt: Instant,
+        sender: String,
+        message: String,
+        text: String,
+        mentions: List<String>,
+        activeCollectors: Int,
+        receivedAt: Instant,
+    ): CompletionStage<Unit> =
+        publish(
+            eventId = ingressId,
+            type = CollectorIngressType.CHAT_PING_QUEUED,
+            aggregateId = ingressId,
+            occurredAt = receivedAt,
+            payload =
+                CollectorChatPingQueuedV2(
+                    ingressId = ingressId,
+                    collectorId = collectorId.id,
+                    messageId = messageId,
+                    observedAt = observedAt,
+                    sender = sender,
+                    message = message,
+                    text = text,
+                    mentions = mentions,
                     activeCollectors = activeCollectors,
                     receivedAt = receivedAt,
                 ),

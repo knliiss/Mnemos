@@ -60,12 +60,17 @@ class NotificationMenuMessageRendererTest {
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, dungeons.style)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, raid.style)
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
+        assertTrue(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.ping(enabled = false)
+            },
+        )
         assertFalse(
             callbacks.any { action ->
                 action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
             },
         )
-        assertEquals(listOf(2, 2, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 2, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test

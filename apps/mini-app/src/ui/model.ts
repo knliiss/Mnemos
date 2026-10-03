@@ -39,6 +39,7 @@ export type NotificationTemplateKey =
   | "DUNGEON"
   | "RAID"
   | "GLOBAL"
+  | "PING"
   | "PLAYER_OFFLINE"
 export type NotificationPackVariantField =
   | "ITEM_RARITY"

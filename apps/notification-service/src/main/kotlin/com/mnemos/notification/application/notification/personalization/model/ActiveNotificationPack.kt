@@ -13,8 +13,9 @@ data class ActiveNotificationPack(
     val valueMappings: Map<NotificationPackValueKey, Map<String, NotificationPackValueForms>> = emptyMap(),
 ) {
     init {
-        require(templates.keys == NotificationType.entries.toSet()) {
-            "Active notification pack must define every notification type exactly once"
+        val requiredTypes = NotificationType.entries.toSet() - NotificationType.PING
+        require(templates.keys.containsAll(requiredTypes)) {
+            "Active notification pack must define every required notification type"
         }
     }
 }

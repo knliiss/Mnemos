@@ -6,5 +6,6 @@ enum class NotificationType {
     DUNGEON,
     RAID,
     GLOBAL,
+    PING,
     PLAYER_OFFLINE,
 }

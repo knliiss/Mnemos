@@ -2,11 +2,16 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { deleteSubscription, getSubscriptions } from "@/shared/api/subscriptionApi"
+import {
+  deleteSubscription,
+  getPingNotificationPreference,
+  getSubscriptions,
+} from "@/shared/api/subscriptionApi"
 import { useSubscriptionData } from "./useSubscriptionData"
 
 vi.mock("@/shared/api/subscriptionApi", () => ({
   deleteSubscription: vi.fn(),
+  getPingNotificationPreference: vi.fn(),
   getSubscriptions: vi.fn(),
 }))
 
@@ -45,6 +50,8 @@ function subscriptionPage(id: string) {
 describe("useSubscriptionData", () => {
   beforeEach(() => {
     vi.mocked(getSubscriptions).mockReset()
+    vi.mocked(getPingNotificationPreference).mockReset()
+    vi.mocked(getPingNotificationPreference).mockResolvedValue({ enabled: true })
     vi.mocked(deleteSubscription).mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)

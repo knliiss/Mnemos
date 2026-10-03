@@ -13,6 +13,7 @@ object CollectorIngressContract {
 
 object CollectorIngressType {
     const val REPORT_QUEUED = "collector.report.queued"
+    const val CHAT_PING_QUEUED = "collector.chat-ping.queued"
     const val PRESENCE_CHANGED = "collector.presence.changed"
 }
 

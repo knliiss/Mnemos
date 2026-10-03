@@ -52,6 +52,7 @@ object NotificationMenuMessageRenderer {
         val activeDungeons = result.dungeonSubscriptions.size
         val activeRaidLocations = activeRaidLocationCount(result)
         val dropRules = result.page.totalItems
+        val pingState = if (result.pingEnabled) "Вкл" else "Выкл"
 
         return messageWithRows(
             text =
@@ -65,6 +66,7 @@ object NotificationMenuMessageRenderer {
                     "🏰 Dungeon: <b>$activeDungeons/${NotificationDungeonType.entries.size}</b>",
                     "🛡 RAID: <b>$activeRaidLocations/${NotificationRaidLocations.all.size}</b>",
                     "📦 Дропы: <b>$dropRules</b>",
+                    "🔔 Упоминания: <b>$pingState</b>",
                 ).joinToString("\n"),
             rows = dashboardRows(result),
         )
@@ -106,6 +108,11 @@ object NotificationMenuMessageRenderer {
                     label = "📦 Дропы · ${result.page.totalItems}",
                     data = NotificationCallbackData.DROPS,
                     style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+                targetToggleCallback(
+                    label = "🔔 Упоминания",
+                    active = result.pingEnabled,
+                    targetData = NotificationCallbackData::ping,
                 ),
             ),
             listOf(

@@ -11,6 +11,7 @@ data class NotificationPolicyProperties(
     val dungeon: TypePolicy,
     val raid: TypePolicy,
     val global: TypePolicy,
+    val ping: TypePolicy,
     val playerOffline: TypePolicy,
 ) {
     data class TypePolicy(

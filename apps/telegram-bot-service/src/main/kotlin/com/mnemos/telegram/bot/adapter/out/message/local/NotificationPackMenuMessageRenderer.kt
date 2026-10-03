@@ -149,7 +149,7 @@ object NotificationPackMenuMessageRenderer {
             )
         val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
-        rows += templateRows(preview.selectedType)
+        rows += templateRows(preview.selectedType, pack.preview.templates.keys)
         rows += variantRows(pack, preview.selectedType, preview.selectedVariant)
         rows += purchaseOrApplyRow(pack)
         rows +=
@@ -209,8 +209,12 @@ object NotificationPackMenuMessageRenderer {
         ).joinToString("\n")
     }
 
-    private fun templateRows(selectedType: NotificationPackTemplateType): List<List<OutboundTelegramMessageAction>> =
+    private fun templateRows(
+        selectedType: NotificationPackTemplateType,
+        availableTypes: Set<NotificationPackTemplateType>,
+    ): List<List<OutboundTelegramMessageAction>> =
         NotificationPackPreviewFormatter.templateTypes
+            .filter(availableTypes::contains)
             .map { type ->
                 val selected = type == selectedType
 
@@ -355,6 +359,7 @@ object NotificationPackMenuMessageRenderer {
             NotificationPackTemplateType.DUNGEON -> "🏰 Dungeon"
             NotificationPackTemplateType.RAID -> "🛡 RAID"
             NotificationPackTemplateType.GLOBAL -> "🌌 Глобал"
+            NotificationPackTemplateType.PING -> "🔔 Упоминание"
             NotificationPackTemplateType.PLAYER_OFFLINE -> "👤 Offline"
         }
 
@@ -365,6 +370,7 @@ object NotificationPackMenuMessageRenderer {
             NotificationPackTemplateType.DUNGEON -> "Dungeon"
             NotificationPackTemplateType.RAID -> "RAID"
             NotificationPackTemplateType.GLOBAL -> "Глобальное событие"
+            NotificationPackTemplateType.PING -> "Упоминание"
             NotificationPackTemplateType.PLAYER_OFFLINE -> "Игрок вышел"
         }
 

@@ -37,6 +37,7 @@ type MnemosDataState = {
   eventCursor: string | null
   eventsHasMore: boolean
   subscriptions: Subscription[]
+  pingNotificationsEnabled: boolean
   loadingSubscriptions: boolean
   subscriptionsError: boolean
   dailyReward: DailyRewardStateResponse | null
@@ -122,6 +123,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
 
   const {
     subscriptions,
+    pingNotificationsEnabled,
     loadingSubscriptions,
     subscriptionsError,
     refreshSubscriptions,
@@ -214,6 +216,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
       eventCursor,
       eventsHasMore,
       subscriptions,
+      pingNotificationsEnabled,
       loadingSubscriptions,
       subscriptionsError,
       dailyReward,
@@ -245,6 +248,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
       eventCursor,
       eventsHasMore,
       subscriptions,
+      pingNotificationsEnabled,
       loadingSubscriptions,
       subscriptionsError,
       dailyReward,

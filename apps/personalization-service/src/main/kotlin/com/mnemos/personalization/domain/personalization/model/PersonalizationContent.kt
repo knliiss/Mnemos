@@ -78,8 +78,9 @@ sealed interface PersonalizationContent {
         val valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = emptyMap(),
     ) : PersonalizationContent {
         init {
-            require(templates.keys == NotificationTemplateKey.entries.toSet()) {
-                "Notification pack must define every supported template exactly once"
+            val requiredTemplates = NotificationTemplateKey.entries.toSet() - NotificationTemplateKey.PING
+            require(templates.keys.containsAll(requiredTemplates)) {
+                "Notification pack must define every required template"
             }
 
             validateStaticText(mixedAggregateTitle, "mixed aggregate title")

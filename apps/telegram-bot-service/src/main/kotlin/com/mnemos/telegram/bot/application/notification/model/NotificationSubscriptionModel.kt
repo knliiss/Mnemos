@@ -38,6 +38,7 @@ sealed interface NotificationSubscriptionResult {
         val dungeonSubscriptions: Map<NotificationDungeonType, UUID> = emptyMap(),
         val globalSubscriptions: Map<NotificationGlobalType, UUID> = emptyMap(),
         val raidSubscription: NotificationSubscription? = null,
+        val pingEnabled: Boolean = true,
     ) : NotificationSubscriptionResult
 
     data object Unavailable : NotificationSubscriptionResult

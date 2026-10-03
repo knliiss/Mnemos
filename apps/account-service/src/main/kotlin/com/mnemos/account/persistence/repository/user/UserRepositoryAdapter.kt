@@ -44,6 +44,11 @@ class UserRepositoryAdapter(
 
     override fun existsByTelegramId(telegramId: TelegramId): Boolean = jpaUserRepository.existsByTelegramId(telegramId)
 
+    override fun findAllByActiveAccountNickname(nickname: String): List<User> =
+        jpaUserRepository
+            .findAllByActiveAccountNicknameIgnoreCase(nickname)
+            .map { entity -> entity.toDomain() }
+
     override fun clearActiveAccountByAccountId(
         accountId: AccountId,
         now: Instant,

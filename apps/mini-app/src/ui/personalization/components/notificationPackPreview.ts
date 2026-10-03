@@ -13,6 +13,7 @@ export const notificationTemplateKeys: NotificationTemplateKey[] = [
   "DUNGEON",
   "RAID",
   "GLOBAL",
+  "PING",
   "PLAYER_OFFLINE",
 ]
 
@@ -91,6 +92,15 @@ export function notificationPreviewValues(type: NotificationTemplateKey): Record
   if (type === "RAID") {
     return {
       locations: "2 · 4 · 7",
+    }
+  }
+
+  if (type === "PING") {
+    return {
+      player: "TranZorXx",
+      message: "MVP ┃ TranZorXx [#401] » @knaliz привет как дела?",
+      target: "knaliz",
+      text: "@knaliz привет как дела?",
     }
   }
 

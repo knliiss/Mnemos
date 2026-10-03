@@ -34,14 +34,21 @@ export function NotificationPackContextPreview({
     return null
   }
 
-  const template = content.templates[selectedType]
+  const availableTypes = notificationTemplateKeys.filter((type) => Boolean(content.templates[type]))
+  const effectiveSelectedType = content.templates[selectedType] ? selectedType : availableTypes[0]
+  const template = effectiveSelectedType ? content.templates[effectiveSelectedType] : undefined
+
+  if (!template || !effectiveSelectedType) {
+    return null
+  }
+
   const variants = template.variants ?? []
   const selectedVariant =
     selectedVariantId === null
       ? null
       : (variants.find((variant) => variant.id === selectedVariantId) ?? null)
   const message = selectedNotificationTemplate(template, selectedVariant?.id ?? null)
-  const values = valuesForVariant(selectedType, selectedVariant)
+  const values = valuesForVariant(effectiveSelectedType, selectedVariant)
   const title = withNotificationEmoji(
     message.emoji,
     renderNotificationTemplate(content, message.soloTitle, values),
@@ -58,11 +65,11 @@ export function NotificationPackContextPreview({
         className="notification-pack-context-preview__events"
         aria-label={t("creator.editor.eventTemplate")}
       >
-        {notificationTemplateKeys.map((type) => (
+        {availableTypes.map((type) => (
           <button
             type="button"
             key={type}
-            className={type === selectedType ? "is-active" : ""}
+            className={type === effectiveSelectedType ? "is-active" : ""}
             onClick={() => {
               setSelectedType(type)
               setSelectedVariantId(null)
@@ -77,10 +84,13 @@ export function NotificationPackContextPreview({
 
       <article
         className="notification-pack-context-preview__message"
-        data-template={selectedType.toLowerCase()}
+        data-template={effectiveSelectedType.toLowerCase()}
       >
         <span className="notification-pack-context-preview__art" aria-hidden="true">
-          <NotificationTemplateArt templateKey={selectedType} size={size === "DETAIL" ? 46 : 38} />
+          <NotificationTemplateArt
+            templateKey={effectiveSelectedType}
+            size={size === "DETAIL" ? 46 : 38}
+          />
         </span>
 
         <span className="notification-pack-context-preview__copy">

@@ -14,6 +14,19 @@ interface CollectorIngressPublisher {
         receivedAt: Instant,
     ): CompletionStage<Unit>
 
+    fun publishChatPing(
+        ingressId: UUID,
+        collectorId: CollectorCredentialId,
+        messageId: UUID,
+        observedAt: Instant,
+        sender: String,
+        message: String,
+        text: String,
+        mentions: List<String>,
+        activeCollectors: Int,
+        receivedAt: Instant,
+    ): CompletionStage<Unit>
+
     fun publishPresence(
         activeCollectors: Int,
         revision: Long,

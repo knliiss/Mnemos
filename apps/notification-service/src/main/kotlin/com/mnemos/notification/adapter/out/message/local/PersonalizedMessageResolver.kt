@@ -8,6 +8,7 @@ import com.mnemos.notification.application.notification.model.GlobalNotification
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationPayload
+import com.mnemos.notification.application.notification.model.PingNotificationPayload
 import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
@@ -79,6 +80,7 @@ class PersonalizedMessageResolver {
             is GlobalNotificationPayload ->
                 mapOf(NotificationPackVariantField.GLOBAL_EVENT to payload.eventType.name)
 
+            is PingNotificationPayload -> emptyMap()
             is PlayerOfflineNotificationPayload -> emptyMap()
         }
 
@@ -106,6 +108,14 @@ class PersonalizedMessageResolver {
             is RaidNotificationPayload -> mapOf("locations" to localization.raidLocations(payload))
 
             is GlobalNotificationPayload -> mapOf("event" to payload.eventType.name)
+
+            is PingNotificationPayload ->
+                mapOf(
+                    "player" to payload.player,
+                    "message" to payload.message,
+                    "target" to payload.target,
+                    "text" to payload.text,
+                )
 
             is PlayerOfflineNotificationPayload ->
                 mapOf(

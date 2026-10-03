@@ -15,6 +15,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationSubscr
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionCreationGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateSubscriptionResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -54,6 +55,7 @@ class NotificationSubscriptionGatewayAdapter(
                     subscriptions.firstOrNull { subscription ->
                         subscription.type == NotificationSubscriptionType.RAID
                     },
+                pingEnabled = client.getPingPreference(telegramId).enabled,
             )
         } catch (exception: RuntimeException) {
             logger.warn("Could not load notification subscriptions from notification-service", exception)
@@ -113,6 +115,21 @@ class NotificationSubscriptionGatewayAdapter(
                 telegramId = telegramId,
                 request = eventType.toContract(),
             )
+        }
+
+    override fun setPingEnabled(
+        telegramId: Long,
+        enabled: Boolean,
+    ): Boolean =
+        try {
+            client
+                .updatePingPreference(
+                    telegramId = telegramId,
+                    request = TelegramUpdatePingPreferenceRequest(enabled),
+                ).enabled == enabled
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not update ping notification preference", exception)
+            false
         }
 
     override fun delete(

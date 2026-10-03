@@ -151,7 +151,9 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
 
 function NotificationPackShowcase({ content }: { content: NotificationPackContent }) {
   const { t } = useTranslation()
-  const templateSamples = createTemplateSamples(t)
+  const templateSamples = createTemplateSamples(t).filter((sample) =>
+    Boolean(content.templates[sample.key]),
+  )
 
   return (
     <section className="notification-pack-showcase">
@@ -430,6 +432,15 @@ function createTemplateSamples(t: TFunction): TemplateSample[] {
       key: "GLOBAL",
       values: {
         event: t("personalization.preview.samples.eclipse"),
+      },
+    },
+    {
+      key: "PING",
+      values: {
+        player: "TranZorXx",
+        message: "MVP ┃ TranZorXx [#401] » @knaliz привет как дела?",
+        target: "knaliz",
+        text: "@knaliz привет как дела?",
       },
     },
     {

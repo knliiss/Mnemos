@@ -8,5 +8,6 @@ enum class NotificationPackTemplateType(
     DUNGEON(setOf("dungeon")),
     RAID(setOf("locations")),
     GLOBAL(setOf("event")),
+    PING(setOf("player", "message", "target", "text")),
     PLAYER_OFFLINE(setOf("player", "realm", "lastSeen")),
 }

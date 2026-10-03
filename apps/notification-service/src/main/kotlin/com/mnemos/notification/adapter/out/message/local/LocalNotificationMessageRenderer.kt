@@ -80,11 +80,15 @@ class LocalNotificationMessageRenderer(
             NotificationResolution(
                 notifications =
                     items.map { item ->
-                        personalizedResolver.resolve(
-                            item = item,
-                            pack = pack,
-                            localization = localization,
-                        )
+                        if (pack.templates.containsKey(item.payload.type)) {
+                            personalizedResolver.resolve(
+                                item = item,
+                                pack = pack,
+                                localization = localization,
+                            )
+                        } else {
+                            resolver.resolve(item, localization)
+                        }
                     },
                 pack = pack,
             )
@@ -183,6 +187,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Dungeons</b>"
                     NotificationType.RAID -> "⚔️ <b>Raids</b>"
                     NotificationType.GLOBAL -> "🌍 <b>World events</b>"
+                    NotificationType.PING -> "🔔 <b>Mentions</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Players offline</b>"
                 }
 
@@ -193,6 +198,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Подземелья</b>"
                     NotificationType.RAID -> "⚔️ <b>Рейды</b>"
                     NotificationType.GLOBAL -> "🌍 <b>Глобальные события</b>"
+                    NotificationType.PING -> "🔔 <b>Упоминания</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Игроки офлайн</b>"
                 }
 
@@ -203,6 +209,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Підземелля</b>"
                     NotificationType.RAID -> "⚔️ <b>Рейди</b>"
                     NotificationType.GLOBAL -> "🌍 <b>Глобальні події</b>"
+                    NotificationType.PING -> "🔔 <b>Згадки</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Гравці офлайн</b>"
                 }
         }
@@ -219,6 +226,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Dungeons opened</b>"
                     NotificationType.RAID -> "⚔️ <b>Raids started</b>"
                     NotificationType.GLOBAL -> "🌍 <b>World events</b>"
+                    NotificationType.PING -> "🔔 <b>Mentions</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Players went offline</b>"
                 }
 
@@ -229,6 +237,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Открылись подземелья</b>"
                     NotificationType.RAID -> "⚔️ <b>Начались рейды</b>"
                     NotificationType.GLOBAL -> "🌍 <b>События мира</b>"
+                    NotificationType.PING -> "🔔 <b>Упоминания</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Игроки вышли из игры</b>"
                 }
 
@@ -239,6 +248,7 @@ class LocalNotificationMessageRenderer(
                     NotificationType.DUNGEON -> "🏰 <b>Відкрилися підземелля</b>"
                     NotificationType.RAID -> "⚔️ <b>Почалися рейди</b>"
                     NotificationType.GLOBAL -> "🌍 <b>Події світу</b>"
+                    NotificationType.PING -> "🔔 <b>Згадки</b>"
                     NotificationType.PLAYER_OFFLINE -> "🌙 <b>Гравці вийшли з гри</b>"
                 }
         }

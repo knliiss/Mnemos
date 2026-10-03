@@ -10,6 +10,11 @@ interface NotificationSubscriptionGateway {
         size: Int,
     ): NotificationSubscriptionResult
 
+    fun setPingEnabled(
+        telegramId: Long,
+        enabled: Boolean,
+    ): Boolean
+
     fun delete(
         telegramId: Long,
         subscriptionId: UUID,

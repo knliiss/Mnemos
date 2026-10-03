@@ -164,6 +164,11 @@ class NotificationMenuScreenDataProviderTest {
             return results[page] ?: NotificationSubscriptionResult.Unavailable
         }
 
+        override fun setPingEnabled(
+            telegramId: Long,
+            enabled: Boolean,
+        ): Boolean = false
+
         override fun delete(
             telegramId: Long,
             subscriptionId: UUID,

@@ -109,6 +109,13 @@ class CollectorWebSocketHandler(
                     payload = message.payload,
                 )
 
+            CHAT_PING_REPORT_TYPE ->
+                handleChatPingReport(
+                    session = session,
+                    collectorId = collectorId,
+                    payload = message.payload,
+                )
+
             COLLECTOR_STATE_TYPE ->
                 handleCollectorState(
                     session = session,
@@ -127,7 +134,9 @@ class CollectorWebSocketHandler(
                 sendError(
                     session = session,
                     code = CollectorTransportErrorCode.INVALID_MESSAGE,
-                    message = "Only EVENT_REPORT, COLLECTOR_STATE and COLLECTOR_UPDATE_READY messages are supported",
+                    message =
+                        "Only EVENT_REPORT, CHAT_PING_REPORT, COLLECTOR_STATE " +
+                            "and COLLECTOR_UPDATE_READY messages are supported",
                 )
         }
     }
@@ -219,6 +228,95 @@ class CollectorWebSocketHandler(
                 session = session,
                 code = CollectorTransportErrorCode.DELIVERY_UNAVAILABLE,
                 message = "Collector report could not be queued",
+            )
+        }
+    }
+
+    private fun handleChatPingReport(
+        session: WebSocketSession,
+        collectorId: CollectorCredentialId,
+        payload: String,
+    ) {
+        val report =
+            try {
+                messageCodec.readChatPing(payload)
+            } catch (_: Exception) {
+                sendError(
+                    session = session,
+                    code = CollectorTransportErrorCode.INVALID_MESSAGE,
+                    message = "Collector chat ping report is invalid",
+                )
+                return
+            }
+
+        val receivedAt = clock.instant()
+
+        if (!inFlightMessageLimiter.tryAcquire(collectorId)) {
+            sendError(
+                session = session,
+                code = CollectorTransportErrorCode.TOO_MANY_IN_FLIGHT,
+                message = "Collector has too many reports awaiting Kafka acknowledgement",
+            )
+            return
+        }
+
+        try {
+            val presence = sessionRegistry.presenceSnapshot()
+
+            ingressPublisher
+                .publishChatPing(
+                    ingressId = UuidCreator.getTimeOrderedEpoch(),
+                    collectorId = collectorId,
+                    messageId = report.messageId,
+                    observedAt = report.observedAt,
+                    sender = report.sender,
+                    message = report.message,
+                    text = report.text,
+                    mentions = report.mentions,
+                    activeCollectors = presence.activeCollectors,
+                    receivedAt = receivedAt,
+                ).toCompletableFuture()
+                .orTimeout(
+                    properties.kafkaTimeout.toMillis(),
+                    TimeUnit.MILLISECONDS,
+                ).whenComplete { _: Unit?, exception: Throwable? ->
+                    inFlightMessageLimiter.release(collectorId)
+
+                    if (exception == null) {
+                        sendSafely(
+                            session = session,
+                            payload =
+                                CollectorReportQueuedMessage(
+                                    messageId = report.messageId,
+                                    queuedAt = clock.instant(),
+                                ),
+                        )
+                    } else {
+                        log.warn(
+                            "Failed to publish collector chat ping, collectorId={}, messageId={}",
+                            collectorId.id,
+                            report.messageId,
+                            unwrapCompletionException(exception),
+                        )
+                        sendErrorSafely(
+                            session = session,
+                            code = CollectorTransportErrorCode.DELIVERY_UNAVAILABLE,
+                            message = "Collector chat ping could not be queued",
+                        )
+                    }
+                }
+        } catch (exception: Exception) {
+            inFlightMessageLimiter.release(collectorId)
+            log.warn(
+                "Failed to publish collector chat ping, collectorId={}, messageId={}",
+                collectorId.id,
+                report.messageId,
+                exception,
+            )
+            sendError(
+                session = session,
+                code = CollectorTransportErrorCode.DELIVERY_UNAVAILABLE,
+                message = "Collector chat ping could not be queued",
             )
         }
     }
@@ -524,6 +622,7 @@ class CollectorWebSocketHandler(
     }
 
     private companion object {
+        const val CHAT_PING_REPORT_TYPE = "CHAT_PING_REPORT"
         const val COLLECTOR_STATE_TYPE = "COLLECTOR_STATE"
         const val COLLECTOR_UPDATE_READY_TYPE = "COLLECTOR_UPDATE_READY"
         const val EVENT_REPORT_TYPE = "EVENT_REPORT"

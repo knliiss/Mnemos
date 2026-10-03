@@ -43,6 +43,7 @@ object NotificationCallbackData {
     private const val GLOBAL_PREFIX = "${PREFIX}g:"
     private const val RAID_LOCATION_PREFIX = "${PREFIX}rl:"
     private const val RAID_PAGE_PREFIX = "${PREFIX}rp:"
+    private const val PING_PREFIX = "${PREFIX}n:"
 
     fun page(page: Int): String = "$PAGE_PREFIX${page.coerceAtLeast(0)}"
 
@@ -75,6 +76,14 @@ object NotificationCallbackData {
     }
 
     fun raidPage(page: Int): String = "$RAID_PAGE_PREFIX${page.coerceIn(0, 1)}"
+
+    fun ping(enabled: Boolean): String = "$PING_PREFIX${stateCode(enabled)}"
+
+    fun selectedPingState(data: String): Boolean? =
+        data
+            .takeIf { value -> value.startsWith(PING_PREFIX) }
+            ?.removePrefix(PING_PREFIX)
+            ?.let(::parseState)
 
     fun selectedPage(data: String): Int? =
         data

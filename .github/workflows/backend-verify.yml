@@ -69,21 +69,60 @@ jobs:
             exit 0
           fi
 
-          docker run --rm \
-            --volume "$GITHUB_WORKSPACE:/workspace" \
-            alpine:3.22 \
-            chown -R "$(id -u):$(id -g)" /workspace
+          stale_root="$(dirname "$GITHUB_WORKSPACE")/.ci-stale"
+          mkdir -p "$stale_root"
 
-          find "$GITHUB_WORKSPACE" \
-            -type d \
-            \( \
-              -name build -o \
-              -name .gradle -o \
-              -name .kotlin -o \
-              -name __pycache__ \
-            \) \
-            -prune \
-            -exec rm -rf -- {} +
+          docker_available=false
+
+          if timeout 5s docker info >/dev/null 2>&1; then
+            docker_available=true
+            docker run --rm \
+              --volume "$GITHUB_WORKSPACE:/workspace" \
+              alpine:3.22 \
+              chown -R "$(id -u):$(id -g)" /workspace
+
+            if [ -d "$stale_root" ]; then
+              docker run --rm \
+                --volume "$stale_root:/stale" \
+                alpine:3.22 \
+                chown -R "$(id -u):$(id -g)" /stale
+              rm -rf -- "$stale_root"/*
+            fi
+          else
+            echo "::warning::Docker daemon is unavailable; generated state will be quarantined without recursive deletion"
+          fi
+
+          cleanup_failed=0
+          quarantine_index=0
+          while IFS= read -r -d '' path; do
+            if [ "$docker_available" = true ] && rm -rf -- "$path"; then
+              continue
+            fi
+
+            quarantine_index=$((quarantine_index + 1))
+            stale_path="$stale_root/${GITHUB_RUN_ID}-${quarantine_index}"
+
+            if ! mv -- "$path" "$stale_path"; then
+              echo "::warning::Could not remove or quarantine generated path: $path"
+              cleanup_failed=1
+            fi
+          done < <(
+            find "$GITHUB_WORKSPACE" \
+              -type d \
+              \( \
+                -name build -o \
+                -name .gradle -o \
+                -name .kotlin -o \
+                -name __pycache__ -o \
+                -name '*.ci-stale-*' \
+              \) \
+              -prune \
+              -print0
+          )
+
+          if [ "$cleanup_failed" -ne 0 ]; then
+            echo "::warning::Some generated workspace state could not be cleaned"
+          fi
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

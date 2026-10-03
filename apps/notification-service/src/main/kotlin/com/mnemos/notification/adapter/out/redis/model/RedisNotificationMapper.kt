@@ -13,6 +13,7 @@ import com.mnemos.notification.application.notification.model.NotificationBatch
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationType
+import com.mnemos.notification.application.notification.model.PingNotificationPayload
 import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.application.recipient.model.RecipientView
@@ -91,6 +92,7 @@ object RedisNotificationMapper {
             NotificationType.DUNGEON -> jsonMapper.readValue(payload, DungeonNotificationPayload::class.java)
             NotificationType.RAID -> jsonMapper.readValue(payload, RaidNotificationPayload::class.java)
             NotificationType.GLOBAL -> jsonMapper.readValue(payload, GlobalNotificationPayload::class.java)
+            NotificationType.PING -> jsonMapper.readValue(payload, PingNotificationPayload::class.java)
             NotificationType.PLAYER_OFFLINE -> jsonMapper.readValue(payload, PlayerOfflineNotificationPayload::class.java)
         }
 }
