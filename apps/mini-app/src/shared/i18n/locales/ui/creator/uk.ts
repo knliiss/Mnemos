@@ -206,6 +206,7 @@ export const creatorUk = {
         BOOSTER: "Бустер",
         DUNGEON: "Підземелля",
         RAID: "Рейд",
+        PING: "Згадки",
         GLOBAL: "Глобальна подія",
       },
       publicationEyebrow: "ПУБЛІКАЦІЯ",
