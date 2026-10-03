@@ -69,19 +69,32 @@ jobs:
             exit 0
           fi
 
+          stale_root="$(dirname "$GITHUB_WORKSPACE")/.ci-stale"
+          mkdir -p "$stale_root"
+
           if timeout 5s docker info >/dev/null 2>&1; then
             docker run --rm \
               --volume "$GITHUB_WORKSPACE:/workspace" \
               alpine:3.22 \
               chown -R "$(id -u):$(id -g)" /workspace
+
+            if [ -d "$stale_root" ]; then
+              docker run --rm \
+                --volume "$stale_root:/stale" \
+                alpine:3.22 \
+                chown -R "$(id -u):$(id -g)" /stale
+              rm -rf -- "$stale_root"/*
+            fi
           else
             echo "::warning::Docker daemon is unavailable; continuing without container-based ownership repair"
           fi
 
           cleanup_failed=0
+          quarantine_index=0
           while IFS= read -r -d '' path; do
             if ! rm -rf -- "$path"; then
-              stale_path="${path}.ci-stale-${GITHUB_RUN_ID}"
+              quarantine_index=$((quarantine_index + 1))
+              stale_path="$stale_root/${GITHUB_RUN_ID}-${quarantine_index}"
               if ! mv -- "$path" "$stale_path"; then
                 echo "::warning::Could not remove or quarantine generated path: $path"
                 cleanup_failed=1
@@ -94,7 +107,8 @@ jobs:
                 -name build -o \
                 -name .gradle -o \
                 -name .kotlin -o \
-                -name __pycache__ \
+                -name __pycache__ -o \
+                -name '*.ci-stale-*' \
               \) \
               -prune \
               -print0
