@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationBooste
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
 import com.mnemos.telegram.bot.application.notification.model.NotificationGlobalType
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramPingPreferenceResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionType
@@ -28,6 +29,9 @@ class NotificationSubscriptionGatewayAdapterTest {
         val fourthDrop = itemDrop("01a02e75-2603-7a67-b5f1-98b432273b74", "PlayerFour", "Potion")
         val raidId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b75")
 
+        whenever(client.getPingPreference(TELEGRAM_ID)).thenReturn(
+            TelegramPingPreferenceResponse(enabled = true),
+        )
         whenever(
             client.listSubscriptions(
                 telegramId = TELEGRAM_ID,
@@ -128,10 +132,32 @@ class NotificationSubscriptionGatewayAdapterTest {
         assertTrue(available.dungeonSubscriptions.containsKey(NotificationDungeonType.HARD))
         assertTrue(available.globalSubscriptions.containsKey(NotificationGlobalType.MOON))
         assertTrue(available.globalSubscriptions.containsKey(NotificationGlobalType.DARKNESS))
+        assertTrue(available.pingEnabled)
 
+        verify(client).getPingPreference(TELEGRAM_ID)
         verify(client).listSubscriptions(TELEGRAM_ID, 0, BACKEND_PAGE_SIZE)
         verify(client).listSubscriptions(TELEGRAM_ID, 1, BACKEND_PAGE_SIZE)
         verify(client).listSubscriptions(TELEGRAM_ID, 2, BACKEND_PAGE_SIZE)
+    }
+
+    @Test
+    fun `ping preference toggle delegates to notification service`() {
+        val client = mock<NotificationServiceClient>()
+        val adapter = NotificationSubscriptionGatewayAdapter(client)
+
+        whenever(
+            client.updatePingPreference(
+                telegramId = TELEGRAM_ID,
+                request = com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest(false),
+            ),
+        ).thenReturn(TelegramPingPreferenceResponse(enabled = false))
+
+        assertTrue(adapter.setPingEnabled(TELEGRAM_ID, enabled = false))
+
+        verify(client).updatePingPreference(
+            telegramId = TELEGRAM_ID,
+            request = com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest(false),
+        )
     }
 
     private fun backendPage(
