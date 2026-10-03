@@ -6,6 +6,7 @@ import {
   createDungeonSubscription,
   createGlobalSubscription,
   deleteSubscription,
+  updatePingNotificationPreference,
   updateRaidSubscription,
 } from "@/shared/api/subscriptionApi"
 import { BoosterArt, DungeonArt, GlobalEventArt, RaidArt } from "../../components/events/EventArt"
@@ -97,6 +98,12 @@ export function Subscriptions({ back }: { back: () => void }) {
     })
   }
 
+  async function togglePingNotifications() {
+    await mutate("PING", async () => {
+      await updatePingNotificationPreference(!data.pingNotificationsEnabled)
+    })
+  }
+
   async function toggleGlobal(value: GlobalEventType) {
     const matches = subscriptions.filter(
       (subscription) => subscription.type === "GLOBAL" && subscription.eventType === value,
@@ -178,6 +185,17 @@ export function Subscriptions({ back }: { back: () => void }) {
         </section>
       ) : (
         <>
+          <NotificationGroup title={t("events.subscriptions.mentions")} tone="ping">
+            <NotificationToggle
+              label={t("events.subscriptions.mentions")}
+              enabled={data.pingNotificationsEnabled}
+              busy={busyKey === "PING"}
+              disabled={busyKey !== null}
+              art={<span aria-hidden="true">🔔</span>}
+              onToggle={() => void togglePingNotifications()}
+            />
+          </NotificationGroup>
+
           <NotificationGroup title={t("events.kinds.GLOBAL")} tone="global">
             {GLOBAL_EVENT_TYPES.map((value) => {
               const enabled = subscriptions.some(
