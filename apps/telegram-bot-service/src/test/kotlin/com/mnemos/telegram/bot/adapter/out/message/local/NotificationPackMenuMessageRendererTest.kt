@@ -87,11 +87,12 @@ class NotificationPackMenuMessageRendererTest {
     }
 
     @Test
-    fun `detail exposes the same event type and variant controls as Mini App`() {
-        val message = NotificationPackMenuMessageRenderer.render(detailData(detailPack()))
+    fun `detail exposes the same available event type and variant controls as Mini App`() {
+        val pack = detailPack()
+        val message = NotificationPackMenuMessageRenderer.render(detailData(pack))
         val callbacks = message.callbacks()
 
-        NotificationPackTemplateType.entries.forEach { type ->
+        pack.preview.templates.keys.forEach { type ->
             assertTrue(
                 callbacks.any { action -> action.data == NotificationPackCallbackData.template(type) },
                 "Missing Telegram preview switch for $type",
