@@ -68,6 +68,13 @@ verify_read_only_pr_job() {
     printf '%s\n' "$job" |
         grep -Fq "github.event.pull_request.head.repo.full_name == github.repository" ||
         fail "$description self-hosted PR job must reject fork repositories"
+
+    grep -Fq '      - closed' "$workflow" ||
+        fail "$description workflow must subscribe to pull request close events to cancel stale runner work"
+
+    printf '%s\n' "$job" |
+        grep -Fq "github.event.action != 'closed'" ||
+        fail "$description heavy PR job must skip the close-event cancellation run"
 }
 
 verify_push_only_report_job() {

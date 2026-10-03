@@ -10,6 +10,11 @@ on:
       - "scripts/verify-guide-assets.mjs"
       - ".github/workflows/mini-app.yml"
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
     paths:
       - "apps/mini-app/**"
       - "scripts/verify-mini-app-security-headers.sh"
@@ -25,7 +30,7 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     defaults:
       run:
