@@ -191,7 +191,14 @@ export function Subscriptions({ back }: { back: () => void }) {
               enabled={data.pingNotificationsEnabled}
               busy={busyKey === "PING"}
               disabled={busyKey !== null}
-              art={<span aria-hidden="true">🔔</span>}
+              art={
+                <img
+                  className="notification-settings-ping-art"
+                  src="/ui-illustrations/notification-mention.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              }
               onToggle={() => void togglePingNotifications()}
             />
           </NotificationGroup>
