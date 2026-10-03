@@ -7,6 +7,7 @@ import com.mnemos.notification.adapter.inbound.http.internal.TelegramSubscriptio
 import com.mnemos.notification.adapter.inbound.http.internal.TelegramSubscriptionInternalApiMapper.toDomainGlobalType
 import com.mnemos.notification.adapter.inbound.http.internal.TelegramSubscriptionInternalApiMapper.toResponse
 import com.mnemos.notification.application.common.pagination.PageQuery
+import com.mnemos.notification.application.ping.TelegramPingNotificationPreferenceService
 import com.mnemos.notification.application.subscription.TelegramSubscriptionCreationService
 import com.mnemos.notification.application.subscription.TelegramSubscriptionService
 import com.mnemos.notification.domain.subscription.model.SubscriptionId
@@ -16,7 +17,9 @@ import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateGlo
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateItemDropSubscriptionRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateRaidSubscriptionRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateSubscriptionResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramPingPreferenceResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import org.springframework.http.HttpStatus
@@ -41,6 +44,7 @@ import java.util.UUID
 class TelegramSubscriptionInternalController(
     private val service: TelegramSubscriptionService,
     private val creationService: TelegramSubscriptionCreationService,
+    private val pingPreferenceService: TelegramPingNotificationPreferenceService,
 ) {
     @GetMapping("/{telegramId}")
     fun list(
@@ -125,6 +129,23 @@ class TelegramSubscriptionInternalController(
                 telegramId = TelegramId(telegramId),
                 eventType = request.eventType.toDomainGlobalType(),
             ).toCreateResponse()
+
+    @GetMapping("/{telegramId}/ping")
+    fun getPingPreference(
+        @PathVariable telegramId: Long,
+    ): TelegramPingPreferenceResponse =
+        TelegramPingPreferenceResponse(
+            enabled = pingPreferenceService.get(TelegramId(telegramId)),
+        )
+
+    @PatchMapping("/{telegramId}/ping")
+    fun updatePingPreference(
+        @PathVariable telegramId: Long,
+        @RequestBody request: TelegramUpdatePingPreferenceRequest,
+    ): TelegramPingPreferenceResponse =
+        TelegramPingPreferenceResponse(
+            enabled = pingPreferenceService.update(TelegramId(telegramId), request.enabled),
+        )
 
     @DeleteMapping("/{telegramId}/{subscriptionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
