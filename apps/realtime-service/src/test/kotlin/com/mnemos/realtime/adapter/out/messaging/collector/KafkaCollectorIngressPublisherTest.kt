@@ -4,6 +4,7 @@ import com.mnemos.messaging.core.event.EventEnvelope
 import com.mnemos.messaging.core.event.EventHeaders
 import com.mnemos.messaging.core.transport.EventMessage
 import com.mnemos.messaging.core.transport.EventTransport
+import com.mnemos.realtime.contracts.collector.CollectorChatPingQueuedV2
 import com.mnemos.realtime.contracts.collector.CollectorIngressContract
 import com.mnemos.realtime.contracts.collector.CollectorPresenceChangedV2
 import com.mnemos.realtime.contracts.collector.CollectorReportQueuedV2
@@ -52,6 +53,51 @@ class KafkaCollectorIngressPublisherTest {
         assertEquals(ingressId, payload.ingressId)
         assertEquals(ingressId.toString(), transport.message.destination.key)
         assertEquals(ingressId.toString(), transport.message.headers[EventHeaders.EVENT_ID])
+    }
+
+    @Test
+    fun `chat ping publisher preserves transport payload and uses ingress identity`() {
+        val transport = RecordingEventTransport()
+        val jsonMapper = mock<JsonMapper>()
+        val publisher = KafkaCollectorIngressPublisher(transport, jsonMapper)
+        val ingressId = UUID.fromString("019c1129-ef54-7000-8000-000000000422")
+        val messageId = UUID.fromString("019c1129-ef54-7000-8000-000000000423")
+        val observedAt = Instant.parse("2026-10-03T19:00:00Z")
+
+        whenever(jsonMapper.writeValueAsString(any())).thenReturn("serialized")
+
+        publisher
+            .publishChatPing(
+                ingressId = ingressId,
+                collectorId =
+                    CollectorCredentialId(
+                        UUID.fromString("019c1129-ef54-7000-8000-000000000424"),
+                    ),
+                messageId = messageId,
+                observedAt = observedAt,
+                sender = "TranZorXx",
+                message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
+                text = "@Knaliz hello",
+                mentions = listOf("Knaliz"),
+                activeCollectors = 2,
+                receivedAt = OCCURRED_AT,
+            ).toCompletableFuture()
+            .join()
+
+        val envelope = captureEnvelope(jsonMapper)
+        val payload = envelope.payload as CollectorChatPingQueuedV2
+
+        assertEquals(ingressId, envelope.eventId)
+        assertEquals(ingressId, envelope.aggregateId)
+        assertEquals(ingressId.toString(), transport.message.destination.key)
+        assertEquals(messageId, payload.messageId)
+        assertEquals(observedAt, payload.observedAt)
+        assertEquals("TranZorXx", payload.sender)
+        assertEquals("MVP ┃ TranZorXx [#401] » @Knaliz hello", payload.message)
+        assertEquals("@Knaliz hello", payload.text)
+        assertEquals(listOf("Knaliz"), payload.mentions)
+        assertEquals(2, payload.activeCollectors)
+        assertEquals(OCCURRED_AT, payload.receivedAt)
     }
 
     @Test
