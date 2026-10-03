@@ -145,6 +145,7 @@ export const eventsEn = {
       mascotTitle: "Teach Mnemos what to watch",
       mascotCopy:
         "Keep the rules that matter close and sort the rest without hunting through a long list.",
+      mentions: "Mentions",
       activeRules: "active rules",
       new: "New",
       all: "All",
