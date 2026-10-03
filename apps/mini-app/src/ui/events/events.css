@@ -43,13 +43,15 @@
   position: absolute;
   z-index: 2;
   left: 0;
+  right: 0;
   bottom: 0;
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
   gap: 9px;
-  width: min(270px, calc(100% - 2px));
+  width: auto;
   min-height: 60px;
+  box-sizing: border-box;
   padding: 6px 10px 6px 7px;
   overflow: hidden;
   border: 1px solid rgba(199, 242, 74, 0.16);
@@ -927,7 +929,7 @@
   }
 
   .events-feed-subscriptions {
-    width: min(258px, calc(100% - 2px));
+    width: auto;
     grid-template-columns: 44px minmax(0, 1fr) auto;
     min-height: 58px;
   }
