@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -165,15 +166,15 @@ class CollectorWebSocketHandlerTest {
 
         verify(publisher).publishChatPing(
             ingressId = any(),
-            collectorId = collectorId,
-            messageId = messageId,
-            observedAt = observedAt,
-            sender = "TranZorXx",
-            message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
-            text = "@Knaliz hello",
-            mentions = listOf("Knaliz"),
-            activeCollectors = 0,
-            receivedAt = RECEIVED_AT,
+            collectorId = eq(collectorId),
+            messageId = eq(messageId),
+            observedAt = eq(observedAt),
+            sender = eq("TranZorXx"),
+            message = eq("MVP ┃ TranZorXx [#401] » @Knaliz hello"),
+            text = eq("@Knaliz hello"),
+            mentions = eq(listOf("Knaliz")),
+            activeCollectors = eq(0),
+            receivedAt = eq(RECEIVED_AT),
         )
         verify(sessionRegistry, never()).renewObservation(session)
 
