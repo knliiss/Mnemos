@@ -1,5 +1,6 @@
 package com.mnemos.realtime.adapter.inbound.websocket.collector.ingress
 
+import com.github.f4b6a3.uuid.UuidCreator
 import com.mnemos.realtime.adapter.inbound.websocket.collector.authentication.CollectorHandshakeInterceptor
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.CollectorTransportMessageCodec
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorChatPingEnvelope
@@ -90,6 +91,18 @@ class CollectorWebSocketHandlerTest {
 
         publishResult.complete(Unit)
 
+        val expectedIngressId =
+            UuidCreator.getNameBasedSha1(
+                "mnemos:collector-ingress:EVENT_REPORT:${collectorId.id}:$messageId",
+            )
+        verify(publisher).publishReport(
+            ingressId = eq(expectedIngressId),
+            collectorId = eq(collectorId),
+            rawMessage = eq(payload),
+            activeCollectors = eq(2),
+            receivedAt = eq(RECEIVED_AT),
+        )
+
         val sentMessage = argumentCaptor<TextMessage>()
         verify(session).sendMessage(sentMessage.capture())
         assertEquals("queued", sentMessage.firstValue.payload)
@@ -164,8 +177,12 @@ class CollectorWebSocketHandlerTest {
 
         publishResult.complete(Unit)
 
+        val expectedIngressId =
+            UuidCreator.getNameBasedSha1(
+                "mnemos:collector-ingress:CHAT_PING_REPORT:${collectorId.id}:$messageId",
+            )
         verify(publisher).publishChatPing(
-            ingressId = any(),
+            ingressId = eq(expectedIngressId),
             collectorId = eq(collectorId),
             messageId = eq(messageId),
             observedAt = eq(observedAt),
