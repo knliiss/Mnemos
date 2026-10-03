@@ -40,7 +40,7 @@ describe("PersonalizationDetails", () => {
     expect(screen.queryByText("Нові події")).toBeNull()
   })
 
-  it("renders all six notification templates in the full pack showcase", () => {
+  it("renders all seven notification templates in the full pack showcase", () => {
     const item = notificationPackPersonalization()
 
     render(<PersonalizationDetails item={item} />)
@@ -50,6 +50,7 @@ describe("PersonalizationDetails", () => {
     expect(screen.getByText("creator.editor.notificationTypes.DUNGEON")).toBeTruthy()
     expect(screen.getByText("creator.editor.notificationTypes.RAID")).toBeTruthy()
     expect(screen.getByText("creator.editor.notificationTypes.GLOBAL")).toBeTruthy()
+    expect(screen.getByText("creator.editor.notificationTypes.PING")).toBeTruthy()
     expect(screen.getByText("creator.editor.notificationTypes.PLAYER_OFFLINE")).toBeTruthy()
     expect(screen.getByLabelText("Player offline")).toBeTruthy()
   })
@@ -80,6 +81,7 @@ function notificationPackContent(): NotificationPackContent {
     "DUNGEON",
     "RAID",
     "GLOBAL",
+    "PING",
     "PLAYER_OFFLINE",
   ]
 
