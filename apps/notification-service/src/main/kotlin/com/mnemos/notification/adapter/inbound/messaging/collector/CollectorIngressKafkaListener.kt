@@ -12,7 +12,7 @@ class CollectorIngressKafkaListener(
 ) {
     @KafkaListener(
         topics = [CollectorIngressContract.TOPIC],
-        groupId = "${spring.application.name}-collector-ingress",
+        groupId = "\${spring.application.name}-collector-ingress",
     )
     fun handle(record: ConsumerRecord<String, String>) {
         dispatcher.dispatch(record)
