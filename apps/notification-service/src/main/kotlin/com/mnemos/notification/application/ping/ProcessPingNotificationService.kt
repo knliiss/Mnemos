@@ -22,10 +22,19 @@ class ProcessPingNotificationService(
             return
         }
 
+        try {
+            processAccepted(command)
+        } catch (exception: Exception) {
+            deduplicationStore.release(command.sender, command.message)
+            throw exception
+        }
+    }
+
+    private fun processAccepted(command: ProcessPingNotificationCommand) {
         val targetsByUser = linkedMapOf<UserId, String>()
 
         command.mentions
-            .distinctBy(String::lowercase)
+            .distinctBy { mention -> mention.lowercase() }
             .forEach { mention ->
                 recipientResolver.resolve(mention).forEach { userId ->
                     targetsByUser.putIfAbsent(userId, mention)
