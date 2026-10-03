@@ -43,6 +43,8 @@ export const uiRu = {
       personalization: "Персонализация",
       personalizationDescription: "Бейджи и паки уведомлений",
       workspaces: "Рабочие области",
+      notifications: "Уведомления",
+      notificationsDescription: "Подписки, упоминания и доставка",
       creator: "Студия автора",
       creatorDescription: "Создание персонализаций",
       moderation: "Модерация",
