@@ -38,6 +38,7 @@ class CollectorSessionRegistryTest {
             firstRegistry.markObserving(firstSession),
         )
         assertEquals(1, firstRegistry.presenceSnapshot().activeCollectors)
+        assertEquals(setOf(collectorId), firstRegistry.presenceSnapshot().activeCollectorIds)
 
         secondRegistry.register(secondSession, collectorId)
 
@@ -338,6 +339,7 @@ class CollectorSessionRegistryTest {
             CollectorPresenceSnapshot(
                 activeCollectors = observing.size,
                 revision = revision,
+                activeCollectorIds = observing.toSet(),
             )
 
         fun expireObservation(collectorId: CollectorCredentialId) {
