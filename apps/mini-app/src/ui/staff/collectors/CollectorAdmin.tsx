@@ -160,10 +160,7 @@ export function CollectorAdmin({ back }: { back: () => void }) {
     }
   }, [credentials])
 
-  const activeCollectorIds = useMemo(
-    () => new Set(presence?.activeCollectorIds ?? []),
-    [presence],
-  )
+  const activeCollectorIds = useMemo(() => new Set(presence?.activeCollectorIds ?? []), [presence])
 
   const visibleCredentials = useMemo(
     () => filterAndSortCollectors(credentials, filter, sort, query),
