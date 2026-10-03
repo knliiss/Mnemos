@@ -3,6 +3,10 @@ import type { PageResponse } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
 import type { SubscriptionResponse } from "@/shared/api/subscriptionContracts"
 
+export type PingNotificationPreference = {
+  enabled: boolean
+}
+
 export async function getSubscriptions(
   page = 0,
   size = 100,
@@ -43,6 +47,20 @@ export async function updateRaidSubscription(locations: number[]): Promise<void>
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ locations }),
+  })
+}
+
+export async function getPingNotificationPreference(): Promise<PingNotificationPreference> {
+  return api<PingNotificationPreference>("/api/v1/subscriptions/ping")
+}
+
+export async function updatePingNotificationPreference(
+  enabled: boolean,
+): Promise<PingNotificationPreference> {
+  return api<PingNotificationPreference>("/api/v1/subscriptions/ping", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
   })
 }
 
