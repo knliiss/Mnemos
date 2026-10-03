@@ -50,6 +50,10 @@ export const collectorAdminUk = {
       disabled: "ВИМКНЕНО",
       revoked: "ВІДКЛИКАНО",
     },
+    presenceStatus: {
+      active: "АКТИВНИЙ",
+      inactive: "НЕАКТИВНИЙ",
+    },
     created: "Створено",
     updated: "Оновлено",
     disableConfirmTitle: "Вимкнути цей колектор?",
