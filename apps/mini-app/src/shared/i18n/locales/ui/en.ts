@@ -43,6 +43,8 @@ export const uiEn = {
       personalization: "Personalization",
       personalizationDescription: "Badges and notification packs",
       workspaces: "Workspaces",
+      notifications: "Notifications",
+      notificationsDescription: "Subscriptions, mentions and delivery",
       creator: "Creator Studio",
       creatorDescription: "Create personalizations",
       moderation: "Moderation",

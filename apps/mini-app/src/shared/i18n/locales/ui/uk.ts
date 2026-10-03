@@ -43,6 +43,8 @@ export const uiUk = {
       personalization: "Персоналізація",
       personalizationDescription: "Бейджі та паки сповіщень",
       workspaces: "Робочі області",
+      notifications: "Сповіщення",
+      notificationsDescription: "Підписки, згадки та доставка",
       creator: "Студія автора",
       creatorDescription: "Створення персоналізацій",
       moderation: "Модерація",

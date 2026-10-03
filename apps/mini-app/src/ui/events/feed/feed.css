@@ -6,7 +6,6 @@
 }
 
 .events-feed-title p,
-.events-feed-subscriptions__label,
 .events-feed-filters button,
 .events-feed-featured__copy > em,
 .events-feed-load-more,
@@ -14,7 +13,6 @@
   font-size: 12px;
 }
 
-.events-feed-subscriptions b,
 .events-feed-featured__copy > span,
 .events-feed-row__copy em,
 .events-feed-row__time,

@@ -140,7 +140,8 @@ export const eventsUk = {
       },
     },
     subscriptions: {
-      title: "Підписки",
+      title: "Сповіщення",
+      entryDescription: "Підписки, згадки та доставка",
       eyebrow: "МАРШРУТИ СПОВІЩЕНЬ",
       mascotTitle: "Поясни Mnemos, за чим стежити",
       mascotCopy: "Потрібні правила залишаються під рукою, а решту зручно фільтрувати й сортувати.",

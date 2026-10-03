@@ -48,6 +48,19 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
       <div className="user-hub-workspace-label">{t("appShell.userMenu.workspaces")}</div>
 
       <nav className="user-hub-workspace-grid">
+        <button
+          type="button"
+          className="is-notifications"
+          onClick={() => navigate({ id: "subscriptions" })}
+        >
+          <WorkspaceIllustration src="/ui-illustrations/notifications-hub.svg" />
+          <span className="user-hub-workspace-copy">
+            <strong>{t("appShell.userMenu.notifications")}</strong>
+            <small>{t("appShell.userMenu.notificationsDescription")}</small>
+          </span>
+          <b>›</b>
+        </button>
+
         {access.creator ? (
           <button
             type="button"
