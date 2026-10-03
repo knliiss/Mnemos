@@ -5,4 +5,9 @@ fun interface PingDeduplicationStore {
         sender: String,
         message: String,
     ): Boolean
+
+    fun release(
+        sender: String,
+        message: String,
+    )
 }
