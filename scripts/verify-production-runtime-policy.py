@@ -25,7 +25,6 @@ RUNTIME_POLICY_REQUEST_WORKFLOW = (
 
 EXPECTED_ACTIVE_ACTIVE = {
     "account-service",
-    "event-service",
     "gateway-service",
     "moderation-service",
     "payment-service",
@@ -192,6 +191,17 @@ def verify_reconciler() -> None:
 
     if "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=4" not in moderation:
         fail("Moderation runtime policy must apply Hikari pool=4")
+
+    event_service = reconciler.update_command(
+        "event-service",
+        "mnemos_event-service",
+    )
+
+    if event_service[event_service.index("--replicas") + 1] != "1":
+        fail("Event service must remain a singleton while event candidate deduplication is process-local")
+
+    if event_service[event_service.index("--update-order") + 1] != "stop-first":
+        fail("Event service updates must not overlap process-local deduplication state")
 
     telegram = reconciler.update_command(
         "telegram-bot-service",
