@@ -126,6 +126,19 @@ class NotificationCallbackHandler(
             return creationService.createItemDrop(context)
         }
 
+        NotificationCallbackData.selectedPingState(context.data)?.let { enabled ->
+            if (!isCurrentMode(context, NotificationCreationMode.LIST)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
+            subscriptionGateway.setPingEnabled(
+                telegramId = context.telegramId,
+                enabled = enabled,
+            )
+
+            return refresh(context)
+        }
+
         NotificationCallbackData.selectedBoosterTarget(context.data)?.let { target ->
             if (!isCurrentMode(context, NotificationCreationMode.BOOSTERS)) {
                 return TelegramDeliveryResult.Delivered
