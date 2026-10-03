@@ -10,6 +10,7 @@ import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationItemRarity
 import com.mnemos.notification.application.notification.model.NotificationItemType
 import com.mnemos.notification.application.notification.model.NotificationType
+import com.mnemos.notification.application.notification.model.PingNotificationPayload
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
@@ -206,6 +207,70 @@ class LocalNotificationMessageRendererTest {
     }
 
     @Test
+    fun `standard ping renders the full original chat line in the users language`() {
+        val now = Instant.parse("2026-10-03T19:00:00Z")
+        localization =
+            NotificationLocalizationContext(
+                language = LocalizationLanguage.UK,
+                saoProperties = emptyMap(),
+            )
+        val item =
+            ping(
+                now = now,
+                player = "TranZorXx",
+                message = "MVP ┃ TranZorXx [#401] » @knaliz <привіт>&",
+                text = "@knaliz <привіт>&",
+                target = "knaliz",
+            )
+
+        val message = renderer.renderNotification(UserId.generate(), listOf(item))
+
+        assertEquals(
+            "🔔 <b>TranZorXx згадав вас</b>\n" +
+                "<code>MVP ┃ TranZorXx [#401] » @knaliz &lt;привіт&gt;&amp;</code>",
+            message.text,
+        )
+    }
+
+    @Test
+    fun `active pack ping template resolves player message target and text placeholders`() {
+        val now = Instant.parse("2026-10-03T19:00:00Z")
+        val userId = UserId.generate()
+        val basePack = activePack(userId)
+        repository.active =
+            basePack.copy(
+                templates =
+                    basePack.templates +
+                        (
+                            NotificationType.PING to
+                                NotificationPackTemplate(
+                                    emoji = "🔔",
+                                    soloTitle = "{player} → {target}",
+                                    soloBody = "{message} | {text}",
+                                    compact = "{player} → {target}",
+                                    aggregateTitle = "Mentions",
+                                )
+                        ),
+            )
+        val item =
+            ping(
+                now = now,
+                player = "TranZorXx",
+                message = "MVP ┃ TranZorXx [#401] » @knaliz <hello>",
+                text = "@knaliz <hello>",
+                target = "knaliz",
+            )
+
+        val message = renderer.renderNotification(userId, listOf(item))
+
+        assertEquals(
+            "🔔 TranZorXx → knaliz\n" +
+                "MVP ┃ TranZorXx [#401] » @knaliz &lt;hello&gt; | @knaliz &lt;hello&gt;",
+            message.text,
+        )
+    }
+
+    @Test
     fun `large aggregation stays within telegram message limit`() {
         val now = Instant.parse("2026-08-11T16:00:00Z")
         val items =
@@ -261,6 +326,26 @@ class LocalNotificationMessageRendererTest {
                     itemName = item,
                     itemType = NotificationItemType.SWORD,
                     itemRarity = rarity,
+                ),
+            occurredAt = now,
+            expiresAt = now.plusSeconds(60),
+        )
+
+    private fun ping(
+        now: Instant,
+        player: String,
+        message: String,
+        text: String,
+        target: String,
+    ): NotificationItem =
+        NotificationItem(
+            sourceId = UUID.randomUUID(),
+            payload =
+                PingNotificationPayload(
+                    player = player,
+                    message = message,
+                    text = text,
+                    target = target,
                 ),
             occurredAt = now,
             expiresAt = now.plusSeconds(60),
