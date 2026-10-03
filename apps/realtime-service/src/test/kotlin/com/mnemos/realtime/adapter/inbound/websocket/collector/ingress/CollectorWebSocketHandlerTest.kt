@@ -2,9 +2,11 @@ package com.mnemos.realtime.adapter.inbound.websocket.collector.ingress
 
 import com.mnemos.realtime.adapter.inbound.websocket.collector.authentication.CollectorHandshakeInterceptor
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.CollectorTransportMessageCodec
+import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorChatPingEnvelope
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorMessageEnvelope
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorObservationState
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorReportEnvelope
+import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorReportQueuedMessage
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorStateMessage
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorStateUpdatedMessage
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorTransportErrorCode
@@ -90,6 +92,96 @@ class CollectorWebSocketHandlerTest {
         val sentMessage = argumentCaptor<TextMessage>()
         verify(session).sendMessage(sentMessage.capture())
         assertEquals("queued", sentMessage.firstValue.payload)
+    }
+
+    @Test
+    fun `chat ping waits for Kafka and acknowledges the original message id`() {
+        val properties = CollectorConnectionProperties()
+        val clock = Clock.fixed(RECEIVED_AT, ZoneOffset.UTC)
+        val messageCodec = mock<CollectorTransportMessageCodec>()
+        val sessionRegistry = mock<CollectorSessionRegistry>()
+        val publisher = mock<CollectorIngressPublisher>()
+        val publishResult = CompletableFuture<Unit>()
+        val collectorId =
+            CollectorCredentialId(
+                UUID.fromString("019c1129-ef54-7000-8000-000000000226"),
+            )
+        val messageId = UUID.fromString("019c1129-ef54-7000-8000-000000000227")
+        val observedAt = Instant.parse("2026-10-03T19:00:00Z")
+        val session = mock<WebSocketSession>()
+        val handler =
+            CollectorWebSocketHandler(
+                messageCodec = messageCodec,
+                sessionRegistry = sessionRegistry,
+                rateLimiter = CollectorMessageRateLimiter(properties, clock),
+                inFlightMessageLimiter = CollectorInFlightMessageLimiter(properties),
+                ingressPublisher = publisher,
+                properties = properties,
+                clock = clock,
+            )
+        val payload = """{"type":"CHAT_PING_REPORT","messageId":"$messageId"}"""
+        val ping =
+            CollectorChatPingEnvelope(
+                type = "CHAT_PING_REPORT",
+                messageId = messageId,
+                observedAt = observedAt,
+                sender = "TranZorXx",
+                message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
+                text = "@Knaliz hello",
+                mentions = listOf("Knaliz"),
+            )
+
+        whenever(session.attributes).thenReturn(
+            mutableMapOf<String, Any>(
+                CollectorHandshakeInterceptor.COLLECTOR_ID_ATTRIBUTE to collectorId.id,
+            ),
+        )
+        whenever(session.isOpen).thenReturn(true)
+        whenever(sessionRegistry.touchActivity(session)).thenReturn(true)
+        whenever(sessionRegistry.renewObservation(session)).thenReturn(true)
+        whenever(sessionRegistry.presenceSnapshot()).thenReturn(CollectorPresenceSnapshot(2, 4))
+        whenever(messageCodec.readEnvelope(payload)).thenReturn(CollectorMessageEnvelope("CHAT_PING_REPORT"))
+        whenever(messageCodec.readChatPing(payload)).thenReturn(ping)
+        whenever(messageCodec.encode(any())).thenReturn("queued")
+        whenever(
+            publisher.publishChatPing(
+                ingressId = any(),
+                collectorId = any(),
+                messageId = any(),
+                observedAt = any(),
+                sender = any(),
+                message = any(),
+                text = any(),
+                mentions = any(),
+                activeCollectors = any(),
+                receivedAt = any(),
+            ),
+        ).thenReturn(publishResult)
+
+        handler.handleMessage(session, TextMessage(payload))
+
+        verify(session, never()).sendMessage(any())
+
+        publishResult.complete(Unit)
+
+        verify(publisher).publishChatPing(
+            ingressId = any(),
+            collectorId = collectorId,
+            messageId = messageId,
+            observedAt = observedAt,
+            sender = "TranZorXx",
+            message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
+            text = "@Knaliz hello",
+            mentions = listOf("Knaliz"),
+            activeCollectors = 2,
+            receivedAt = RECEIVED_AT,
+        )
+
+        val response = argumentCaptor<Any>()
+        verify(messageCodec).encode(response.capture())
+
+        val queued = response.firstValue as CollectorReportQueuedMessage
+        assertEquals(messageId, queued.messageId)
     }
 
     @Test
