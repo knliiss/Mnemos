@@ -152,6 +152,14 @@ class GetNotificationPackEditorDescriptorUseCase {
                     "event" to displayValue(NotificationPackValueKey.GLOBAL_EVENT, "ECLIPSE"),
                 )
 
+            NotificationPackTemplateType.PING ->
+                linkedMapOf(
+                    "player" to "TranZorXx",
+                    "message" to "MVP ┃ TranZorXx [#401] » @knaliz привет как дела?",
+                    "target" to "knaliz",
+                    "text" to "@knaliz привет как дела?",
+                )
+
             NotificationPackTemplateType.PLAYER_OFFLINE ->
                 linkedMapOf(
                     "player" to "KoTuK_PvP",
@@ -205,6 +213,15 @@ class GetNotificationPackEditorDescriptorUseCase {
                     soloBody = "Началось событие {event}.",
                     compact = "{event}",
                     aggregateTitle = "События мира",
+                )
+
+            NotificationPackTemplateType.PING ->
+                NotificationPackEditorDescriptor.Defaults(
+                    emoji = "🔔",
+                    soloTitle = "{player} упомянул вас",
+                    soloBody = "{message}",
+                    compact = "{player} → @{target}",
+                    aggregateTitle = "Упоминания",
                 )
 
             NotificationPackTemplateType.PLAYER_OFFLINE ->
