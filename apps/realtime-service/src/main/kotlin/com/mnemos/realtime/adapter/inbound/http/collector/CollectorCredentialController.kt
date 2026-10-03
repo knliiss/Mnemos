@@ -48,6 +48,7 @@ class CollectorCredentialController(
         return CollectorPresenceResponse(
             activeCollectors = snapshot.activeCollectors,
             revision = snapshot.revision,
+            activeCollectorIds = snapshot.activeCollectorIds.mapTo(mutableSetOf()) { it.id },
         )
     }
 
