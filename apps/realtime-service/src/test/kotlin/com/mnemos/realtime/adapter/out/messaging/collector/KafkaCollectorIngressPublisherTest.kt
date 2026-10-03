@@ -79,7 +79,7 @@ class KafkaCollectorIngressPublisherTest {
                 message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
                 text = "@Knaliz hello",
                 mentions = listOf("Knaliz"),
-                activeCollectors = 2,
+                activeCollectors = 0,
                 receivedAt = OCCURRED_AT,
             ).toCompletableFuture()
             .join()
@@ -96,7 +96,7 @@ class KafkaCollectorIngressPublisherTest {
         assertEquals("MVP ┃ TranZorXx [#401] » @Knaliz hello", payload.message)
         assertEquals("@Knaliz hello", payload.text)
         assertEquals(listOf("Knaliz"), payload.mentions)
-        assertEquals(2, payload.activeCollectors)
+        assertEquals(0, payload.activeCollectors)
         assertEquals(OCCURRED_AT, payload.receivedAt)
     }
 
