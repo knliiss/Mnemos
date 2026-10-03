@@ -10,6 +10,5 @@ class InternalActiveAccountUsersService(
     private val userRepository: UserRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findByNickname(nickname: String): List<User> =
-        userRepository.findAllByActiveAccountNickname(nickname.trim())
+    fun findByNickname(nickname: String): List<User> = userRepository.findAllByActiveAccountNickname(nickname.trim())
 }
