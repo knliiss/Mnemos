@@ -133,4 +133,32 @@ fi
 grep -Fq "NVD_API_KEY: \${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}" "$BACKEND_WORKFLOW" ||
     fail "Backend Verify must expose the NVD API key only for push events"
 
-echo "CI verification workflow token, routing, and secret boundaries verified"
+STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
+
+stack_app_scope_count="$(
+    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+        grep -Fc '      - "apps/**"' || true
+)"
+[ "$stack_app_scope_count" -eq 2 ] ||
+    fail "Stack Smoke must scope both master pushes and pull requests to backend application paths"
+
+stack_mini_app_exclusion_count="$(
+    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+        grep -Fc '      - "!apps/mini-app/**"' || true
+)"
+[ "$stack_mini_app_exclusion_count" -eq 2 ] ||
+    fail "Stack Smoke must exclude Mini App changes from both master pushes and pull requests"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq './gradlew assemble --console=plain --no-daemon' ||
+    fail "Stack Smoke must assemble runtime artifacts without rerunning the full Gradle verification suite"
+
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq './gradlew clean build --console=plain --no-build-cache'; then
+    fail "Stack Smoke must not repeat the full clean Gradle build after Backend Verify"
+fi
+
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '$CI_COMPOSE_COMMAND build --no-cache --quiet'; then
+    fail "Stack Smoke must allow safe Docker layer reuse instead of forcing every image rebuild"
+fi
+
+echo "CI verification workflow token, routing, secret, and build-reuse boundaries verified"
