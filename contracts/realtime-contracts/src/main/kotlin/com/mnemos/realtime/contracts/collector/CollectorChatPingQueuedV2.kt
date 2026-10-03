@@ -19,6 +19,6 @@ data class CollectorChatPingQueuedV2(
         require(sender.isNotBlank())
         require(message.isNotBlank())
         require(mentions.isNotEmpty())
-        require(activeCollectors > 0)
+        require(activeCollectors >= 0)
     }
 }
