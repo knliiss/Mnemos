@@ -50,6 +50,10 @@ export const collectorAdminRu = {
       disabled: "ОТКЛЮЧЕН",
       revoked: "ОТОЗВАН",
     },
+    presenceStatus: {
+      active: "АКТИВЕН",
+      inactive: "НЕАКТИВЕН",
+    },
     created: "Создан",
     updated: "Обновлён",
     disableConfirmTitle: "Отключить этот коллектор?",
