@@ -14,14 +14,25 @@ class RedisPingDeduplicationStore(
     override fun accept(
         sender: String,
         message: String,
-    ): Boolean {
+    ): Boolean = redisTemplate.opsForValue().setIfAbsent(key(sender, message), "1", TTL) == true
+
+    override fun release(
+        sender: String,
+        message: String,
+    ) {
+        redisTemplate.delete(key(sender, message))
+    }
+
+    private fun key(
+        sender: String,
+        message: String,
+    ): String {
         val fingerprint =
             UUID.nameUUIDFromBytes(
                 (sender.lowercase() + "\n" + message).toByteArray(StandardCharsets.UTF_8),
             )
-        val key = "notification:{delivery}:ping:dedup:" + fingerprint
 
-        return redisTemplate.opsForValue().setIfAbsent(key, "1", TTL) == true
+        return "notification:{delivery}:ping:dedup:" + fingerprint
     }
 
     private companion object {
