@@ -99,9 +99,7 @@ class ProcessPingNotificationServiceTest {
         verify(deduplicationStore).release(command.sender, command.message)
     }
 
-    private fun command(
-        mentions: List<String> = listOf("knaliz"),
-    ): ProcessPingNotificationCommand =
+    private fun command(mentions: List<String> = listOf("knaliz")): ProcessPingNotificationCommand =
         ProcessPingNotificationCommand(
             messageId = UUID.randomUUID(),
             observedAt = Instant.parse("2026-10-03T19:00:00Z"),
