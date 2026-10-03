@@ -158,6 +158,10 @@ class CollectorWebSocketHandler(
                 return
             }
 
+        if (!renewObservation(session, collectorId)) {
+            return
+        }
+
         val receivedAt = clock.instant()
 
         if (!inFlightMessageLimiter.tryAcquire(collectorId)) {
@@ -244,10 +248,6 @@ class CollectorWebSocketHandler(
                 )
                 return
             }
-
-        if (!renewObservation(session, collectorId)) {
-            return
-        }
 
         val receivedAt = clock.instant()
 
