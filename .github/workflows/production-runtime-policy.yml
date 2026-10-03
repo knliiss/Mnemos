@@ -202,6 +202,84 @@ jobs:
           set -euo pipefail
           sudo -n sh scripts/install-production-runtime.sh "$TOOLING_REVISION"
 
+      - name: Reconcile Kafka topics and ACLs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          read_env_value() {
+            key="$1"
+
+            value="$(
+              sudo -n awk -v key="$key" '
+                index($0, key "=") == 1 {
+                  count++
+                  value = substr($0, length(key) + 2)
+                }
+                END {
+                  if (count != 1) {
+                    exit 1
+                  }
+                  print value
+                }
+              ' /etc/mnemos/mnemos.env
+            )"
+
+            case "$value" in
+              \"*\")
+                value="${value#\"}"
+                value="${value%\"}"
+                ;;
+              \'*\')
+                value="${value#\'}"
+                value="${value%\'}"
+                ;;
+            esac
+
+            if [ -z "$value" ]; then
+              echo "Production env value is missing or blank: $key" >&2
+              exit 1
+            fi
+
+            printf '%s' "$value"
+          }
+
+          kafka_version="$(read_env_value KAFKA_VERSION)"
+          runtime_image="mnemos-kafka-policy:${TOOLING_REVISION}"
+          override_file="$RUNNER_TEMP/mnemos-kafka-policy.override.yml"
+
+          keycloak_image="$(
+            sudo -n docker inspect               --format '{{.Config.Image}}'               mnemos-keycloak
+          )"
+
+          case "$keycloak_image" in
+            */mnemos-keycloak:*)
+              image_registry="${keycloak_image%/mnemos-keycloak:*}"
+              release_tag="${keycloak_image##*:}"
+              ;;
+            *)
+              echo "Could not derive production infrastructure image coordinates from: $keycloak_image" >&2
+              exit 1
+              ;;
+          esac
+
+          cleanup() {
+            sudo -n docker image rm -f "$runtime_image" >/dev/null 2>&1 || true
+            rm -f "$override_file"
+          }
+
+          trap cleanup EXIT INT TERM
+
+          sudo -n docker build             --file infrastructure/kafka/Dockerfile.init             --build-arg "KAFKA_VERSION=$kafka_version"             --tag "$runtime_image"             infrastructure/kafka
+
+          cat > "$override_file" <<EOF
+          services:
+            kafka-init:
+              image: $runtime_image
+          EOF
+
+          sudo -n env             MNEMOS_IMAGE_REGISTRY="$image_registry"             MNEMOS_RELEASE_TAG="$release_tag"             sh scripts/production-infra.sh               -f "$override_file"               run               --rm               --no-deps               kafka-init
+
       - name: Reconcile declarative Keycloak configuration
         shell: bash
         run: |
