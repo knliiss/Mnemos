@@ -269,7 +269,12 @@ class CollectorWebSocketHandler(
                 .publishChatPing(
                     ingressId = UuidCreator.getTimeOrderedEpoch(),
                     collectorId = collectorId,
-                    report = report,
+                    messageId = report.messageId,
+                    observedAt = report.observedAt,
+                    sender = report.sender,
+                    message = report.message,
+                    text = report.text,
+                    mentions = report.mentions,
                     activeCollectors = presence.activeCollectors,
                     receivedAt = receivedAt,
                 ).toCompletableFuture()
