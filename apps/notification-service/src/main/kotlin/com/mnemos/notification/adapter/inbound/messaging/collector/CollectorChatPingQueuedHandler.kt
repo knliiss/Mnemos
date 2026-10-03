@@ -31,8 +31,8 @@ class CollectorChatPingQueuedHandler(
             if (envelope.occurredAt != envelope.payload.receivedAt) {
                 throw KafkaMessageProtocolException("Collector chat ping occurredAt must match receivedAt")
             }
-            if (envelope.payload.activeCollectors <= 0) {
-                throw KafkaMessageProtocolException("Collector chat ping must contain an active collector")
+            if (envelope.payload.activeCollectors < 0) {
+                throw KafkaMessageProtocolException("Collector chat ping active collector count cannot be negative")
             }
         }
 
