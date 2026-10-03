@@ -72,11 +72,14 @@ class NotificationPackSelectionChangedHandler(
 
             envelope.payload.pack?.let { snapshot ->
                 val templateTypes = snapshot.templates.map { template -> template.type.name }
-                val expectedTypes = NotificationType.entries.map { type -> type.name }.toSet()
+                val requiredTypes =
+                    (NotificationType.entries.toSet() - NotificationType.PING)
+                        .map { type -> type.name }
+                        .toSet()
 
-                if (templateTypes.size != expectedTypes.size || templateTypes.toSet() != expectedTypes) {
+                if (!templateTypes.toSet().containsAll(requiredTypes) || templateTypes.size != templateTypes.toSet().size) {
                     throw KafkaMessageProtocolException(
-                        "Notification pack selection must define every notification type exactly once",
+                        "Notification pack selection must define every required notification type exactly once",
                     )
                 }
 
