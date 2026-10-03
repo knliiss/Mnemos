@@ -87,7 +87,10 @@ export function NotificationPackContextPreview({
         data-template={effectiveSelectedType.toLowerCase()}
       >
         <span className="notification-pack-context-preview__art" aria-hidden="true">
-          <NotificationTemplateArt templateKey={effectiveSelectedType} size={size === "DETAIL" ? 46 : 38} />
+          <NotificationTemplateArt
+            templateKey={effectiveSelectedType}
+            size={size === "DETAIL" ? 46 : 38}
+          />
         </span>
 
         <span className="notification-pack-context-preview__copy">
