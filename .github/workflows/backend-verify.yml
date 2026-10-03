@@ -69,21 +69,40 @@ jobs:
             exit 0
           fi
 
-          docker run --rm \
-            --volume "$GITHUB_WORKSPACE:/workspace" \
-            alpine:3.22 \
-            chown -R "$(id -u):$(id -g)" /workspace
+          if timeout 5s docker info >/dev/null 2>&1; then
+            docker run --rm \
+              --volume "$GITHUB_WORKSPACE:/workspace" \
+              alpine:3.22 \
+              chown -R "$(id -u):$(id -g)" /workspace
+          else
+            echo "::warning::Docker daemon is unavailable; continuing without container-based ownership repair"
+          fi
 
-          find "$GITHUB_WORKSPACE" \
-            -type d \
-            \( \
-              -name build -o \
-              -name .gradle -o \
-              -name .kotlin -o \
-              -name __pycache__ \
-            \) \
-            -prune \
-            -exec rm -rf -- {} +
+          cleanup_failed=0
+          while IFS= read -r -d '' path; do
+            if ! rm -rf -- "$path"; then
+              stale_path="${path}.ci-stale-${GITHUB_RUN_ID}"
+              if ! mv -- "$path" "$stale_path"; then
+                echo "::warning::Could not remove or quarantine generated path: $path"
+                cleanup_failed=1
+              fi
+            fi
+          done < <(
+            find "$GITHUB_WORKSPACE" \
+              -type d \
+              \( \
+                -name build -o \
+                -name .gradle -o \
+                -name .kotlin -o \
+                -name __pycache__ \
+              \) \
+              -prune \
+              -print0
+          )
+
+          if [ "$cleanup_failed" -ne 0 ]; then
+            echo "::warning::Some generated workspace state could not be cleaned"
+          fi
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
