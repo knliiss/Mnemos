@@ -6,9 +6,9 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationGlobal
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramPingPreferenceResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
-import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionType
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
