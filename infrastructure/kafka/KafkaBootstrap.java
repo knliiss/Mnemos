@@ -412,6 +412,12 @@ public final class KafkaBootstrap {
                 "notification-service",
                 "mnemos.player-directory.events.v1"
         );
+        allowConsumer(
+                acls,
+                "notification_service",
+                "notification-service",
+                "mnemos.collector.ingress.v2"
+        );
 
         allowTopicWrite(
                 acls,
