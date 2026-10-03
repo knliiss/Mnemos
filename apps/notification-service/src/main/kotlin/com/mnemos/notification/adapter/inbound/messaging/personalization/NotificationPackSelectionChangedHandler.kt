@@ -77,7 +77,10 @@ class NotificationPackSelectionChangedHandler(
                         .map { type -> type.name }
                         .toSet()
 
-                if (!templateTypes.toSet().containsAll(requiredTypes) || templateTypes.size != templateTypes.toSet().size) {
+                if (
+                    !templateTypes.toSet().containsAll(requiredTypes) ||
+                    templateTypes.size != templateTypes.toSet().size
+                ) {
                     throw KafkaMessageProtocolException(
                         "Notification pack selection must define every required notification type exactly once",
                     )
