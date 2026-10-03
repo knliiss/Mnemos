@@ -355,6 +355,7 @@ object NotificationPackMenuMessageRenderer {
             NotificationPackTemplateType.DUNGEON -> "🏰 Dungeon"
             NotificationPackTemplateType.RAID -> "🛡 RAID"
             NotificationPackTemplateType.GLOBAL -> "🌌 Глобал"
+            NotificationPackTemplateType.PING -> "🔔 Упоминание"
             NotificationPackTemplateType.PLAYER_OFFLINE -> "👤 Offline"
         }
 
@@ -365,6 +366,7 @@ object NotificationPackMenuMessageRenderer {
             NotificationPackTemplateType.DUNGEON -> "Dungeon"
             NotificationPackTemplateType.RAID -> "RAID"
             NotificationPackTemplateType.GLOBAL -> "Глобальное событие"
+            NotificationPackTemplateType.PING -> "Упоминание"
             NotificationPackTemplateType.PLAYER_OFFLINE -> "Игрок вышел"
         }
 
