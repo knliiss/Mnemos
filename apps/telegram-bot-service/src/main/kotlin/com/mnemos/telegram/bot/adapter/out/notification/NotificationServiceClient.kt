@@ -6,7 +6,9 @@ import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateGlo
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateItemDropSubscriptionRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateRaidSubscriptionRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateSubscriptionResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramPingPreferenceResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -34,6 +36,17 @@ interface NotificationServiceClient {
         @RequestParam page: Int,
         @RequestParam size: Int,
     ): TelegramSubscriptionListResponse
+
+    @GetMapping("/internal/v1/telegram/subscriptions/{telegramId}/ping")
+    fun getPingPreference(
+        @PathVariable telegramId: Long,
+    ): TelegramPingPreferenceResponse
+
+    @PatchMapping("/internal/v1/telegram/subscriptions/{telegramId}/ping")
+    fun updatePingPreference(
+        @PathVariable telegramId: Long,
+        @RequestBody request: TelegramUpdatePingPreferenceRequest,
+    ): TelegramPingPreferenceResponse
 
     @PostMapping("/internal/v1/telegram/subscriptions/{telegramId}/item-drop")
     fun createItemDropSubscription(
