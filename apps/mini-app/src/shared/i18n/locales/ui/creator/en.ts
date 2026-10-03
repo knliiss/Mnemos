@@ -205,6 +205,7 @@ export const creatorEn = {
         BOOSTER: "Booster",
         DUNGEON: "Dungeon",
         RAID: "Raid",
+        PING: "Mentions",
         GLOBAL: "Global event",
       },
       publicationEyebrow: "PUBLICATION",
