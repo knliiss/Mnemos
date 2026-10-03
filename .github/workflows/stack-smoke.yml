@@ -65,6 +65,11 @@ jobs:
             exit 0
           fi
 
+          if ! timeout 5s docker info >/dev/null 2>&1; then
+            echo "::error::Docker daemon is unavailable; Stack Smoke requires a working Docker daemon"
+            exit 1
+          fi
+
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/workspace" \
             alpine:3.22 \
