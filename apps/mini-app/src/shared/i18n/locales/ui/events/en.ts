@@ -140,7 +140,8 @@ export const eventsEn = {
       },
     },
     subscriptions: {
-      title: "Subscriptions",
+      title: "Notifications",
+      entryDescription: "Subscriptions, mentions and delivery",
       eyebrow: "NOTIFICATION ROUTES",
       mascotTitle: "Teach Mnemos what to watch",
       mascotCopy:
