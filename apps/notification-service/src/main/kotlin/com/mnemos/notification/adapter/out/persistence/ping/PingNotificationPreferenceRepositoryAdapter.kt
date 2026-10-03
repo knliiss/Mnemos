@@ -9,8 +9,7 @@ import java.time.Instant
 class PingNotificationPreferenceRepositoryAdapter(
     private val repository: PingNotificationPreferenceJpaRepository,
 ) : PingNotificationPreferenceRepository {
-    override fun findEnabled(userId: UserId): Boolean? =
-        repository.findById(userId.id).orElse(null)?.enabled
+    override fun findEnabled(userId: UserId): Boolean? = repository.findById(userId.id).orElse(null)?.enabled
 
     override fun findEnabled(userIds: Set<UserId>): Map<UserId, Boolean> =
         repository
