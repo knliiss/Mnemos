@@ -1,7 +1,6 @@
 package com.mnemos.realtime.application.collector.port.out
 
 import com.mnemos.realtime.domain.collector.model.CollectorCredentialId
-import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorChatPingEnvelope
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletionStage
@@ -18,7 +17,12 @@ interface CollectorIngressPublisher {
     fun publishChatPing(
         ingressId: UUID,
         collectorId: CollectorCredentialId,
-        report: CollectorChatPingEnvelope,
+        messageId: UUID,
+        observedAt: Instant,
+        sender: String,
+        message: String,
+        text: String,
+        mentions: List<String>,
         activeCollectors: Int,
         receivedAt: Instant,
     ): CompletionStage<Unit>
