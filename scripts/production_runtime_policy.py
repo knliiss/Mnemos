@@ -24,7 +24,6 @@ APPLICATION_SERVICES = (
 ACTIVE_ACTIVE_SERVICES = frozenset(
     {
         "account-service",
-        "event-service",
         "gateway-service",
         "moderation-service",
         "payment-service",
