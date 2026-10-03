@@ -178,7 +178,7 @@ class CollectorWebSocketHandler(
 
             ingressPublisher
                 .publishReport(
-                    ingressId = UuidCreator.getTimeOrderedEpoch(),
+                    ingressId = durableIngressId(EVENT_REPORT_TYPE, collectorId, report.messageId),
                     collectorId = collectorId,
                     rawMessage = payload,
                     activeCollectors = presence.activeCollectors,
@@ -265,7 +265,7 @@ class CollectorWebSocketHandler(
 
             ingressPublisher
                 .publishChatPing(
-                    ingressId = UuidCreator.getTimeOrderedEpoch(),
+                    ingressId = durableIngressId(CHAT_PING_REPORT_TYPE, collectorId, report.messageId),
                     collectorId = collectorId,
                     messageId = report.messageId,
                     observedAt = report.observedAt,
@@ -620,6 +620,15 @@ class CollectorWebSocketHandler(
             }
         }
     }
+
+    private fun durableIngressId(
+        messageType: String,
+        collectorId: CollectorCredentialId,
+        messageId: UUID,
+    ): UUID =
+        UuidCreator.getNameBasedSha1(
+            "mnemos:collector-ingress:$messageType:${collectorId.id}:$messageId",
+        )
 
     private companion object {
         const val CHAT_PING_REPORT_TYPE = "CHAT_PING_REPORT"
