@@ -144,6 +144,7 @@ export const eventsUk = {
       eyebrow: "МАРШРУТИ СПОВІЩЕНЬ",
       mascotTitle: "Поясни Mnemos, за чим стежити",
       mascotCopy: "Потрібні правила залишаються під рукою, а решту зручно фільтрувати й сортувати.",
+      mentions: "Згадки",
       activeRules: "активних правил",
       new: "Нове",
       all: "Усі",
