@@ -23,14 +23,21 @@ export function NotificationPackTelegramPreview({ content }: { content: Notifica
   const [selectedType, setSelectedType] = useState<NotificationTemplateKey>("ITEM_DROP")
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [mode, setMode] = useState<PreviewMode>("SOLO")
-  const template = content.templates[selectedType]
+  const availableTypes = notificationTemplateKeys.filter((type) => Boolean(content.templates[type]))
+  const effectiveSelectedType = content.templates[selectedType] ? selectedType : availableTypes[0]
+  const template = effectiveSelectedType ? content.templates[effectiveSelectedType] : undefined
+
+  if (!template || !effectiveSelectedType) {
+    return null
+  }
+
   const variants = template.variants ?? []
   const selectedVariant =
     selectedVariantId === null
       ? null
       : (variants.find((variant) => variant.id === selectedVariantId) ?? null)
   const message = selectedNotificationTemplate(template, selectedVariant?.id ?? null)
-  const values = valuesForVariant(selectedType, selectedVariant)
+  const values = valuesForVariant(effectiveSelectedType, selectedVariant)
   const soloText = [
     withNotificationEmoji(
       message.emoji,
@@ -56,16 +63,16 @@ export function NotificationPackTelegramPreview({ content }: { content: Notifica
           <small>TELEGRAM</small>
           <strong>Mnemos</strong>
         </span>
-        <em>{t(`creator.editor.notificationTypes.${selectedType}`)}</em>
+        <em>{t(`creator.editor.notificationTypes.${effectiveSelectedType}`)}</em>
       </header>
 
       <div className="notification-pack-telegram-preview__controls">
         <nav aria-label={t("creator.editor.eventTemplate")}>
-          {notificationTemplateKeys.map((type) => (
+          {availableTypes.map((type) => (
             <button
               type="button"
               key={type}
-              className={type === selectedType ? "is-active" : ""}
+              className={type === effectiveSelectedType ? "is-active" : ""}
               onClick={() => {
                 setSelectedType(type)
                 setSelectedVariantId(null)
