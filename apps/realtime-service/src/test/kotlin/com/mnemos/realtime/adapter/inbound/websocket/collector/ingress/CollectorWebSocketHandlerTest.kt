@@ -138,8 +138,7 @@ class CollectorWebSocketHandlerTest {
         )
         whenever(session.isOpen).thenReturn(true)
         whenever(sessionRegistry.touchActivity(session)).thenReturn(true)
-        whenever(sessionRegistry.renewObservation(session)).thenReturn(true)
-        whenever(sessionRegistry.presenceSnapshot()).thenReturn(CollectorPresenceSnapshot(2, 4))
+        whenever(sessionRegistry.presenceSnapshot()).thenReturn(CollectorPresenceSnapshot(0, 4))
         whenever(messageCodec.readEnvelope(payload)).thenReturn(CollectorMessageEnvelope("CHAT_PING_REPORT"))
         whenever(messageCodec.readChatPing(payload)).thenReturn(ping)
         whenever(messageCodec.encode(any())).thenReturn("queued")
@@ -173,9 +172,10 @@ class CollectorWebSocketHandlerTest {
             message = "MVP ┃ TranZorXx [#401] » @Knaliz hello",
             text = "@Knaliz hello",
             mentions = listOf("Knaliz"),
-            activeCollectors = 2,
+            activeCollectors = 0,
             receivedAt = RECEIVED_AT,
         )
+        verify(sessionRegistry, never()).renewObservation(session)
 
         val response = argumentCaptor<Any>()
         verify(messageCodec).encode(response.capture())
