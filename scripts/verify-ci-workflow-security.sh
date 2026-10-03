@@ -139,15 +139,23 @@ stack_app_scope_count="$(
     printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
         grep -Fc '      - "apps/**"' || true
 )"
-[ "$stack_app_scope_count" -eq 2 ] ||
-    fail "Stack Smoke must scope both master pushes and pull requests to backend application paths"
+[ "$stack_app_scope_count" -eq 1 ] ||
+    fail "Stack Smoke must run for all backend application changes only after they reach master"
 
 stack_mini_app_exclusion_count="$(
     printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
         grep -Fc '      - "!apps/mini-app/**"' || true
 )"
-[ "$stack_mini_app_exclusion_count" -eq 2 ] ||
-    fail "Stack Smoke must exclude Mini App changes from both master pushes and pull requests"
+[ "$stack_mini_app_exclusion_count" -eq 1 ] ||
+    fail "Stack Smoke master trigger must exclude Mini App-only changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "apps/**/Dockerfile"' ||
+    fail "Stack Smoke pull requests must still cover application image definition changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "apps/**/src/main/resources/**"' ||
+    fail "Stack Smoke pull requests must still cover runtime configuration and migration changes"
 
 printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     grep -Fq './gradlew assemble --console=plain --no-daemon' ||

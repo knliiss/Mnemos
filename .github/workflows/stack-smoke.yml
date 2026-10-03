@@ -42,10 +42,8 @@ on:
       - ".github/workflows/stack-smoke.yml"
   pull_request:
     paths:
-      - "apps/**"
-      - "!apps/mini-app/**"
-      - "contracts/**"
-      - "libraries/**"
+      - "apps/**/Dockerfile"
+      - "apps/**/src/main/resources/**"
       - "keycloak-extensions/**"
       - "infrastructure/compose/**"
       - "infrastructure/kafka/**"
