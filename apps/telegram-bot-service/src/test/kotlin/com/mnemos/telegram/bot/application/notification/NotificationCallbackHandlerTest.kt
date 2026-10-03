@@ -179,6 +179,31 @@ class NotificationCallbackHandlerTest {
         verifyNoInteractions(subscriptionGateway, creationService)
     }
 
+    @Test
+    fun `ping toggle updates preference and refreshes notification dashboard`() {
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(session(NotificationCreationMode.LIST))
+        whenever(subscriptionGateway.setPingEnabled(TELEGRAM_ID, false)).thenReturn(true)
+        whenever(
+            menuService.updateScreenContext(
+                telegramId = eq(TELEGRAM_ID),
+                messageId = eq(MESSAGE_ID),
+                expectedScreen = eq(TelegramMenuScreen.NOTIFICATIONS),
+                update = any(),
+            ),
+        ).thenReturn(TelegramDeliveryResult.Delivered)
+
+        val result = handler.handle(callback(NotificationCallbackData.ping(enabled = false)))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verify(subscriptionGateway).setPingEnabled(TELEGRAM_ID, false)
+        verify(menuService).updateScreenContext(
+            telegramId = eq(TELEGRAM_ID),
+            messageId = eq(MESSAGE_ID),
+            expectedScreen = eq(TelegramMenuScreen.NOTIFICATIONS),
+            update = any(),
+        )
+    }
+
     private fun session(
         mode: NotificationCreationMode,
         pendingInput: TelegramPendingInput? = null,
