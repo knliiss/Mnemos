@@ -7,6 +7,7 @@ import com.mnemos.notification.application.notification.model.DungeonNotificatio
 import com.mnemos.notification.application.notification.model.GlobalNotificationPayload
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
+import com.mnemos.notification.application.notification.model.PingNotificationPayload
 import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
@@ -28,6 +29,7 @@ class StandardMessageResolver {
             is DungeonNotificationPayload -> resolve(payload, localization.language)
             is RaidNotificationPayload -> resolve(payload, localization)
             is GlobalNotificationPayload -> resolve(payload, localization)
+            is PingNotificationPayload -> resolve(payload, localization.language)
             is PlayerOfflineNotificationPayload -> resolve(payload, localization.language)
         }
 
@@ -171,6 +173,40 @@ class StandardMessageResolver {
             soloBody = alert,
             compact = "${presentation.emoji} <b>${presentation.compact}</b>",
         )
+    }
+
+    private fun resolve(
+        payload: PingNotificationPayload,
+        language: LocalizationLanguage,
+    ): ResolvedNotification {
+        val player = payload.player.escapeHtml()
+        val message = payload.message.escapeHtml()
+
+        return when (language) {
+            LocalizationLanguage.EN ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🔔 <b>$player mentioned you</b>",
+                    soloBody = "<code>$message</code>",
+                    compact = "🔔 <b>$player</b> mentioned you",
+                )
+
+            LocalizationLanguage.RU ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🔔 <b>$player упомянул вас</b>",
+                    soloBody = "<code>$message</code>",
+                    compact = "🔔 <b>$player</b> упомянул вас",
+                )
+
+            LocalizationLanguage.UK ->
+                ResolvedNotification(
+                    type = payload.type,
+                    soloTitle = "🔔 <b>$player згадав вас</b>",
+                    soloBody = "<code>$message</code>",
+                    compact = "🔔 <b>$player</b> згадав вас",
+                )
+        }
     }
 
     private fun resolve(
