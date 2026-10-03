@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":contracts:personalization-contracts"))
     implementation(project(":contracts:player-directory-contracts"))
     implementation(project(":contracts:telegram-bot-contracts"))
+    implementation(project(":contracts:realtime-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
