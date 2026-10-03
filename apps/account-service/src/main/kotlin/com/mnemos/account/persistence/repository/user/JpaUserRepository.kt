@@ -18,6 +18,20 @@ interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
     fun existsByTelegramId(telegramId: TelegramId): Boolean
 
     @Query(
+        value = """
+            SELECT u.*
+            FROM users u
+            JOIN accounts a ON a.id = u.active_account_id
+            WHERE lower(a.cristalix_nickname) = lower(:nickname)
+              AND a.status = 'ACTIVE'
+        """,
+        nativeQuery = true,
+    )
+    fun findAllByActiveAccountNicknameIgnoreCase(
+        @Param("nickname") nickname: String,
+    ): List<UserEntity>
+
+    @Query(
         """
     select case when count(user) > 0 then true else false end
     from UserEntity user
