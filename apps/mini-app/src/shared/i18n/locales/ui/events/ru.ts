@@ -140,7 +140,8 @@ export const eventsRu = {
       },
     },
     subscriptions: {
-      title: "Подписки",
+      title: "Уведомления",
+      entryDescription: "Подписки, упоминания и доставка",
       eyebrow: "МАРШРУТЫ УВЕДОМЛЕНИЙ",
       mascotTitle: "Объясни Mnemos, за чем следить",
       mascotCopy:
