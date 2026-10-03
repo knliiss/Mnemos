@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationGlobal
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramPingPreferenceResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -148,7 +149,7 @@ class NotificationSubscriptionGatewayAdapterTest {
         whenever(
             client.updatePingPreference(
                 telegramId = TELEGRAM_ID,
-                request = com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest(false),
+                request = TelegramUpdatePingPreferenceRequest(false),
             ),
         ).thenReturn(TelegramPingPreferenceResponse(enabled = false))
 
@@ -156,7 +157,7 @@ class NotificationSubscriptionGatewayAdapterTest {
 
         verify(client).updatePingPreference(
             telegramId = TELEGRAM_ID,
-            request = com.mnemos.telegram.bot.contracts.internal.subscription.TelegramUpdatePingPreferenceRequest(false),
+            request = TelegramUpdatePingPreferenceRequest(false),
         )
     }
 
