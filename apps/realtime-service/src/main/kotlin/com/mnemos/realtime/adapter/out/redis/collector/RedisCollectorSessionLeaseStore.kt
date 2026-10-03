@@ -192,11 +192,17 @@ class RedisCollectorSessionLeaseStore(
             ) {
                 "Redis did not return a collector presence snapshot"
             }
-        val (count, revision) = encoded.split(':', limit = 2)
+        val (count, revision, activeCollectorIds) = encoded.split(':', limit = 3)
 
         return CollectorPresenceSnapshot(
             activeCollectors = count.toInt(),
             revision = revision.toLong(),
+            activeCollectorIds =
+                activeCollectorIds
+                    .takeIf { it.isNotBlank() }
+                    ?.split(',')
+                    ?.mapTo(mutableSetOf()) { CollectorCredentialId(UUID.fromString(it)) }
+                    ?: emptySet(),
         )
     }
 
@@ -381,7 +387,11 @@ class RedisCollectorSessionLeaseStore(
                     redis.call('SET', KEYS[2], tostring(count))
                 end
 
-                return tostring(count) .. ':' .. string.format('%.0f', revision)
+                local active_collector_ids = redis.call('ZRANGE', KEYS[1], 0, -1)
+
+                return tostring(count)
+                    .. ':' .. string.format('%.0f', revision)
+                    .. ':' .. table.concat(active_collector_ids, ',')
                 """.trimIndent(),
                 String::class.java,
             )

@@ -50,6 +50,10 @@ export const collectorAdminEn = {
       disabled: "DISABLED",
       revoked: "REVOKED",
     },
+    presenceStatus: {
+      active: "ACTIVE",
+      inactive: "INACTIVE",
+    },
     created: "Created",
     updated: "Updated",
     disableConfirmTitle: "Disable this collector?",

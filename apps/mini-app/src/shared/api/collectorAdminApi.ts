@@ -13,6 +13,7 @@ export type CollectorCredentialResponse = {
 export type CollectorPresenceResponse = {
   activeCollectors: number
   revision: number
+  activeCollectorIds: string[]
 }
 
 export type CollectorActivationResponse = {

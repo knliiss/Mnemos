@@ -410,6 +410,12 @@
   font-size: 8px;
 }
 
+.collector-credential-card__statuses {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
 .collector-status {
   min-height: 25px;
   display: inline-flex;
@@ -420,6 +426,37 @@
   background: rgba(255, 255, 255, 0.025);
   font-size: 8px;
   font-weight: 720;
+}
+
+.collector-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #777f73;
+  background: rgba(255, 255, 255, 0.016);
+  font-size: 7px;
+  font-weight: 720;
+  letter-spacing: 0.025em;
+}
+
+.collector-live-status > i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #50584e;
+}
+
+.collector-live-status.is-active {
+  color: #d8f48c;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.collector-live-status.is-active > i {
+  background: #cbff2d;
+  box-shadow: 0 0 7px rgba(203, 255, 45, 0.38);
 }
 
 .collector-status.is-enabled {
@@ -634,9 +671,10 @@
     grid-template-columns: 36px minmax(0, 1fr);
   }
 
-  .collector-status {
+  .collector-credential-card__statuses {
     grid-column: 2;
     justify-self: start;
+    justify-items: start;
   }
 
   .collector-credential-card__meta {

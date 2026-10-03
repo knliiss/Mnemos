@@ -28,6 +28,7 @@ type CredentialMutation = (credentialId: string) => Promise<CollectorCredentialR
 
 const filters: CollectorFilter[] = ["ALL", "ENABLED", "DISABLED", "REVOKED"]
 const COPY_FEEDBACK_DURATION_MS = 2_500
+const PRESENCE_POLL_INTERVAL_MS = 10_000
 
 export function CollectorAdmin({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
@@ -106,6 +107,27 @@ export function CollectorAdmin({ back }: { back: () => void }) {
   }, [refresh])
 
   useEffect(() => {
+    let cancelled = false
+
+    const interval = window.setInterval(() => {
+      void getCollectorPresence()
+        .then((nextPresence) => {
+          if (!cancelled) {
+            setPresence(nextPresence)
+          }
+        })
+        .catch(() => {
+          // Keep the last known live state; manual refresh still surfaces API errors.
+        })
+    }, PRESENCE_POLL_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!copied) {
       return
     }
@@ -137,6 +159,8 @@ export function CollectorAdmin({ back }: { back: () => void }) {
       revoked,
     }
   }, [credentials])
+
+  const activeCollectorIds = useMemo(() => new Set(presence?.activeCollectorIds ?? []), [presence])
 
   const visibleCredentials = useMemo(
     () => filterAndSortCollectors(credentials, filter, sort, query),
@@ -355,6 +379,7 @@ export function CollectorAdmin({ back }: { back: () => void }) {
         {!loading && !error && visibleCredentials.length ? (
           <CollectorCredentialList
             credentials={visibleCredentials}
+            activeCollectorIds={activeCollectorIds}
             busyId={busyId}
             disableCandidate={disableCandidate}
             revokeCandidate={revokeCandidate}

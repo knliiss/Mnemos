@@ -6,6 +6,7 @@ import { collectorCredentialState } from "./collectorAdminPresentation"
 
 type CollectorCredentialListProps = {
   credentials: CollectorCredentialResponse[]
+  activeCollectorIds: ReadonlySet<string>
   busyId: string | null
   disableCandidate: string | null
   revokeCandidate: string | null
@@ -21,6 +22,7 @@ type CollectorCredentialListProps = {
 
 export function CollectorCredentialList({
   credentials,
+  activeCollectorIds,
   busyId,
   disableCandidate,
   revokeCandidate,
@@ -64,6 +66,7 @@ export function CollectorCredentialList({
     <div className="collector-credential-grid">
       {credentials.map((credential) => {
         const state = collectorCredentialState(credential)
+        const active = activeCollectorIds.has(credential.id)
         const busy = busyId === credential.id
         const confirmingDisable = disableCandidate === credential.id
         const confirmingRevoke = revokeCandidate === credential.id
@@ -90,8 +93,14 @@ export function CollectorCredentialList({
                 <small>{credential.id}</small>
               </span>
 
-              <span className={`collector-status is-${state.toLowerCase()}`}>
-                {t(`collectorAdmin.status.${state.toLowerCase()}`)}
+              <span className="collector-credential-card__statuses">
+                <span className={`collector-status is-${state.toLowerCase()}`}>
+                  {t(`collectorAdmin.status.${state.toLowerCase()}`)}
+                </span>
+                <span className={`collector-live-status ${active ? "is-active" : "is-inactive"}`}>
+                  <i aria-hidden="true" />
+                  {t(`collectorAdmin.presenceStatus.${active ? "active" : "inactive"}`)}
+                </span>
               </span>
             </header>
 
