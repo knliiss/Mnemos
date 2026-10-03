@@ -122,10 +122,11 @@ class NotificationSubscriptionGatewayAdapter(
         enabled: Boolean,
     ): Boolean =
         try {
-            client.updatePingPreference(
-                telegramId = telegramId,
-                request = TelegramUpdatePingPreferenceRequest(enabled),
-            ).enabled == enabled
+            client
+                .updatePingPreference(
+                    telegramId = telegramId,
+                    request = TelegramUpdatePingPreferenceRequest(enabled),
+                ).enabled == enabled
         } catch (exception: RuntimeException) {
             logger.warn("Could not update ping notification preference", exception)
             false
