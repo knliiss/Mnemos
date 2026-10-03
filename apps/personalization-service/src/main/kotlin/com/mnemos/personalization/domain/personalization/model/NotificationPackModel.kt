@@ -97,6 +97,7 @@ enum class NotificationTemplateKey {
     DUNGEON,
     RAID,
     GLOBAL,
+    PING,
     PLAYER_OFFLINE,
     ;
 
