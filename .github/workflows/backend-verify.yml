@@ -72,7 +72,10 @@ jobs:
           stale_root="$(dirname "$GITHUB_WORKSPACE")/.ci-stale"
           mkdir -p "$stale_root"
 
+          docker_available=false
+
           if timeout 5s docker info >/dev/null 2>&1; then
+            docker_available=true
             docker run --rm \
               --volume "$GITHUB_WORKSPACE:/workspace" \
               alpine:3.22 \
@@ -86,19 +89,22 @@ jobs:
               rm -rf -- "$stale_root"/*
             fi
           else
-            echo "::warning::Docker daemon is unavailable; continuing without container-based ownership repair"
+            echo "::warning::Docker daemon is unavailable; generated state will be quarantined without recursive deletion"
           fi
 
           cleanup_failed=0
           quarantine_index=0
           while IFS= read -r -d '' path; do
-            if ! rm -rf -- "$path"; then
-              quarantine_index=$((quarantine_index + 1))
-              stale_path="$stale_root/${GITHUB_RUN_ID}-${quarantine_index}"
-              if ! mv -- "$path" "$stale_path"; then
-                echo "::warning::Could not remove or quarantine generated path: $path"
-                cleanup_failed=1
-              fi
+            if [ "$docker_available" = true ] && rm -rf -- "$path"; then
+              continue
+            fi
+
+            quarantine_index=$((quarantine_index + 1))
+            stale_path="$stale_root/${GITHUB_RUN_ID}-${quarantine_index}"
+
+            if ! mv -- "$path" "$stale_path"; then
+              echo "::warning::Could not remove or quarantine generated path: $path"
+              cleanup_failed=1
             fi
           done < <(
             find "$GITHUB_WORKSPACE" \
