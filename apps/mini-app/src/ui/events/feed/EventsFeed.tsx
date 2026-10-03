@@ -218,9 +218,14 @@ export function EventsFeed({ params, activeAccount, navigate }: Props) {
           className="events-feed-subscriptions"
           onClick={() => navigate({ id: "subscriptions" })}
         >
-          <Glyph name="bell" size={17} />
-          <span className="events-feed-subscriptions__label">
-            {t("events.subscriptions.title")}
+          <span className="events-feed-subscriptions__art" aria-hidden="true">
+            <img src="/ui-illustrations/notifications-hub.svg" alt="" />
+          </span>
+          <span className="events-feed-subscriptions__copy">
+            <span className="events-feed-subscriptions__label">
+              {t("events.subscriptions.title")}
+            </span>
+            <small>{t("events.subscriptions.entryDescription")}</small>
           </span>
           <b>{subscriptions.length}</b>
         </button>
