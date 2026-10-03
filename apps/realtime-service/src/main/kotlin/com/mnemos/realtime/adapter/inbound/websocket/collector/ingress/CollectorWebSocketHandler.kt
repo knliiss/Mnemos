@@ -134,7 +134,9 @@ class CollectorWebSocketHandler(
                 sendError(
                     session = session,
                     code = CollectorTransportErrorCode.INVALID_MESSAGE,
-                    message = "Only EVENT_REPORT, CHAT_PING_REPORT, COLLECTOR_STATE and COLLECTOR_UPDATE_READY messages are supported",
+                    message =
+                        "Only EVENT_REPORT, CHAT_PING_REPORT, COLLECTOR_STATE " +
+                            "and COLLECTOR_UPDATE_READY messages are supported",
                 )
         }
     }
