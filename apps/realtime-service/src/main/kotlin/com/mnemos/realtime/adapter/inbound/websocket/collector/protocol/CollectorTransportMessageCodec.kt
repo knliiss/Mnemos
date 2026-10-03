@@ -1,5 +1,6 @@
 package com.mnemos.realtime.adapter.inbound.websocket.collector.protocol
 
+import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorChatPingEnvelope
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorMessageEnvelope
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorReportEnvelope
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorStateMessage
@@ -21,6 +22,12 @@ class CollectorTransportMessageCodec(
         jsonMapper.readValue(
             payload,
             CollectorReportEnvelope::class.java,
+        )
+
+    fun readChatPing(payload: String): CollectorChatPingEnvelope =
+        jsonMapper.readValue(
+            payload,
+            CollectorChatPingEnvelope::class.java,
         )
 
     fun readState(payload: String): CollectorStateMessage =
