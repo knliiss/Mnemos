@@ -35,11 +35,39 @@ afterEach(() => {
 })
 
 describe("CollectorCredentialList", () => {
+  it("shows whether the collector is actively observing", () => {
+    const props = {
+      credentials: [credential],
+      busyId: null,
+      disableCandidate: null,
+      revokeCandidate: null,
+      dateFormatter,
+      onEnable: vi.fn(),
+      onRequestDisable: vi.fn(),
+      onCancelDisable: vi.fn(),
+      onConfirmDisable: vi.fn(),
+      onRequestRevoke: vi.fn(),
+      onCancelRevoke: vi.fn(),
+      onConfirmRevoke: vi.fn(),
+    }
+
+    const view = render(
+      <CollectorCredentialList {...props} activeCollectorIds={new Set([credential.id])} />,
+    )
+
+    expect(screen.getByText("collectorAdmin.presenceStatus.active")).toBeDefined()
+
+    view.rerender(<CollectorCredentialList {...props} activeCollectorIds={new Set()} />)
+
+    expect(screen.getByText("collectorAdmin.presenceStatus.inactive")).toBeDefined()
+  })
+
   it("requires explicit confirmation before disabling an enabled collector", async () => {
     const onRequestDisable = vi.fn()
     const onConfirmDisable = vi.fn()
     const props = {
       credentials: [credential],
+      activeCollectorIds: new Set([credential.id]),
       busyId: null,
       revokeCandidate: null,
       dateFormatter,
@@ -81,6 +109,7 @@ describe("CollectorCredentialList", () => {
     render(
       <CollectorCredentialList
         credentials={[credential]}
+        activeCollectorIds={new Set()}
         busyId={null}
         disableCandidate={null}
         revokeCandidate={credential.id}
