@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   deleteSubscription as deleteSubscriptionRequest,
+  getPingNotificationPreference,
   getSubscriptions,
 } from "@/shared/api/subscriptionApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -9,6 +10,7 @@ import type { Subscription } from "../../model"
 
 type SubscriptionData = {
   subscriptions: Subscription[]
+  pingNotificationsEnabled: boolean
   loadingSubscriptions: boolean
   subscriptionsError: boolean
   refreshSubscriptions(): Promise<boolean>
@@ -18,6 +20,7 @@ type SubscriptionData = {
 
 export function useSubscriptionData(): SubscriptionData {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [pingNotificationsEnabled, setPingNotificationsEnabled] = useState(true)
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true)
   const [subscriptionsError, setSubscriptionsError] = useState(false)
   const requestRevision = useRef(0)
@@ -30,13 +33,17 @@ export function useSubscriptionData(): SubscriptionData {
     setSubscriptionsError(false)
 
     try {
-      const response = await getSubscriptions()
+      const [response, pingPreference] = await Promise.all([
+        getSubscriptions(),
+        getPingNotificationPreference(),
+      ])
 
       if (revision !== requestRevision.current) {
         return false
       }
 
       setSubscriptions(response.items.map(toSubscription))
+      setPingNotificationsEnabled(pingPreference.enabled)
       return true
     } catch (error) {
       if (revision === requestRevision.current) {
@@ -88,6 +95,7 @@ export function useSubscriptionData(): SubscriptionData {
 
   return {
     subscriptions,
+    pingNotificationsEnabled,
     loadingSubscriptions,
     subscriptionsError,
     refreshSubscriptions,
