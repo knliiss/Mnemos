@@ -17,16 +17,17 @@ def require(condition: bool, message: str) -> None:
 
 
 def verify_integration_test_tags() -> None:
-    for path in REPOSITORY_ROOT.glob("apps/*/src/test/**/*.kt"):
-        content = path.read_text(encoding="utf-8")
+    for group in ("apps", "libraries"):
+        for path in REPOSITORY_ROOT.glob(f"{group}/*/src/test/**/*.kt"):
+            content = path.read_text(encoding="utf-8")
 
-        if "@SpringBootTest" not in content:
-            continue
+            if "@SpringBootTest" not in content and "@Testcontainers" not in content:
+                continue
 
-        require(
-            '@Tag("integration")' in content,
-            f"SpringBootTest must be tagged integration: {path.relative_to(REPOSITORY_ROOT)}",
-        )
+            require(
+                '@Tag("integration")' in content,
+                f"Heavy integration test must be tagged integration: {path.relative_to(REPOSITORY_ROOT)}",
+            )
 
 
 def main() -> int:
@@ -47,6 +48,22 @@ def main() -> int:
     require(
         not app_result["stack_smoke_required"],
         "Source-only application change must not require full Stack Smoke",
+    )
+    require(
+        not app_result["integration_verify_required"],
+        "Ordinary application business logic must not require Integration Verify",
+    )
+
+    persistence_result = resolve_changes([
+        "apps/account-service/src/main/kotlin/com/mnemos/account/adapter/out/persistence/AccountRepository.kt",
+    ])
+    require(
+        persistence_result["integration_verify_required"],
+        "Persistence changes must require Integration Verify",
+    )
+    require(
+        not persistence_result["stack_smoke_required"],
+        "Persistence-only Kotlin changes must not require full Stack Smoke",
     )
 
     app_test_result = resolve_changes([
@@ -72,6 +89,10 @@ def main() -> int:
         not app_resource_result["fast_path"],
         "Runtime resources must not use the fast path",
     )
+    require(
+        app_resource_result["integration_verify_required"],
+        "Runtime resources and migrations must require Integration Verify",
+    )
 
     contract_result = resolve_changes([
         "contracts/account-contracts/src/main/kotlin/example/Contract.kt",
@@ -87,6 +108,18 @@ def main() -> int:
     require(
         contract_result["stack_smoke_required"],
         "Shared contracts must require Stack Smoke",
+    )
+    require(
+        contract_result["integration_verify_required"],
+        "Shared contracts must require Integration Verify",
+    )
+
+    library_result = resolve_changes([
+        "libraries/outbox-starter/src/main/kotlin/example/Repository.kt",
+    ])
+    require(
+        library_result["integration_verify_required"],
+        "Shared library changes must require Integration Verify",
     )
 
     build_result = resolve_changes([
@@ -140,6 +173,10 @@ def main() -> int:
     require(
         not docs_result["stack_smoke_required"],
         "Documentation-only change must not require Stack Smoke",
+    )
+    require(
+        not docs_result["integration_verify_required"],
+        "Documentation-only change must not require Integration Verify",
     )
 
     verify_integration_test_tags()

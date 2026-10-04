@@ -6,6 +6,7 @@ REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 BACKEND_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/backend-verify.yml"
 MINI_APP_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/mini-app.yml"
 STACK_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/stack-smoke.yml"
+INTEGRATION_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/integration-verify.yml"
 
 fail() {
     echo "$1" >&2
@@ -97,13 +98,14 @@ verify_push_only_report_job() {
         fail "$description status report job must own status write permission"
 }
 
-for workflow in "$BACKEND_WORKFLOW" "$MINI_APP_WORKFLOW" "$STACK_WORKFLOW"; do
+for workflow in "$BACKEND_WORKFLOW" "$MINI_APP_WORKFLOW" "$STACK_WORKFLOW" "$INTEGRATION_WORKFLOW"; do
     [ -f "$workflow" ] || fail "Verification workflow is missing: ${workflow#"$REPOSITORY_ROOT/"}"
 done
 
 verify_read_only_pr_job "$BACKEND_WORKFLOW" check "Backend Verify"
 verify_read_only_pr_job "$MINI_APP_WORKFLOW" verify "Mini App Verify"
 verify_read_only_pr_job "$STACK_WORKFLOW" smoke "Stack Smoke"
+verify_read_only_pr_job "$INTEGRATION_WORKFLOW" integration "Integration Verify"
 
 verify_push_only_report_job \
     "$BACKEND_WORKFLOW" \
@@ -149,6 +151,20 @@ fi
 
 grep -Fq "NVD_API_KEY: \${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}" "$BACKEND_WORKFLOW" ||
     fail "Backend Verify must expose the NVD API key only for push events"
+
+INTEGRATION_WORKFLOW_CONTENT="$(cat "$INTEGRATION_WORKFLOW")"
+
+printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
+    grep -Fq '    - cron: "47 2 * * *"' ||
+    fail "Integration Verify must preserve its nightly safety-net schedule"
+
+printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
+    grep -Fq 'scripts/resolve_integration_test_tasks.py --format tasks' ||
+    fail "Integration Verify must resolve only explicitly tagged integration tasks"
+
+printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
+    grep -Fq './gradlew "${tasks[@]}"' ||
+    fail "Integration Verify must run only the resolved integration task set"
 
 STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
 
