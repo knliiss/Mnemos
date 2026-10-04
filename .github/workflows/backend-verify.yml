@@ -52,7 +52,7 @@ on:
       - "infrastructure/**"
 
 concurrency:
-  group: backend-${{ github.ref }}
+  group: backend-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
