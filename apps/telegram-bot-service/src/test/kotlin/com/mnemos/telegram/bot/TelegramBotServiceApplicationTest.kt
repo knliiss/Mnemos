@@ -5,11 +5,13 @@ import feign.Client
 import feign.hc5.ApacheHttp5Client
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 
+@Tag("integration")
 @SpringBootTest(
     properties = [
         "mnemos.telegram-bot.telegram.enabled=false",

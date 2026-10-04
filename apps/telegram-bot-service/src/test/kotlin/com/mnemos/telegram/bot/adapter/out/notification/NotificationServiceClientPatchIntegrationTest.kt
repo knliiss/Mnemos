@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 private const val TEST_NOTIFICATION_API_KEY = "raid-patch-test-api-key"
 
+@Tag("integration")
 @SpringBootTest(
     properties = [
         "mnemos.telegram-bot.telegram.enabled=false",
