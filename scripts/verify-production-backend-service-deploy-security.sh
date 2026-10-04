@@ -140,8 +140,14 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'name: Verify target CI gates' ||
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"Backend Verify": ".github/workflows/backend-verify.yml"' ||
     fail "Backend deploy workflow must require the Backend Verify push workflow for the target SHA"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"Stack Smoke": ".github/workflows/stack-smoke.yml"' ||
-    fail "Backend deploy workflow must require the Stack Smoke push workflow for the target SHA"
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'scripts/resolve_backend_ci_changes.py --paths-file "$changed_paths"' ||
+    fail "Backend deploy workflow must classify the exact target diff before deciding Stack Smoke requirements"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if os.environ["STACK_SMOKE_REQUIRED"] == "true":' ||
+    fail "Backend deploy workflow must require Stack Smoke only when target policy marks it required"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'expected["Stack Smoke"] = ".github/workflows/stack-smoke.yml"' ||
+    fail "Backend deploy workflow must preserve the conditional trusted Stack Smoke gate"
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'run.get("head_branch") == "master"' ||
     fail "Backend deploy CI gates must come from trusted master push runs"
