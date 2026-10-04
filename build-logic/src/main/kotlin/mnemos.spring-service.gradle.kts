@@ -1,3 +1,8 @@
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
@@ -22,4 +27,41 @@ kotlin {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("mnemos.kafka.message-auth.enabled", "false")
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
+}
+
+val testSourceSet = extensions.getByType<SourceSetContainer>().named("test")
+
+val integrationTest =
+    tasks.register<Test>("integrationTest") {
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+        description = "Runs integration-tagged tests."
+
+        testClassesDirs = testSourceSet.get().output.classesDirs
+        classpath = testSourceSet.get().runtimeClasspath
+
+        shouldRunAfter(tasks.named("test"))
+
+        useJUnitPlatform {
+            includeTags("integration")
+        }
+    }
+
+tasks.named("check") {
+    dependsOn(integrationTest)
+}
+
+tasks.register("fastCheck") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Runs source formatting and non-integration tests for fast CI."
+
+    dependsOn(
+        tasks.named("ktlintCheck"),
+        tasks.named("test"),
+    )
 }

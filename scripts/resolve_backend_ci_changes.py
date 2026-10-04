@@ -31,6 +31,39 @@ GLOBAL_GRADLE_PREFIXES = (
     "build-logic/",
     "gradle/",
 )
+STACK_SMOKE_EXACT_PATHS = {
+    ".dockerignore",
+    ".env.example",
+    "Makefile",
+    "build.gradle.kts",
+    "gradle.properties",
+    "gradlew",
+    "gradlew.bat",
+    "settings.gradle.kts",
+    ".github/ci/compose-isolation.override.yml",
+    ".github/workflows/stack-smoke.yml",
+}
+STACK_SMOKE_PREFIXES = (
+    "build-logic/",
+    "contracts/",
+    "gradle/",
+    "infrastructure/",
+    "keycloak-extensions/",
+    "libraries/",
+    "make/",
+    "scripts/",
+)
+BACKEND_POLICY_EXACT_PATHS = {
+    ".env.example",
+    "Makefile",
+    ".github/workflows/backend-verify.yml",
+}
+BACKEND_POLICY_PREFIXES = (
+    ".github/workflows/production",
+    "infrastructure/",
+    "make/",
+    "scripts/",
+)
 
 
 class BackendCiChangeError(RuntimeError):
@@ -123,6 +156,56 @@ def project_for_path(
     return max(candidates)[1]
 
 
+def is_fast_application_source(
+    path: str,
+    project: str,
+    directory: Path,
+) -> bool:
+    if not project.startswith(":apps:"):
+        return False
+
+    prefix = directory.as_posix() + "/src/main/"
+
+    return (
+        path.startswith(prefix + "kotlin/")
+        or path.startswith(prefix + "java/")
+    )
+
+
+def path_requires_stack_smoke(path: str) -> bool:
+    if path in STACK_SMOKE_EXACT_PATHS:
+        return True
+
+    if path.startswith(STACK_SMOKE_PREFIXES):
+        return True
+
+    if not path.startswith("apps/"):
+        return False
+
+    parts = path.split("/")
+
+    if len(parts) < 3:
+        return False
+
+    relative = "/".join(parts[2:])
+
+    return (
+        relative == "Dockerfile"
+        or relative == "build.gradle.kts"
+        or relative.startswith("src/main/resources/")
+    )
+
+
+def path_affects_backend_policy(path: str) -> bool:
+    if path in BACKEND_POLICY_EXACT_PATHS:
+        return True
+
+    if path.startswith(BACKEND_POLICY_PREFIXES):
+        return True
+
+    return path_requires_stack_smoke(path)
+
+
 def resolve_changes(paths: list[str]) -> dict[str, object]:
     projects = project_directories()
     dependencies = project_dependencies(projects)
@@ -131,16 +214,15 @@ def resolve_changes(paths: list[str]) -> dict[str, object]:
     affected_projects: set[str] = set()
     dependency_scan_required = False
     full_backend = False
+    saw_fast_application_source = False
+    saw_non_fast_backend_change = False
+    normalized_paths = [normalized_path(path) for path in paths if normalized_path(path)]
 
-    for raw_path in paths:
-        path = normalized_path(raw_path)
-
-        if not path:
-            continue
-
+    for path in normalized_paths:
         if path in GLOBAL_GRADLE_PATHS or path.startswith(GLOBAL_GRADLE_PREFIXES):
             full_backend = True
             dependency_scan_required = True
+            saw_non_fast_backend_change = True
             continue
 
         changed_project = project_for_path(
@@ -149,6 +231,8 @@ def resolve_changes(paths: list[str]) -> dict[str, object]:
         )
 
         if changed_project is None:
+            if path_affects_backend_policy(path):
+                saw_non_fast_backend_change = True
             continue
 
         affected_projects.update(
@@ -158,28 +242,58 @@ def resolve_changes(paths: list[str]) -> dict[str, object]:
             )
         )
 
+        directory = projects[changed_project]
+
+        if is_fast_application_source(path, changed_project, directory):
+            saw_fast_application_source = True
+        else:
+            saw_non_fast_backend_change = True
+
         if path.endswith("/build.gradle.kts"):
             dependency_scan_required = True
 
     if full_backend:
         affected_projects = set(projects)
 
+    fast_path = (
+        saw_fast_application_source
+        and not saw_non_fast_backend_change
+        and not full_backend
+        and bool(affected_projects)
+        and all(project.startswith(":apps:") for project in affected_projects)
+    )
+
     check_tasks = [
         f"{project}:check"
         for project in sorted(affected_projects)
     ]
 
+    verification_tasks = (
+        [
+            f"{project}:fastCheck"
+            for project in sorted(affected_projects)
+        ]
+        if fast_path
+        else check_tasks
+    )
+
     return {
         "affected_projects": sorted(affected_projects),
         "check_tasks": check_tasks,
+        "verification_tasks": verification_tasks,
         "dependency_scan_required": dependency_scan_required,
         "full_backend": full_backend,
+        "fast_path": fast_path,
+        "stack_smoke_required": any(
+            path_requires_stack_smoke(path)
+            for path in normalized_paths
+        ),
     }
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Resolve Gradle projects affected by repository changes for backend CI.",
+        description="Resolve Gradle projects and CI scope affected by repository changes.",
     )
     parser.add_argument(
         "--path",
@@ -195,7 +309,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=("json", "check-tasks"),
+        choices=("json", "check-tasks", "verification-tasks"),
         default="json",
     )
 
@@ -231,6 +345,9 @@ def main() -> int:
 
     if arguments.format == "check-tasks":
         for task in result["check_tasks"]:
+            print(task)
+    elif arguments.format == "verification-tasks":
+        for task in result["verification_tasks"]:
             print(task)
     else:
         print(json.dumps(result, indent=2, sort_keys=False))
