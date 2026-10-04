@@ -22,7 +22,7 @@ on:
       - ".github/workflows/mini-app.yml"
 
 concurrency:
-  group: mini-app-${{ github.ref }}
+  group: mini-app-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
