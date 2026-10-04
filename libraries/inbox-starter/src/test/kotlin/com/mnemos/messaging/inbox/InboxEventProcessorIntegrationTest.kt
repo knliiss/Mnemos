@@ -3,6 +3,7 @@ package com.mnemos.messaging.inbox
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
@@ -15,6 +16,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
+@Tag("integration")
 @Testcontainers
 class InboxEventProcessorIntegrationTest {
 
