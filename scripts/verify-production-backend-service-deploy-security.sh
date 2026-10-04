@@ -134,8 +134,24 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'action.get("service") != service' ||
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'action.get("operation") != "image-update"' ||
     fail "Backend deploy workflow must only permit image-update actions"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq './gradlew ":apps:${SERVICE}:check"' ||
-    fail "Backend deploy workflow must verify the selected service before image publication"
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'name: Verify target CI gates' ||
+    fail "Backend deploy workflow must verify trusted CI gates for the exact target SHA"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"Backend Verify": ".github/workflows/backend-verify.yml"' ||
+    fail "Backend deploy workflow must require the Backend Verify push workflow for the target SHA"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"Stack Smoke": ".github/workflows/stack-smoke.yml"' ||
+    fail "Backend deploy workflow must require the Stack Smoke push workflow for the target SHA"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'run.get("head_branch") == "master"' ||
+    fail "Backend deploy CI gates must come from trusted master push runs"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'latest.get("conclusion") != "success"' ||
+    fail "Backend deploy workflow must reject unsuccessful target CI runs"
+
+if printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq './gradlew ":apps:${SERVICE}:check"'; then
+    fail "Backend deploy workflow must not rerun service checks already proven by target CI"
+fi
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'publish-production-service-image.py' ||
     fail "Backend deploy workflow must publish the immutable selected service image"

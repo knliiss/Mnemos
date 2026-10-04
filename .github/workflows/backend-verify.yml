@@ -25,6 +25,11 @@ on:
       - "scripts/**"
       - "infrastructure/**"
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
     paths:
       - ".github/workflows/backend-verify.yml"
       - ".github/workflows/production*.yml"
@@ -55,7 +60,7 @@ permissions:
 
 jobs:
   check:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, Linux, X64, mnemos-backend]
     timeout-minutes: 45
 

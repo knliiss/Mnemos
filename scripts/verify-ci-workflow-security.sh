@@ -68,6 +68,13 @@ verify_read_only_pr_job() {
     printf '%s\n' "$job" |
         grep -Fq "github.event.pull_request.head.repo.full_name == github.repository" ||
         fail "$description self-hosted PR job must reject fork repositories"
+
+    grep -Fq '      - closed' "$workflow" ||
+        fail "$description workflow must subscribe to pull request close events to cancel stale runner work"
+
+    printf '%s\n' "$job" |
+        grep -Fq "github.event.action != 'closed'" ||
+        fail "$description heavy PR job must skip the close-event cancellation run"
 }
 
 verify_push_only_report_job() {
@@ -133,4 +140,40 @@ fi
 grep -Fq "NVD_API_KEY: \${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}" "$BACKEND_WORKFLOW" ||
     fail "Backend Verify must expose the NVD API key only for push events"
 
-echo "CI verification workflow token, routing, and secret boundaries verified"
+STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
+
+stack_app_scope_count="$(
+    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+        grep -Fc '      - "apps/**"' || true
+)"
+[ "$stack_app_scope_count" -eq 1 ] ||
+    fail "Stack Smoke must run for all backend application changes only after they reach master"
+
+stack_mini_app_exclusion_count="$(
+    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+        grep -Fc '      - "!apps/mini-app/**"' || true
+)"
+[ "$stack_mini_app_exclusion_count" -eq 1 ] ||
+    fail "Stack Smoke master trigger must exclude Mini App-only changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "apps/**/Dockerfile"' ||
+    fail "Stack Smoke pull requests must still cover application image definition changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "apps/**/src/main/resources/**"' ||
+    fail "Stack Smoke pull requests must still cover runtime configuration and migration changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq './gradlew assemble --console=plain --no-daemon' ||
+    fail "Stack Smoke must assemble runtime artifacts without rerunning the full Gradle verification suite"
+
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq './gradlew clean build --console=plain --no-build-cache'; then
+    fail "Stack Smoke must not repeat the full clean Gradle build after Backend Verify"
+fi
+
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '$CI_COMPOSE_COMMAND build --no-cache --quiet'; then
+    fail "Stack Smoke must allow safe Docker layer reuse instead of forcing every image rebuild"
+fi
+
+echo "CI verification workflow token, routing, secret, and build-reuse boundaries verified"
