@@ -10,6 +10,7 @@ class EventCandidate private constructor(
     val fingerprint: EventFingerprint,
     val report: CollectorEventReport,
     val referenceObservedAt: Instant,
+    val referenceReceivedAt: Instant,
     val expiresAt: Instant,
     val requiredConfirmations: Int,
     private val observations: MutableMap<CollectorId, EventObservation>,
@@ -34,6 +35,14 @@ class EventCandidate private constructor(
     ): Boolean =
         Duration
             .between(referenceObservedAt, observedAt)
+            .abs() <= matchingWindow
+
+    fun matchesReceivedTime(
+        receivedAt: Instant,
+        matchingWindow: Duration,
+    ): Boolean =
+        Duration
+            .between(referenceReceivedAt, receivedAt)
             .abs() <= matchingWindow
 
     fun isExpired(now: Instant): Boolean =
@@ -127,6 +136,7 @@ class EventCandidate private constructor(
                 fingerprint = fingerprint,
                 report = report,
                 referenceObservedAt = observation.observedAt,
+                referenceReceivedAt = observation.receivedAt,
                 expiresAt = expiresAt,
                 requiredConfirmations = requiredConfirmations,
                 observations =
