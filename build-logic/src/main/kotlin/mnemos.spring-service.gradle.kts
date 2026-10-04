@@ -36,6 +36,10 @@ tasks.named<Test>("test") {
 }
 
 val testSourceSet = extensions.getByType<SourceSetContainer>().named("test")
+val integrationTaggedSources =
+    fileTree("src/test") {
+        include("**/*.kt", "**/*.java")
+    }
 
 val integrationTest =
     tasks.register<Test>("integrationTest") {
@@ -49,6 +53,12 @@ val integrationTest =
 
         useJUnitPlatform {
             includeTags("integration")
+        }
+
+        onlyIf("integration-tagged tests exist") {
+            integrationTaggedSources.files.any { source ->
+                source.readText().contains("@Tag(\"integration\")")
+            }
         }
     }
 
