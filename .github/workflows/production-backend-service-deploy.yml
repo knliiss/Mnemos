@@ -228,19 +228,25 @@ jobs:
           fi
 
           policy_json="$(python3 scripts/resolve_backend_ci_changes.py --paths-file "$changed_paths")"
-          stack_smoke_required="$(
+          read -r stack_smoke_required integration_verify_required <<< "$(
             POLICY_JSON="$policy_json" python3 - <<'PY'
           import json
           import os
 
           policy = json.loads(os.environ["POLICY_JSON"])
-          print(str(bool(policy.get("stack_smoke_required"))).lower())
+          print(
+              str(bool(policy.get("stack_smoke_required"))).lower(),
+              str(bool(policy.get("integration_verify_required"))).lower(),
+          )
           PY
           )"
 
           echo "Target Stack Smoke required: $stack_smoke_required"
+          echo "Target Integration Verify required: $integration_verify_required"
 
-          STACK_SMOKE_REQUIRED="$stack_smoke_required" python3 - <<'PY'
+          STACK_SMOKE_REQUIRED="$stack_smoke_required" \
+          INTEGRATION_VERIFY_REQUIRED="$integration_verify_required" \
+          python3 - <<'PY'
           import json
           import os
           import urllib.parse
@@ -274,6 +280,9 @@ jobs:
 
           if os.environ["STACK_SMOKE_REQUIRED"] == "true":
               expected["Stack Smoke"] = ".github/workflows/stack-smoke.yml"
+
+          if os.environ["INTEGRATION_VERIFY_REQUIRED"] == "true":
+              expected["Integration Verify"] = ".github/workflows/integration-verify.yml"
 
           runs = payload.get("workflow_runs", [])
 

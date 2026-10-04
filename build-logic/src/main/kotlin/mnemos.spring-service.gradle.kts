@@ -60,10 +60,6 @@ val integrationTest =
         enabled = hasIntegrationTaggedTests
     }
 
-tasks.named("check") {
-    dependsOn(integrationTest)
-}
-
 tasks.register("fastCheck") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Runs source formatting and non-integration tests for fast CI."

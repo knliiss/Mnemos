@@ -64,6 +64,20 @@ BACKEND_POLICY_PREFIXES = (
     "make/",
     "scripts/",
 )
+INTEGRATION_VERIFY_EXACT_PATHS = {
+    "build.gradle.kts",
+    "gradle.properties",
+    "settings.gradle.kts",
+    "gradlew",
+    "gradlew.bat",
+    ".github/workflows/integration-verify.yml",
+}
+INTEGRATION_VERIFY_PREFIXES = (
+    "build-logic/",
+    "contracts/",
+    "gradle/",
+    "libraries/",
+)
 
 
 class BackendCiChangeError(RuntimeError):
@@ -206,6 +220,38 @@ def path_affects_backend_policy(path: str) -> bool:
     return path_requires_stack_smoke(path)
 
 
+def path_requires_integration_verify(path: str) -> bool:
+    if path in INTEGRATION_VERIFY_EXACT_PATHS:
+        return True
+
+    if path.startswith(INTEGRATION_VERIFY_PREFIXES):
+        return True
+
+    if not path.startswith("apps/"):
+        return False
+
+    parts = path.split("/")
+
+    if len(parts) < 3:
+        return False
+
+    relative = "/".join(parts[2:])
+
+    if relative == "build.gradle.kts":
+        return True
+
+    if relative.startswith("src/test/"):
+        return True
+
+    if relative.startswith("src/main/resources/"):
+        return True
+
+    if relative.startswith("src/main/"):
+        return "/persistence/" in relative or "/integration/" in relative
+
+    return False
+
+
 def resolve_changes(paths: list[str]) -> dict[str, object]:
     projects = project_directories()
     dependencies = project_dependencies(projects)
@@ -286,6 +332,10 @@ def resolve_changes(paths: list[str]) -> dict[str, object]:
         "fast_path": fast_path,
         "stack_smoke_required": any(
             path_requires_stack_smoke(path)
+            for path in normalized_paths
+        ),
+        "integration_verify_required": any(
+            path_requires_integration_verify(path)
             for path in normalized_paths
         ),
     }

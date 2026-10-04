@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - ".github/workflows/backend-verify.yml"
+      - ".github/workflows/integration-verify.yml"
       - ".github/workflows/production*.yml"
       - ".env.example"
       - "Makefile"
@@ -32,6 +33,7 @@ on:
       - closed
     paths:
       - ".github/workflows/backend-verify.yml"
+      - ".github/workflows/integration-verify.yml"
       - ".github/workflows/production*.yml"
       - ".env.example"
       - "Makefile"
@@ -205,6 +207,7 @@ jobs:
               output.write("verification_tasks=" + " ".join(result["verification_tasks"]) + "\n")
               output.write("fast_path=" + str(result["fast_path"]).lower() + "\n")
               output.write("stack_smoke_required=" + str(result["stack_smoke_required"]).lower() + "\n")
+              output.write("integration_verify_required=" + str(result["integration_verify_required"]).lower() + "\n")
               output.write(
                   "dependency_scan_required="
                   + str(result["dependency_scan_required"]).lower()

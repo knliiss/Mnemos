@@ -149,6 +149,12 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if os.environ["STACK_SMOKE_REQUIRED"
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'expected["Stack Smoke"] = ".github/workflows/stack-smoke.yml"' ||
     fail "Backend deploy workflow must preserve the conditional trusted Stack Smoke gate"
 
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if os.environ["INTEGRATION_VERIFY_REQUIRED"] == "true":' ||
+    fail "Backend deploy workflow must require Integration Verify only for integration-sensitive target diffs"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'expected["Integration Verify"] = ".github/workflows/integration-verify.yml"' ||
+    fail "Backend deploy workflow must preserve the conditional trusted Integration Verify gate"
+
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'run.get("head_branch") == "master"' ||
     fail "Backend deploy CI gates must come from trusted master push runs"
 

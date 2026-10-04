@@ -1,0 +1,123 @@
+name: Integration Verify
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/integration-verify.yml"
+      - "build-logic/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "apps/**/build.gradle.kts"
+      - "apps/**/src/test/**"
+      - "apps/**/src/main/resources/**"
+      - "apps/**/src/main/**/persistence/**"
+      - "apps/**/src/main/**/integration/**"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+    paths:
+      - ".github/workflows/integration-verify.yml"
+      - "build-logic/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "apps/**/build.gradle.kts"
+      - "apps/**/src/test/**"
+      - "apps/**/src/main/resources/**"
+      - "apps/**/src/main/**/persistence/**"
+      - "apps/**/src/main/**/integration/**"
+  schedule:
+    - cron: "47 2 * * *"
+
+concurrency:
+  group: integration-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    if: github.event_name != 'pull_request' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 25
+
+    steps:
+      - name: Clean generated workspace state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "$GITHUB_WORKSPACE" ]; then
+            exit 0
+          fi
+
+          if ! timeout 5s docker info >/dev/null 2>&1; then
+            echo "::error::Docker daemon is unavailable; Integration Verify requires Docker for Testcontainers"
+            exit 1
+          fi
+
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            alpine:3.22 \
+            chown -R "$(id -u):$(id -g)" /workspace
+
+          find "$GITHUB_WORKSPACE" \
+            -type d \
+            \( -name build -o -name .kotlin -o -name __pycache__ \) \
+            -prune \
+            -exec rm -rf -- {} +
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Verify integration test policy
+        run: python3 scripts/verify-backend-ci-changes.py
+
+      - name: Resolve integration tasks
+        id: integration_tasks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tasks="$(python3 scripts/resolve_integration_test_tasks.py --format tasks)"
+          echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+          echo "Integration tasks: ${tasks:-none}"
+
+      - name: Run integration tests
+        if: steps.integration_tasks.outputs.tasks != ''
+        shell: bash
+        env:
+          INTEGRATION_TASKS: ${{ steps.integration_tasks.outputs.tasks }}
+        run: |
+          set -euo pipefail
+
+          read -r -a tasks <<< "$INTEGRATION_TASKS"
+          ./gradlew "${tasks[@]}"
