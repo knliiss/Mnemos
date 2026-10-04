@@ -176,6 +176,14 @@ printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
 
 STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
 
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '      - "scripts/**"'; then
+    fail "Stack Smoke must not run for arbitrary CI/helper script changes"
+fi
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "scripts/verify-kafka-message-auth-runtime.sh"' ||
+    fail "Stack Smoke must still cover runtime scripts it executes"
+
 if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '      - "apps/**"'; then
     fail "Stack Smoke must not run for every application source change"
 fi
