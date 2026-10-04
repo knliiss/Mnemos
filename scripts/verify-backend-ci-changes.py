@@ -77,6 +77,10 @@ def main() -> int:
         ":apps:account-service:check" in app_test_result["verification_tasks"],
         "Test-source changes must use the full project check",
     )
+    require(
+        app_test_result["integration_verify_required"],
+        "Application test changes must request the isolated Integration Verify workflow",
+    )
 
     app_resource_result = resolve_changes([
         "apps/account-service/src/main/resources/db/migration/V99__example.sql",
@@ -145,6 +149,10 @@ def main() -> int:
     require(
         global_result["stack_smoke_required"],
         "Global Gradle change must require Stack Smoke",
+    )
+    require(
+        global_result["integration_verify_required"],
+        "Global Gradle changes must require Integration Verify",
     )
 
     infrastructure_result = resolve_changes([
