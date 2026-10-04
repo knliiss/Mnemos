@@ -6,9 +6,13 @@ import com.mnemos.event.application.collector.service.ConfirmedEventRecorder
 import com.mnemos.event.application.collector.verification.EventConfirmationPolicy
 import com.mnemos.event.configuration.collector.EventVerificationProperties
 import com.mnemos.event.domain.booster.model.DomainBoosterType
+import com.mnemos.event.domain.item.model.DomainItemRarity
+import com.mnemos.event.domain.item.model.DomainItemType
 import com.mnemos.event.domain.verification.model.CollectorId
 import com.mnemos.event.domain.verification.model.EventFingerprint
 import com.mnemos.event.domain.verification.model.report.BoosterCollectorEventReport
+import com.mnemos.event.domain.verification.model.report.CollectorEventReport
+import com.mnemos.event.domain.verification.model.report.ItemDropCollectorEventReport
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -160,18 +164,102 @@ class SubmitEventReportServiceTest {
         verify(recorder, times(2)).record(any(), any())
     }
 
+    @Test
+    fun `cross collector item drop uses server arrival time when collector clocks drift`() {
+        val serverReceivedAt = Instant.parse("2026-10-04T00:00:00Z")
+        val report =
+            ItemDropCollectorEventReport(
+                itemName = "Лесной меч",
+                itemType = DomainItemType.SWORD,
+                droppedFor = "ExamplePlayer",
+                itemRarity = DomainItemRarity.MYTHICAL,
+            )
+
+        val first =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-1"),
+                    messageId = UUID.fromString("019c7b22-0000-7000-8000-000000000001"),
+                    observedAt = serverReceivedAt.plusSeconds(30),
+                    receivedAt = serverReceivedAt,
+                    report = report,
+                ),
+            )
+        val duplicate =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-2"),
+                    messageId = UUID.fromString("019c7b22-0000-7000-8000-000000000002"),
+                    observedAt = serverReceivedAt.minusSeconds(1),
+                    receivedAt = serverReceivedAt.plusMillis(150),
+                    report = report,
+                ),
+            )
+
+        assertEquals(SubmitEventReportStatus.RECORDED, first.status)
+        assertEquals(SubmitEventReportStatus.ALREADY_RECORDED, duplicate.status)
+        verify(recorder, times(1)).record(any(), any())
+    }
+
+    @Test
+    fun `cross collector duplicate observation does not suppress a later real item drop`() {
+        val serverReceivedAt = Instant.parse("2026-10-04T00:05:00Z")
+        val report =
+            ItemDropCollectorEventReport(
+                itemName = "Лесной меч",
+                itemType = DomainItemType.SWORD,
+                droppedFor = "ExamplePlayer",
+                itemRarity = DomainItemRarity.MYTHICAL,
+            )
+
+        service.execute(
+            command(
+                collectorId = CollectorId("collector-1"),
+                messageId = UUID.fromString("019c7b26-9400-7000-8000-000000000001"),
+                observedAt = serverReceivedAt.plusSeconds(30),
+                receivedAt = serverReceivedAt,
+                report = report,
+            ),
+        )
+        val duplicate =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-2"),
+                    messageId = UUID.fromString("019c7b26-9400-7000-8000-000000000002"),
+                    observedAt = serverReceivedAt.minusSeconds(1),
+                    receivedAt = serverReceivedAt.plusMillis(150),
+                    report = report,
+                ),
+            )
+        val laterRealDrop =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-2"),
+                    messageId = UUID.fromString("019c7b26-9400-7000-8000-000000000003"),
+                    observedAt = serverReceivedAt.plusSeconds(1),
+                    receivedAt = serverReceivedAt.plusSeconds(2),
+                    report = report,
+                ),
+            )
+
+        assertEquals(SubmitEventReportStatus.ALREADY_RECORDED, duplicate.status)
+        assertEquals(SubmitEventReportStatus.RECORDED, laterRealDrop.status)
+        verify(recorder, times(2)).record(any(), any())
+    }
+
     private fun command(
         collectorId: CollectorId,
         messageId: UUID,
         observedAt: Instant,
-        report: BoosterCollectorEventReport,
+        report: CollectorEventReport,
         activeCollectorCount: Int = 1,
+        receivedAt: Instant = observedAt.plusMillis(25),
     ): SubmitEventReportCommand =
         SubmitEventReportCommand(
             collectorId = collectorId,
             messageId = messageId,
             observedAt = observedAt,
-            receivedAt = observedAt.plusMillis(25),
+            receivedAt = receivedAt,
             activeCollectorCount = activeCollectorCount,
             report = report,
         )
