@@ -6,6 +6,9 @@ on:
       - master
     paths:
       - ".github/workflows/integration-verify.yml"
+      - "scripts/resolve_integration_test_tasks.py"
+      - "scripts/resolve_backend_ci_changes.py"
+      - "scripts/verify-backend-ci-changes.py"
       - "build-logic/**"
       - "contracts/**"
       - "libraries/**"
@@ -28,6 +31,9 @@ on:
       - closed
     paths:
       - ".github/workflows/integration-verify.yml"
+      - "scripts/resolve_integration_test_tasks.py"
+      - "scripts/resolve_backend_ci_changes.py"
+      - "scripts/verify-backend-ci-changes.py"
       - "build-logic/**"
       - "contracts/**"
       - "libraries/**"
@@ -104,10 +110,61 @@ jobs:
       - name: Resolve integration tasks
         id: integration_tasks
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
 
-          tasks="$(python3 scripts/resolve_integration_test_tasks.py --format tasks)"
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            tasks="$(python3 scripts/resolve_integration_test_tasks.py --all --format tasks)"
+          else
+            changed_paths="$RUNNER_TEMP/integration-changed-paths.txt"
+
+            case "$EVENT_NAME" in
+              pull_request)
+                base_sha="$PULL_REQUEST_BASE_SHA"
+                head_sha="$PULL_REQUEST_HEAD_SHA"
+                ;;
+              push)
+                base_sha="$PUSH_BASE_SHA"
+                head_sha="$PUSH_HEAD_SHA"
+                ;;
+              *)
+                echo "Unsupported Integration Verify event: $EVENT_NAME" >&2
+                exit 1
+                ;;
+            esac
+
+            if printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}
+      - name: Run integration tests
+        if: steps.integration_tasks.outputs.tasks != ''
+        shell: bash
+        env:
+          INTEGRATION_TASKS: ${{ steps.integration_tasks.outputs.tasks }}
+        run: |
+          set -euo pipefail
+
+          read -r -a tasks <<< "$INTEGRATION_TASKS"
+          ./gradlew "${tasks[@]}"
+ && \
+               [ "$base_sha" != "0000000000000000000000000000000000000000" ] && \
+               git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+              git diff --name-only "$base_sha" "$head_sha" > "$changed_paths"
+              tasks="$(
+                python3 scripts/resolve_integration_test_tasks.py \
+                  --paths-file "$changed_paths" \
+                  --format tasks
+              )"
+            else
+              echo "No usable event base SHA; running all integration suites" >&2
+              tasks="$(python3 scripts/resolve_integration_test_tasks.py --all --format tasks)"
+            fi
+          fi
+
           echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
           echo "Integration tasks: ${tasks:-none}"
 
