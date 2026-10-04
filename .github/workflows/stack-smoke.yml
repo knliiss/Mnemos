@@ -138,6 +138,7 @@ jobs:
             candidate=$((40000 + (preferred_port_base - 40000 + attempt * 7) % 18000))
             candidate=$((candidate - candidate % 7))
             block_free=true
+            publish_args=()
 
             for offset in $(seq 0 6); do
               port=$((candidate + offset))
@@ -146,12 +147,33 @@ jobs:
                 block_free=false
                 break
               fi
+
+              publish_args+=(
+                --publish
+                "127.0.0.1:${port}:$((10000 + offset))"
+              )
             done
 
-            if [ "$block_free" = true ]; then
+            if [ "$block_free" != true ]; then
+              continue
+            fi
+
+            probe_name="mnemos-port-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${attempt}"
+
+            if docker run \
+              --detach \
+              --rm \
+              --name "$probe_name" \
+              "${publish_args[@]}" \
+              alpine:3.22 \
+              sleep 30 \
+              >/dev/null 2>&1; then
+              docker rm --force "$probe_name" >/dev/null 2>&1 || true
               port_base="$candidate"
               break
             fi
+
+            docker rm --force "$probe_name" >/dev/null 2>&1 || true
           done
 
           if [ -z "$port_base" ]; then
