@@ -177,6 +177,10 @@ printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     fail "Stack Smoke nightly schedule changed unexpectedly"
 
 printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq 'mnemos-port-probe-${GITHUB_RUN_ID}' ||
+    fail "Stack Smoke must validate isolated host ports through Docker publishing, not Linux socket state alone"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     grep -Fq './gradlew assemble --console=plain --no-daemon' ||
     fail "Stack Smoke must assemble runtime artifacts without rerunning the full Gradle verification suite"
 
