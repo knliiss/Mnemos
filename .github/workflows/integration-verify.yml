@@ -139,18 +139,7 @@ jobs:
                 ;;
             esac
 
-            if printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}
-      - name: Run integration tests
-        if: steps.integration_tasks.outputs.tasks != ''
-        shell: bash
-        env:
-          INTEGRATION_TASKS: ${{ steps.integration_tasks.outputs.tasks }}
-        run: |
-          set -euo pipefail
-
-          read -r -a tasks <<< "$INTEGRATION_TASKS"
-          ./gradlew "${tasks[@]}"
- && \
+            if printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}$' && \
                [ "$base_sha" != "0000000000000000000000000000000000000000" ] && \
                git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
               git diff --name-only "$base_sha" "$head_sha" > "$changed_paths"
