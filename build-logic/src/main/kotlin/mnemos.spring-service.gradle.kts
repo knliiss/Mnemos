@@ -36,9 +36,11 @@ tasks.named<Test>("test") {
 }
 
 val testSourceSet = extensions.getByType<SourceSetContainer>().named("test")
-val integrationTaggedSources =
+val hasIntegrationTaggedTests =
     fileTree("src/test") {
         include("**/*.kt", "**/*.java")
+    }.files.any { source ->
+        source.readText().contains("@Tag(\"integration\")")
     }
 
 val integrationTest =
@@ -55,11 +57,7 @@ val integrationTest =
             includeTags("integration")
         }
 
-        onlyIf("integration-tagged tests exist") {
-            integrationTaggedSources.files.any { source ->
-                source.readText().contains("@Tag(\"integration\")")
-            }
-        }
+        enabled = hasIntegrationTaggedTests
     }
 
 tasks.named("check") {
