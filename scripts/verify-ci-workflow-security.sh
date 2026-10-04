@@ -129,8 +129,15 @@ printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "printf '%s\\n' 'settings.g
 printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: steps.backend_changes.outputs.dependency_scan_required == 'true'" ||
     fail "Backend dependency scanning must follow the affected-path resolver on both pushes and pull requests"
 
-printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: steps.backend_changes.outputs.check_tasks != ''" ||
-    fail "Backend Gradle verification must follow the affected-project resolver on both pushes and pull requests"
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: steps.backend_changes.outputs.verification_tasks != ''" ||
+    fail "Backend Gradle verification must use resolver-selected fast or full verification tasks"
+
+fast_guard_count="$(
+    printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" |
+        grep -Fc "if: steps.backend_changes.outputs.fast_path != 'true'" || true
+)"
+[ "$fast_guard_count" -ge 2 ] ||
+    fail "Backend source fast path must skip repository-wide Make and infrastructure verification"
 
 if printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: github.event_name == 'push' || steps.backend_changes.outputs.dependency_scan_required == 'true'"; then
     fail "Backend Verify must not force the dependency scan for every master push"
@@ -145,27 +152,33 @@ grep -Fq "NVD_API_KEY: \${{ github.event_name == 'push' && secrets.NVD_API_KEY |
 
 STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
 
-stack_app_scope_count="$(
-    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
-        grep -Fc '      - "apps/**"' || true
-)"
-[ "$stack_app_scope_count" -eq 1 ] ||
-    fail "Stack Smoke must run for all backend application changes only after they reach master"
-
-stack_mini_app_exclusion_count="$(
-    printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
-        grep -Fc '      - "!apps/mini-app/**"' || true
-)"
-[ "$stack_mini_app_exclusion_count" -eq 1 ] ||
-    fail "Stack Smoke master trigger must exclude Mini App-only changes"
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '      - "apps/**"'; then
+    fail "Stack Smoke must not run for every application source change"
+fi
 
 printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     grep -Fq '      - "apps/**/Dockerfile"' ||
-    fail "Stack Smoke pull requests must still cover application image definition changes"
+    fail "Stack Smoke must cover application image definition changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "apps/**/build.gradle.kts"' ||
+    fail "Stack Smoke must cover application build descriptor changes"
 
 printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     grep -Fq '      - "apps/**/src/main/resources/**"' ||
-    fail "Stack Smoke pull requests must still cover runtime configuration and migration changes"
+    fail "Stack Smoke must cover runtime configuration and migration changes"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '  schedule:' ||
+    fail "Stack Smoke must preserve a nightly full-runtime verification"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '    - cron: "17 2 * * *"' ||
+    fail "Stack Smoke nightly schedule changed unexpectedly"
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq 'mnemos-port-probe-${GITHUB_RUN_ID}' ||
+    fail "Stack Smoke must validate isolated host ports through Docker publishing, not Linux socket state alone"
 
 printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
     grep -Fq './gradlew assemble --console=plain --no-daemon' ||

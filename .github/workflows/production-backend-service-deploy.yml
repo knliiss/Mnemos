@@ -219,7 +219,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          python3 - <<'PY'
+          changed_paths="$RUNNER_TEMP/production-target-changed-paths.txt"
+
+          if git rev-parse "${TARGET_SHA}^" >/dev/null 2>&1; then
+            git diff --name-only "${TARGET_SHA}^" "$TARGET_SHA" > "$changed_paths"
+          else
+            printf '%s\n' 'settings.gradle.kts' > "$changed_paths"
+          fi
+
+          policy_json="$(python3 scripts/resolve_backend_ci_changes.py --paths-file "$changed_paths")"
+          stack_smoke_required="$(
+            POLICY_JSON="$policy_json" python3 - <<'PY'
+          import json
+          import os
+
+          policy = json.loads(os.environ["POLICY_JSON"])
+          print(str(bool(policy.get("stack_smoke_required"))).lower())
+          PY
+          )"
+
+          echo "Target Stack Smoke required: $stack_smoke_required"
+
+          STACK_SMOKE_REQUIRED="$stack_smoke_required" python3 - <<'PY'
           import json
           import os
           import urllib.parse
@@ -249,8 +270,11 @@ jobs:
 
           expected = {
               "Backend Verify": ".github/workflows/backend-verify.yml",
-              "Stack Smoke": ".github/workflows/stack-smoke.yml",
           }
+
+          if os.environ["STACK_SMOKE_REQUIRED"] == "true":
+              expected["Stack Smoke"] = ".github/workflows/stack-smoke.yml"
+
           runs = payload.get("workflow_runs", [])
 
           for workflow_name, workflow_path in expected.items():

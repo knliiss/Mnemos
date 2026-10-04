@@ -202,6 +202,9 @@ jobs:
 
           with open(output_path, "a", encoding="utf-8") as output:
               output.write("check_tasks=" + " ".join(result["check_tasks"]) + "\n")
+              output.write("verification_tasks=" + " ".join(result["verification_tasks"]) + "\n")
+              output.write("fast_path=" + str(result["fast_path"]).lower() + "\n")
+              output.write("stack_smoke_required=" + str(result["stack_smoke_required"]).lower() + "\n")
               output.write(
                   "dependency_scan_required="
                   + str(result["dependency_scan_required"]).lower()
@@ -213,9 +216,11 @@ jobs:
           cat "$result"
 
       - name: Verify Make wiring
+        if: steps.backend_changes.outputs.fast_path != 'true'
         run: make make-verify
 
       - name: Verify infrastructure configuration
+        if: steps.backend_changes.outputs.fast_path != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -320,15 +325,15 @@ jobs:
           ./gradlew dependencyCheckAggregate --no-daemon --no-configuration-cache --no-parallel
 
       - name: Verify backend
-        if: steps.backend_changes.outputs.check_tasks != ''
+        if: steps.backend_changes.outputs.verification_tasks != ''
         shell: bash
         env:
-          CHECK_TASKS: ${{ steps.backend_changes.outputs.check_tasks }}
+          VERIFICATION_TASKS: ${{ steps.backend_changes.outputs.verification_tasks }}
         run: |
           set -euo pipefail
 
-          read -r -a tasks <<< "$CHECK_TASKS"
-          ./gradlew "${tasks[@]}" --no-daemon
+          read -r -a tasks <<< "$VERIFICATION_TASKS"
+          ./gradlew "${tasks[@]}"
 
   report:
     if: always() && github.event_name == 'push'
