@@ -82,7 +82,7 @@ on:
       - ".github/workflows/stack-smoke.yml"
 
 concurrency:
-  group: stack-smoke-${{ github.ref }}
+  group: stack-smoke-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
