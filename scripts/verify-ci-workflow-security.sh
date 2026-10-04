@@ -72,6 +72,9 @@ verify_read_only_pr_job() {
     grep -Fq '      - closed' "$workflow" ||
         fail "$description workflow must subscribe to pull request close events to cancel stale runner work"
 
+    grep -Fq '${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}' "$workflow" ||
+        fail "$description workflow concurrency must isolate pull-request close cancellation from master pushes"
+
     printf '%s\n' "$job" |
         grep -Fq "github.event.action != 'closed'" ||
         fail "$description heavy PR job must skip the close-event cancellation run"
