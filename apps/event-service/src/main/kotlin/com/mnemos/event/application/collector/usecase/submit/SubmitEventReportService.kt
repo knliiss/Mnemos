@@ -66,18 +66,38 @@ class SubmitEventReportService(
             return processRetry(retryCandidate)
         }
 
+        val observation =
+            EventObservation(
+                collectorId = command.collectorId,
+                messageId = command.messageId,
+                observedAt = command.observedAt,
+                receivedAt = command.receivedAt,
+            )
+
         val crossCollectorRecordedDuplicate =
             candidates.firstOrNull {
                 it.status == EventCandidateStatus.RECORDED &&
                     !it.hasCollector(command.collectorId) &&
-                    it.matchesTime(
-                        observedAt = command.observedAt,
-                        matchingWindow = properties.crossCollectorDuplicateWindow,
+                    (
+                        it.matchesTime(
+                            observedAt = command.observedAt,
+                            matchingWindow = properties.crossCollectorDuplicateWindow,
+                        ) ||
+                            it.matchesReceivedTime(
+                                receivedAt = command.receivedAt,
+                                matchingWindow = properties.crossCollectorArrivalWindow,
+                            )
                     )
             }
 
         if (crossCollectorRecordedDuplicate != null) {
-            return processRetry(crossCollectorRecordedDuplicate)
+            val acceptResult = crossCollectorRecordedDuplicate.accept(observation)
+
+            return ProcessingResult(
+                candidate = crossCollectorRecordedDuplicate,
+                status = acceptResult.toSubmitStatus(),
+                shouldRecord = crossCollectorRecordedDuplicate.tryStartRecording(),
+            )
         }
 
         val repeatedObservationCandidate =
@@ -104,20 +124,16 @@ class SubmitEventReportService(
                     it.matchesTime(
                         observedAt = command.observedAt,
                         matchingWindow = properties.matchingWindow,
-                    )
+                    ) ||
+                        it.matchesReceivedTime(
+                            receivedAt = command.receivedAt,
+                            matchingWindow = properties.crossCollectorArrivalWindow,
+                        )
                 }.filterNot {
                     it.hasCollector(command.collectorId)
                 }.minByOrNull {
-                    it.referenceObservedAt
+                    it.referenceReceivedAt
                 }
-
-        val observation =
-            EventObservation(
-                collectorId = command.collectorId,
-                messageId = command.messageId,
-                observedAt = command.observedAt,
-                receivedAt = command.receivedAt,
-            )
 
         if (candidate == null) {
             return createCandidate(
