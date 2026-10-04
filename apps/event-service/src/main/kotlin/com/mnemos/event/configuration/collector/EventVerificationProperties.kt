@@ -7,6 +7,7 @@ import java.time.Duration
 data class EventVerificationProperties(
     val matchingWindow: Duration = Duration.ofSeconds(5),
     val crossCollectorDuplicateWindow: Duration = Duration.ofSeconds(30),
+    val crossCollectorArrivalWindow: Duration = Duration.ofSeconds(5),
     val candidateTtl: Duration = Duration.ofMinutes(1),
 ) {
     init {
@@ -17,6 +18,10 @@ data class EventVerificationProperties(
         require(!crossCollectorDuplicateWindow.isZero)
         require(crossCollectorDuplicateWindow >= matchingWindow)
 
+        require(!crossCollectorArrivalWindow.isNegative)
+        require(!crossCollectorArrivalWindow.isZero)
+
         require(candidateTtl > crossCollectorDuplicateWindow)
+        require(candidateTtl > crossCollectorArrivalWindow)
     }
 }
