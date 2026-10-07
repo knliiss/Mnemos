@@ -223,7 +223,7 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
         }
     }
 
-    private fun allowed(method: String, path: String): Boolean {
+    internal fun allowed(method: String, path: String): Boolean {
         if (path.length > 256 || path.contains("..") || path.contains("%") || path.contains("#")) return false
         val noQuery = path.substringBefore('?')
         if (noQuery != path && !(method == "GET" &&
