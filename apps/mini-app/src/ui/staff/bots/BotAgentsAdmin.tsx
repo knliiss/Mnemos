@@ -33,14 +33,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [chatText, setChatText] = useState("")
   const [realm, setRealm] = useState("1")
   const [navigation, setNavigation] = useState({ x: "0", y: "64", z: "0" })
+  const [groupState, setGroupState] = useState<RemoteGroupState>({ state: { groups: [], assignments: {} }, revision: 0 })
+  const [groupFilter, setGroupFilter] = useState("")
+  const [proxyPools, setProxyPools] = useState<ProxyPool[]>([])
+  const [poolEditor, setPoolEditor] = useState(false)
+  const [poolName, setPoolName] = useState("")
+  const [poolProxies, setPoolProxies] = useState("")
+  const [poolStrategy, setPoolStrategy] = useState("STICKY")
   const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [diagnostics, setDiagnostics] = useState<unknown>(null)
 
   const active = agents.find((agent) => agent.id === selected)
   const account = accounts.find((entry) => entry.id === accountId)
   const visibleAccounts = useMemo(
-    () => accounts.filter((entry) => entry.username.toLowerCase().includes(query.toLowerCase())),
-    [accounts, query],
+    () => accounts.filter((entry) => entry.username.toLowerCase().includes(query.toLowerCase()) &&
+      (!groupFilter || groupState.state.assignments[entry.id] === groupFilter)),
+    [accounts, query, groupFilter, groupState],
   )
   const formatDate = (date: string | null) =>
     date ? new Date(date).toLocaleString() : "Ніколи"
