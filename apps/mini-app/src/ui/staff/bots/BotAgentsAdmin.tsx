@@ -50,6 +50,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [proxyUsername, setProxyUsername] = useState("")
   const [proxyPassword, setProxyPassword] = useState("")
   const [proxyType, setProxyType] = useState("SOCKS5")
+  const [networkMode, setNetworkMode] = useState("DIRECT")
   const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [diagnostics, setDiagnostics] = useState<unknown>(null)
 
@@ -134,6 +135,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     void getBotNetwork(selected, accountId).then((value) => {
       if (cancelled) return
       setNetwork(value)
+      setNetworkMode(value.proxy.mode)
       setProxyHost(value.proxy.host ?? "")
       setProxyPort(String(value.proxy.port ?? 1080))
       setProxyUsername(value.proxy.username ?? "")
@@ -254,6 +256,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     await run(async () => {
       const next = await updateBotNetwork(selected, accountId, changes)
       setNetwork(next)
+      setNetworkMode(next.proxy.mode)
     })
   }
 
@@ -491,9 +494,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     <div className="c7x-admin-network">
                       <div className="c7x-admin-form-inline">
                         <label>Тип підключення
-                          <select value={network.proxy.mode} disabled={busy} onChange={(event) => {
+                          <select value={networkMode} disabled={busy} onChange={(event) => {
                             const mode = event.target.value
-                            if (mode === "POOL" && !proxyPools.length) return
+                            setNetworkMode(mode)
+                            if (mode === "CUSTOM" || (mode === "POOL" && !proxyPools.length)) return
                             void applyNetwork({ proxy: mode === "POOL" ?
                               { mode, poolName: proxyPools[0].name } : { mode } })
                           }}>
@@ -512,7 +516,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           </label>
                         ) : null}
                       </div>
-                      {network.proxy.mode === "CUSTOM" ? (
+                      {networkMode === "CUSTOM" ? (
                         <form className="c7x-admin-form" onSubmit={(event) => {
                           event.preventDefault()
                           void applyNetwork({ proxy: {
@@ -521,7 +525,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           } })
                         }}>
                           <div className="c7x-admin-form-inline">
-                            <label>Протокол<select value={proxyType} onChange={(event) => setProxyType(event.target.value)}><option value="SOCKS5">SOCKS5</option><option value="HTTP">HTTP</option></select></label>
+                            <label>Протокол<select value={proxyType} onChange={(event) => setProxyType(event.target.value)}><option value="SOCKS5">SOCKS5</option><option value="SOCKS4">SOCKS4</option><option value="HTTP">HTTP</option><option value="HTTPS">HTTPS</option></select></label>
                             <label>Хост<input value={proxyHost} onChange={(event) => setProxyHost(event.target.value)} required /></label>
                             <label>Порт<input type="number" min="1" max="65535" value={proxyPort} onChange={(event) => setProxyPort(event.target.value)} required /></label>
                           </div>
