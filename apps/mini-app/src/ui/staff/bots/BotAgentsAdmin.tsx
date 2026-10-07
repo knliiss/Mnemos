@@ -4,7 +4,8 @@ import {
   botAccounts, botAction, botChat, botLogs, botManager, botSettings, createBotAgent,
   getBotAgents, renameBotAgent, revokeBotAgent, workerRequest,
   getBotGroups, saveBotGroups, getBotProxyPools, modifyBotProxyPool,
-  type RemoteGroupState, type ProxyPool,
+  getBotNetwork, updateBotNetwork,
+  type RemoteGroupState, type ProxyPool, type AccountNetwork,
   type AgentCreation, type BotAccount, type BotAgent,
 } from "@/shared/api/botAgentApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -43,6 +44,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [poolName, setPoolName] = useState("")
   const [poolProxies, setPoolProxies] = useState("")
   const [poolStrategy, setPoolStrategy] = useState("STICKY")
+  const [network, setNetwork] = useState<AccountNetwork | null>(null)
+  const [proxyHost, setProxyHost] = useState("")
+  const [proxyPort, setProxyPort] = useState("1080")
+  const [proxyUsername, setProxyUsername] = useState("")
+  const [proxyPassword, setProxyPassword] = useState("")
+  const [proxyType, setProxyType] = useState("SOCKS5")
   const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [diagnostics, setDiagnostics] = useState<unknown>(null)
 
@@ -118,6 +125,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     void poll()
     const timer = window.setInterval(() => void poll(), 2500)
     return () => { running = false; window.clearInterval(timer) }
+  }, [selected, accountId, active?.online])
+
+  useEffect(() => {
+    setNetwork(null)
+    if (!selected || !accountId || !active?.online) return
+    let cancelled = false
+    void getBotNetwork(selected, accountId).then((value) => {
+      if (cancelled) return
+      setNetwork(value)
+      setProxyHost(value.proxy.host ?? "")
+      setProxyPort(String(value.proxy.port ?? 1080))
+      setProxyUsername(value.proxy.username ?? "")
+      setProxyType(value.proxy.type ?? "SOCKS5")
+      setProxyPassword("")
+    }).catch(handleError)
+    return () => { cancelled = true }
   }, [selected, accountId, active?.online])
 
   async function run(task: () => Promise<unknown>, refresh = true) {
@@ -224,6 +247,14 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     if (id) assignments[accountId] = id
     else delete assignments[accountId]
     await updateGroups({ ...groupState.state, assignments })
+  }
+
+  async function applyNetwork(changes: Record<string, unknown>) {
+    if (!selected || !accountId) return
+    await run(async () => {
+      const next = await updateBotNetwork(selected, accountId, changes)
+      setNetwork(next)
+    })
   }
 
   async function proxyOperation(data: Record<string, unknown>) {
