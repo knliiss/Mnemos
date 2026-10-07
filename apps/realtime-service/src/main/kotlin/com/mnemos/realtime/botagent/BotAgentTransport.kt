@@ -206,7 +206,7 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
             send(session, mapOf("type" to "request", "requestId" to requestId.toString(),
                 "method" to method, "path" to path, "body" to body))
             return try {
-                response.get(12, TimeUnit.SECONDS)
+                response.get(if (path == "/api/accounts/manage") 75 else if (path == "/api/proxy-pools" && method == "POST") 65 else 22, TimeUnit.SECONDS)
             } catch (_: java.util.concurrent.TimeoutException) {
                 throw ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "Worker did not respond")
             } catch (_: Exception) {
