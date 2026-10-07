@@ -99,3 +99,12 @@ export const getBotProxyPools = (workerId: string) =>
   workerRequest<{ pools: ProxyPool[] }>(workerId, "GET", "/api/proxy-pools")
 export const modifyBotProxyPool = (workerId: string, body: Record<string, unknown>) =>
   workerRequest<{ pools: ProxyPool[] }>(workerId, "POST", "/api/proxy-pools", body)
+
+export type AccountNetwork = {
+  proxy: { mode: string; type?: string; host?: string; port?: number; username?: string; poolName?: string; passwordSet?: boolean }
+  spoof: { mode: string; profileName?: string; os?: string; cpu?: string; gpu?: string; ramGb?: number; cores?: number }
+}
+export const getBotNetwork = (workerId: string, accountId: string) =>
+  workerRequest<AccountNetwork>(workerId, "GET", `/api/account/${accountId}/network`)
+export const updateBotNetwork = (workerId: string, accountId: string, body: Record<string, unknown>) =>
+  workerRequest<AccountNetwork>(workerId, "POST", `/api/account/${accountId}/network`, body)
