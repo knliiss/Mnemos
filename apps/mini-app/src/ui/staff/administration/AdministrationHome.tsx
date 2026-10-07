@@ -234,8 +234,8 @@ export function AdministrationHome({
 
         <AdministrationWorkspace
           illustration="/ui-illustrations/bot-agent-workspace.svg"
-          title="Керування ботами"
-          description="Підключені ПК, акаунти Cristalix, автоматизація та журнали."
+          title={t("administration.botAgents")}
+          description={t("administration.botAgentsDescription")}
           tone="bots"
           onClick={() => navigate({ id: "bot-agent-admin" })}
         />
