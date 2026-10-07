@@ -35,6 +35,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [navigation, setNavigation] = useState({ x: "0", y: "64", z: "0" })
   const [groupState, setGroupState] = useState<RemoteGroupState>({ state: { groups: [], assignments: {} }, revision: 0 })
   const [groupFilter, setGroupFilter] = useState("")
+  const [groupName, setGroupName] = useState("")
   const [proxyPools, setProxyPools] = useState<ProxyPool[]>([])
   const [poolEditor, setPoolEditor] = useState(false)
   const [poolName, setPoolName] = useState("")
@@ -164,6 +165,52 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       })
       setLogin(false); setLoginPassword(""); setLoginOtp(""); setLoginName("")
     })
+  }
+
+  async function updateGroups(state: RemoteGroupState["state"]) {
+    if (!selected) return
+    await run(async () => {
+      const next = await saveBotGroups(selected, { state, revision: groupState.revision })
+      setGroupState(next)
+    }, false)
+  }
+
+  async function addGroup() {
+    const name = groupName.trim()
+    if (!name || name.length > 64 || !selected) return
+    const id = crypto.randomUUID()
+    await updateGroups({
+      groups: [...groupState.state.groups, { id, name }],
+      assignments: groupState.state.assignments,
+    })
+    setGroupName("")
+  }
+
+  async function deleteGroup(id: string) {
+    if (!window.confirm("Видалити групу? Акаунти залишаться у програмі.")) return
+    const assignments = Object.fromEntries(
+      Object.entries(groupState.state.assignments).filter(([, groupId]) => groupId !== id),
+    )
+    await updateGroups({
+      groups: groupState.state.groups.filter((group) => group.id !== id),
+      assignments,
+    })
+    if (groupFilter === id) setGroupFilter("")
+  }
+
+  async function assignGroup(accountId: string, id: string) {
+    const assignments = { ...groupState.state.assignments }
+    if (id) assignments[accountId] = id
+    else delete assignments[accountId]
+    await updateGroups({ ...groupState.state, assignments })
+  }
+
+  async function proxyOperation(data: Record<string, unknown>) {
+    if (!selected) return
+    await run(async () => {
+      const result = await modifyBotProxyPool(selected, data)
+      setProxyPools(result.pools)
+    }, false)
   }
 
   if (!authorized) return <div className="screen"><PageHeader title="Боти" back={back} /><p>Доступ лише для адміністратора.</p></div>
