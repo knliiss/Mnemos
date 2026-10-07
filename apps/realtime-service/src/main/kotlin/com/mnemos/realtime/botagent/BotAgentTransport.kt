@@ -10,7 +10,14 @@ import org.springframework.http.server.ServerHttpResponse
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
@@ -134,7 +141,14 @@ class BotAgentRegistry(private val jdbc: JdbcTemplate) {
 @Component
 class BotAgentSessions(private val mapper: ObjectMapper, private val registry: BotAgentRegistry) {
     private val active = ConcurrentHashMap<UUID, WebSocketSession>()
-    private val pending = ConcurrentHashMap<UUID, CompletableFuture<JsonNode>>()
+    private data class PendingRequest(
+        val agentId: UUID,
+        val sessionId: String,
+        val future: CompletableFuture<JsonNode>,
+    )
+
+    private val lastActive = ConcurrentHashMap<UUID, Instant>()
+    private val pending = ConcurrentHashMap<UUID, PendingRequest>()
 
     fun connected(id: UUID, session: WebSocketSession) {
         active.put(id, session)?.let { previous ->
@@ -142,32 +156,50 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
         }
     }
 
-    fun isOnline(id: UUID): Boolean = active[id]?.isOpen == true
+    fun ready(id: UUID, session: WebSocketSession) {
+        if (active[id] === session) lastActive[id] = Instant.now()
+    }
+
+    fun isReady(id: UUID, session: WebSocketSession): Boolean =
+        active[id] === session && isOnline(id)
+
+    fun isOnline(id: UUID): Boolean {
+        val lastSeen = lastActive[id] ?: return false
+        return active[id]?.isOpen == true && lastSeen.isAfter(Instant.now().minusSeconds(35))
+    }
 
     fun disconnected(id: UUID, session: WebSocketSession) {
-        if (active.remove(id, session)) registry.disconnected(id)
+        if (active.remove(id, session)) {
+            lastActive.remove(id)
+            pending.values.filter { it.agentId == id }.forEach { it.future.completeExceptionally(IllegalStateException("Disconnected")) }
+            registry.disconnected(id)
+        }
     }
 
     fun close(id: UUID) {
         active.remove(id)?.let { runCatching { it.close(CloseStatus.POLICY_VIOLATION) } }
+        lastActive.remove(id)
+        pending.values.filter { it.agentId == id }.forEach { it.future.completeExceptionally(IllegalStateException("Revoked")) }
         registry.disconnected(id)
     }
 
-    fun complete(message: JsonNode) {
+    fun complete(id: UUID, session: WebSocketSession, message: JsonNode) {
         val requestId = runCatching { UUID.fromString(message.path("requestId").asText()) }.getOrNull() ?: return
-        pending.remove(requestId)?.complete(message)
+        val request = pending[requestId] ?: return
+        if (request.agentId != id || request.sessionId != session.id || active[id] !== session) return
+        if (pending.remove(requestId, request)) request.future.complete(message)
     }
 
     fun request(id: UUID, method: String, path: String, body: JsonNode?): JsonNode {
         if (!allowed(method, path) || (body != null && body.toString().length > 32_768)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported worker operation")
         }
-        val session = active[id]?.takeIf { it.isOpen }
+        val session = active[id]?.takeIf { isOnline(id) }
             ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Worker is offline")
         if (pending.size >= 100) throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS)
         val requestId = UUID.randomUUID()
         val response = CompletableFuture<JsonNode>()
-        pending[requestId] = response
+        pending[requestId] = PendingRequest(id, session.id, response)
         try {
             send(session, mapOf("type" to "request", "requestId" to requestId.toString(),
                 "method" to method, "path" to path, "body" to body))
@@ -251,10 +283,16 @@ class BotAgentSocket(
         when (node.path("type").asText()) {
             "hello" -> try {
                 registry.hello(id, node)
+                sessions.ready(id, session)
                 sessions.send(session, mapOf("type" to "ready"))
             } catch (_: IllegalArgumentException) { session.close(CloseStatus.BAD_DATA) }
-            "heartbeat" -> registry.heartbeat(id)
-            "response" -> sessions.complete(node)
+            "heartbeat" -> if (sessions.isReady(id, session)) {
+                sessions.ready(id, session)
+                registry.heartbeat(id)
+            } else session.close(CloseStatus.POLICY_VIOLATION)
+            "response" -> if (sessions.isReady(id, session)) {
+                sessions.complete(id, session, node)
+            } else session.close(CloseStatus.POLICY_VIOLATION)
             else -> session.close(CloseStatus.BAD_DATA)
         }
     }
