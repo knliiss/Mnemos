@@ -118,6 +118,11 @@ spring:
               predicates:
                 - Path=/api/v1/payments/**
 
+            - id: bot-agent-websocket
+              uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
+              predicates:
+                - Path=/ws/v1/bot-agent
+
             - id: collector-websocket
               uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
               predicates:
