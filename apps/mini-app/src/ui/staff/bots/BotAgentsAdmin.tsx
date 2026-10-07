@@ -114,7 +114,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function removeWorker(agent: BotAgent) {
-    if (!window.confirm(\`Відкликати доступ програми «\${agent.name}»? Запис залишиться в історії.\`)) return
+    if (!window.confirm(`Відкликати доступ програми «${agent.name}»? Запис залишиться в історії.`)) return
     await run(async () => { await revokeBotAgent(agent.id); await refreshAgents() }, false)
   }
 
@@ -181,11 +181,11 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       {agents.length === 0 ? <p className="c7x-admin-muted">Ще немає зареєстрованих програм.</p> : null}
       <div className="c7x-admin-agent-list">
         {agents.map((agent) => (
-          <div className={\`c7x-admin-card c7x-admin-agent \${selected === agent.id ? "is-selected" : ""}\`} key={agent.id}>
+          <div className={`c7x-admin-card c7x-admin-agent ${selected === agent.id ? "is-selected" : ""}`} key={agent.id}>
             <button type="button" className="c7x-admin-agent-main" onClick={() => setSelected(agent.id)}>
-              <span className={\`c7x-admin-dot \${agent.online ? "is-online" : ""}\`} />
+              <span className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />
               <span><strong>{agent.name}</strong><small>{agent.machineName ?? "ПК не визначений"} · {agent.revoked ? "Доступ відкликано" : agent.online ? "Працює" : "Вимкнено"}</small></span>
-              <span className="c7x-admin-last">{agent.online ? "Онлайн" : \`Був: \${formatDate(agent.lastSeenAt)}\`}</span>
+              <span className="c7x-admin-last">{agent.online ? "Онлайн" : `Був: ${formatDate(agent.lastSeenAt)}`}</span>
             </button>
             <div className="c7x-admin-agent-actions">
               <button type="button" onClick={() => void renameWorker(agent)} disabled={busy || agent.revoked}>Назва</button>
@@ -227,7 +227,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
               <div className="c7x-admin-accounts">
                 {visibleAccounts.map((item) => (
                   <div key={item.id} className="c7x-admin-account-line">
-                    <input type="checkbox" aria-label={\`Вибрати \${item.username}\`} checked={chosen.includes(item.id)}
+                    <input type="checkbox" aria-label={`Вибрати ${item.username}`} checked={chosen.includes(item.id)}
                       onChange={(e) => setChosen((current) => e.target.checked ? [...current, item.id] : current.filter((x) => x !== item.id))} />
                     <button type="button" className={accountId === item.id ? "is-selected" : ""} onClick={() => setAccountId(item.id)}>
                       <strong>{item.username}</strong><small>{item.realm ?? "Без реалму"} · {item.activity}</small>
@@ -292,12 +292,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <button type="button" disabled={busy} onClick={() => {
                     if (!selected) return
                     void run(async () => {
-                      setDiagnostics(await workerRequest(selected, "GET", \`/api/account/\${account.id}/diagnostics\`))
+                      setDiagnostics(await workerRequest(selected, "GET", `/api/account/${account.id}/diagnostics`))
                       setShowDiagnostics(true)
                     }, false)
                   }}>Отримати діагностику</button>
                   {showDiagnostics ? <pre className="c7x-admin-log">{JSON.stringify(diagnostics, null, 2)}</pre> : null}
-                  <div className="c7x-admin-section-head"><h3>Журнал</h3><button type="button" onClick={() => void navigator.clipboard.writeText(logEntries.map((x) => \`[\${x.timestamp}] \${x.category} \${x.message}\`).join("\n"))}>Копіювати</button></div>
+                  <div className="c7x-admin-section-head"><h3>Журнал</h3><button type="button" onClick={() => void navigator.clipboard.writeText(logEntries.map((x) => `[${x.timestamp}] ${x.category} ${x.message}`).join("\n"))}>Копіювати</button></div>
                   <div className="c7x-admin-log">{logEntries.length ? logEntries.map((entry) =>
                     <div key={entry.sequence}><small>{entry.timestamp} · {entry.category}</small><span>{entry.message}</span></div>) : "Записів поки немає"}</div>
                 </section>
