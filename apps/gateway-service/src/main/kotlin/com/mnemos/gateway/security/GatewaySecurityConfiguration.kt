@@ -26,7 +26,7 @@ class GatewaySecurityConfiguration(
                 it.pathMatchers(HttpMethod.POST, "/api/v1/realtime/collector-activations/redeem").permitAll()
                 it.pathMatchers(HttpMethod.POST, "/internal/v1/crystalrun/item-drops").permitAll()
                 it.pathMatchers(HttpMethod.GET, "/api/v1/realtime/collector-credentials/validate").permitAll()
-                it.pathMatchers("/ws/v1/collector").permitAll()
+                it.pathMatchers("/ws/v1/collector", "/ws/v1/bot-agent").permitAll()
                 it.anyExchange().authenticated()
             }.oauth2ResourceServer {
                 it.jwt { }
