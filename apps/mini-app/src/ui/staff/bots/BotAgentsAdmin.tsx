@@ -76,7 +76,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     setAccountId(null)
     setLogEntries([])
     setChosen([])
-    if (!selected || !active?.online) return
+    setProxyPools([])
+    setGroupFilter("")
+    if (!selected) return
+    void getBotGroups(selected).then(setGroupState).catch(handleError)
+    if (!active?.online) return
+    void getBotProxyPools(selected).then((value) => setProxyPools(value.pools)).catch(handleError)
     void refreshAccounts(selected)
     const timer = window.setInterval(() => void refreshAccounts(selected), 4_000)
     return () => window.clearInterval(timer)
