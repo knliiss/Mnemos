@@ -316,6 +316,41 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 ))}
               </div>
 
+              <section className="c7x-admin-card c7x-admin-pools">
+                <div className="c7x-admin-section-head">
+                  <h3>Пули проксі · {proxyPools.length}</h3>
+                  <button type="button" onClick={() => setPoolEditor((value) => !value)}>{poolEditor ? "Закрити" : "+ Налаштувати"}</button>
+                </div>
+                {proxyPools.map((pool) => (
+                  <div className="c7x-admin-pool" key={pool.name}>
+                    <span><strong>{pool.name}</strong><small>{pool.strategy} · {pool.count} проксі · {pool.entries.filter((entry) => entry.healthy).length} здорових</small></span>
+                    <button disabled={busy} onClick={() => void proxyOperation({ action: "test", name: pool.name })}>Тест</button>
+                    {chosen.length > 0 ? <button disabled={busy} onClick={() => void bulk("bulkPool", { poolName: pool.name })}>Призначити {chosen.length}</button> : null}
+                    <button disabled={busy} onClick={() => {
+                      if (window.confirm("Видалити пул " + pool.name + "?")) void proxyOperation({ action: "delete", name: pool.name })
+                    }}>×</button>
+                  </div>
+                ))}
+                {poolEditor ? (
+                  <form className="c7x-admin-form" onSubmit={(event) => {
+                    event.preventDefault()
+                    void proxyOperation({ action: "upsert", name: poolName.trim(), strategy: poolStrategy, proxies: poolProxies })
+                  }}>
+                    <label>Назва пулу<input value={poolName} maxLength={64} onChange={(event) => setPoolName(event.target.value)} required /></label>
+                    <label>Стратегія
+                      <select value={poolStrategy} onChange={(event) => setPoolStrategy(event.target.value)}>
+                        <option value="STICKY">Постійний проксі</option>
+                        <option value="ROUND_ROBIN">По черзі</option>
+                        <option value="LEAST_USED">Найменш зайнятий</option>
+                      </select>
+                    </label>
+                    <label>Проксі (по одному в рядку)
+                      <textarea rows={4} value={poolProxies} placeholder="socks5://user:password@host:port" onChange={(event) => setPoolProxies(event.target.value)} />
+                    </label>
+                    <button type="submit" disabled={busy || !poolName.trim()}>Зберегти пул на ПК</button>
+                  </form>
+                ) : null}
+              </section>
               {account ? (
                 <section className="c7x-admin-card c7x-admin-detail">
                   <div className="c7x-admin-section-head"><h2>{account.username}</h2><span>{account.location ?? "—"}</span></div>
