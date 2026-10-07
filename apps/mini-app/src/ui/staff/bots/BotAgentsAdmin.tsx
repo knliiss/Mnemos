@@ -486,6 +486,72 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     <input value={chatText} maxLength={256} onChange={(e) => setChatText(e.target.value)} placeholder="Написати повідомлення…" />
                     <button disabled={busy || !chatText.trim()} type="submit">Надіслати</button>
                   </form>
+                  <h3>Мережа та Spoof</h3>
+                  {network ? (
+                    <div className="c7x-admin-network">
+                      <div className="c7x-admin-form-inline">
+                        <label>Тип підключення
+                          <select value={network.proxy.mode} disabled={busy} onChange={(event) => {
+                            const mode = event.target.value
+                            if (mode === "POOL" && !proxyPools.length) return
+                            void applyNetwork({ proxy: mode === "POOL" ?
+                              { mode, poolName: proxyPools[0].name } : { mode } })
+                          }}>
+                            <option value="INHERIT">За замовчуванням</option>
+                            <option value="DIRECT">Пряме</option>
+                            <option value="POOL" disabled={!proxyPools.length}>Пул проксі</option>
+                            <option value="CUSTOM">Власний проксі</option>
+                          </select>
+                        </label>
+                        {network.proxy.mode === "POOL" ? (
+                          <label>Пул
+                            <select value={network.proxy.poolName ?? ""} disabled={busy}
+                              onChange={(event) => void applyNetwork({ proxy: { mode: "POOL", poolName: event.target.value } })}>
+                              {proxyPools.map((pool) => <option key={pool.name} value={pool.name}>{pool.name}</option>)}
+                            </select>
+                          </label>
+                        ) : null}
+                      </div>
+                      {network.proxy.mode === "CUSTOM" ? (
+                        <form className="c7x-admin-form" onSubmit={(event) => {
+                          event.preventDefault()
+                          void applyNetwork({ proxy: {
+                            mode: "CUSTOM", type: proxyType, host: proxyHost, port: Number(proxyPort),
+                            username: proxyUsername, ...(proxyPassword ? { password: proxyPassword } : {}),
+                          } })
+                        }}>
+                          <div className="c7x-admin-form-inline">
+                            <label>Протокол<select value={proxyType} onChange={(event) => setProxyType(event.target.value)}><option value="SOCKS5">SOCKS5</option><option value="HTTP">HTTP</option></select></label>
+                            <label>Хост<input value={proxyHost} onChange={(event) => setProxyHost(event.target.value)} required /></label>
+                            <label>Порт<input type="number" min="1" max="65535" value={proxyPort} onChange={(event) => setProxyPort(event.target.value)} required /></label>
+                          </div>
+                          <div className="c7x-admin-form-inline">
+                            <label>Користувач<input value={proxyUsername} onChange={(event) => setProxyUsername(event.target.value)} /></label>
+                            <label>Новий пароль (необов’язково)<input type="password" value={proxyPassword} onChange={(event) => setProxyPassword(event.target.value)} /></label>
+                          </div>
+                          <button type="submit" disabled={busy || !proxyHost.trim()}>Зберегти проксі</button>
+                        </form>
+                      ) : null}
+                      <div className="c7x-admin-form-inline">
+                        <label>Spoof-профіль
+                          <select value={network.spoof.mode} disabled={busy}
+                            onChange={(event) => void applyNetwork({ spoof: { mode: event.target.value } })}>
+                            <option value="INHERIT">За замовчуванням</option>
+                            <option value="DISABLED">Вимкнено</option>
+                            <option value="PERSISTENT">Постійний</option>
+                            <option value="SESSION_RANDOM">Новий на сесію</option>
+                          </select>
+                        </label>
+                        <button type="button" disabled={busy} onClick={() => void applyNetwork({
+                          spoof: { mode: "PERSISTENT", profileName: network.spoof.profileName ?? "Natural Desktop", regenerate: true },
+                        })}>Новий Spoof</button>
+                        <button type="button" disabled={busy} onClick={() => {
+                          if (!selected || !account) return
+                          void run(() => workerRequest(selected, "POST", `/api/account/${account.id}/proxy-test`, {}), false)
+                        }}>Перевірити проксі</button>
+                      </div>
+                    </div>
+                  ) : null}
                   <h3>Діагностика</h3>
                   <p className="c7x-admin-muted">Проксі: {account.proxy} · {account.proxyStatus}</p>
                   <button type="button" disabled={busy} onClick={() => {
