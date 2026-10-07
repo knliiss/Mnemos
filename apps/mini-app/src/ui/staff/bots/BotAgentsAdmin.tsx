@@ -32,6 +32,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [loginPassword, setLoginPassword] = useState("")
   const [loginOtp, setLoginOtp] = useState("")
   const [chatText, setChatText] = useState("")
+  const [bulkChatText, setBulkChatText] = useState("")
   const [realm, setRealm] = useState("1")
   const [navigation, setNavigation] = useState({ x: "0", y: "64", z: "0" })
   const [groupState, setGroupState] = useState<RemoteGroupState>({ state: { groups: [], assignments: {} }, revision: 0 })
@@ -320,8 +321,32 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <button type="button" onClick={() => void bulk("bulkConnect")} disabled={busy}>Запустити вибраних ({chosen.length})</button>
                   <button type="button" onClick={() => void bulk("bulkReconnect")} disabled={busy}>Реконект</button>
                   <button type="button" onClick={() => void bulk("bulkDisconnect")} disabled={busy}>Зупинити</button>
+                  <button type="button" onClick={() => void bulk("bulkEnterSao")} disabled={busy}>На SAO</button>
+                  <button type="button" onClick={() => void bulk("bulkDungeonLobby")} disabled={busy}>Лобі данжів</button>
+                  <button type="button" onClick={() => void bulk("bulkAutomation", { autoDungeon: true })} disabled={busy}>Автоданжі ✓</button>
+                  <button type="button" onClick={() => void bulk("bulkAutomation", { autoDungeon: false })} disabled={busy}>Автоданжі ✕</button>
+                  <button type="button" onClick={() => void bulk("bulkDirect")} disabled={busy}>Без проксі</button>
+                  <button type="button" onClick={() => void bulk("bulkSpoofGenerate")} disabled={busy}>Нові Spoof</button>
+                  <button type="button" onClick={() => void bulk("bulkStopNavigation")} disabled={busy}>Стоп навігації</button>
                 </> : null}
               </div>
+              {chosen.length > 0 ? (
+                <section className="c7x-admin-card c7x-admin-bulk">
+                  <div className="c7x-admin-section-head"><h3>Масові команди · {chosen.length} акаунтів</h3></div>
+                  <div className="c7x-admin-actions">
+                    {DUNGEONS.map((dungeon) => <button key={dungeon} type="button" disabled={busy}
+                      onClick={() => void bulk("bulkDungeon", { dungeon })}>{dungeon}</button>)}
+                  </div>
+                  <form className="c7x-admin-form-inline" onSubmit={(event) => {
+                    event.preventDefault()
+                    if (!bulkChatText.trim()) return
+                    void bulk("bulkChat", { message: bulkChatText.trim() })
+                  }}>
+                    <input value={bulkChatText} onChange={(event) => setBulkChatText(event.target.value)} maxLength={256} placeholder="Чат або команда для вибраних…" />
+                    <button type="submit" disabled={busy || !bulkChatText.trim()}>Надіслати</button>
+                  </form>
+                </section>
+              ) : null}
               <div className="c7x-admin-accounts">
                 {visibleAccounts.length === 0 ? <div className="c7x-admin-empty"><img src="/ui-illustrations/bot-agent-account.svg" alt="" /><strong>Акаунтів не знайдено</strong></div> : null}
                 {visibleAccounts.map((item) => (
