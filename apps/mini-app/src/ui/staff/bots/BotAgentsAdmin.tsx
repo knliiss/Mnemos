@@ -161,7 +161,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         </button>
       } />
       <section className="c7x-admin-hero">
-        <div><strong>Віддалене керування</strong><p>Боти працюють на окремих ПК. З’єднання з Mnemos — через захищений WebSocket.</p></div>
+        <div className="c7x-admin-hero-copy"><span className="c7x-admin-eyebrow">C7X · REMOTE CONTROL</span><strong>Центр керування ботами</strong><p>Акаунти працюють на окремих ПК, а керування доступне тут, у Mnemos.</p></div><img className="c7x-admin-hero-art" src="/ui-illustrations/bot-agent-hero.svg" alt="" />
         <div className="c7x-admin-total"><b>{agents.filter((a) => a.online).length}</b><span>онлайн / {agents.length}</span></div>
       </section>
 
