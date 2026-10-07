@@ -91,7 +91,7 @@ export const saveBotGroups = (workerId: string, content: RemoteGroupState) =>
   })
 export type ProxyPool = {
   name: string
-  strategy: "STICKY" | "ROUND_ROBIN" | "RANDOM"
+  strategy: "STICKY" | "ROUND_ROBIN" | "LEAST_USED"
   count: number
   entries: Array<{ id: string; host: string; port: number; type: string; healthy: boolean; latencyMs: number; failures: number }>
 }
