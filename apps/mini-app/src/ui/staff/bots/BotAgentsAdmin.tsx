@@ -178,13 +178,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       ) : null}
 
       <div className="c7x-admin-section-head"><h2>Програми</h2><button type="button" onClick={() => void refreshAgents()}>Оновити</button></div>
-      {agents.length === 0 ? <p className="c7x-admin-muted">Ще немає зареєстрованих програм.</p> : null}
+      {agents.length === 0 ? <div className="c7x-admin-empty"><img src="/ui-illustrations/bot-agent-offline.svg" alt="" /><strong>Програм поки немає</strong><p>Створи підключення та встав ключ у C7xBotManager.</p></div> : null}
       <div className="c7x-admin-agent-list">
         {agents.map((agent) => (
           <div className={`c7x-admin-card c7x-admin-agent ${selected === agent.id ? "is-selected" : ""}`} key={agent.id}>
             <button type="button" className="c7x-admin-agent-main" onClick={() => setSelected(agent.id)}>
-              <span className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />
-              <span><strong>{agent.name}</strong><small>{agent.machineName ?? "ПК не визначений"} · {agent.revoked ? "Доступ відкликано" : agent.online ? "Працює" : "Вимкнено"}</small></span>
+              <span className="c7x-admin-worker-art"><img src="/ui-illustrations/bot-agent-workspace.svg" alt="" /></span>
+              <span><strong>{agent.name}</strong><small><i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} /> {agent.machineName ?? "ПК не визначений"} · {agent.revoked ? "Доступ відкликано" : agent.online ? "Працює" : "Вимкнено"}</small></span>
               <span className="c7x-admin-last">{agent.online ? "Онлайн" : `Був: ${formatDate(agent.lastSeenAt)}`}</span>
             </button>
             <div className="c7x-admin-agent-actions">
@@ -199,7 +199,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         <section className="c7x-admin-workspace">
           <div className="c7x-admin-section-head"><h2>{active.name}</h2><span className="c7x-admin-muted">{active.osUsername ?? "—"} · {active.fingerprint?.slice(0, 12) ?? "Без відбитка"}</span></div>
           {!active.online ? (
-            <div className="c7x-admin-card"><strong>Програма неактивна</strong><p>Востаннє на зв’язку: {formatDate(active.lastSeenAt)}. Запис зберігається, коли ПК вимкнений.</p></div>
+            <div className="c7x-admin-card c7x-admin-offline-card"><img src="/ui-illustrations/bot-agent-offline.svg" alt="" /><strong>Програма неактивна</strong><p>Востаннє на зв’язку: {formatDate(active.lastSeenAt)}. Запис зберігається, коли ПК вимкнений.</p></div>
           ) : (
             <>
               <div className="c7x-admin-section-head">
@@ -225,11 +225,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 </> : null}
               </div>
               <div className="c7x-admin-accounts">
+                {visibleAccounts.length === 0 ? <div className="c7x-admin-empty"><img src="/ui-illustrations/bot-agent-account.svg" alt="" /><strong>Акаунтів не знайдено</strong></div> : null}
                 {visibleAccounts.map((item) => (
                   <div key={item.id} className="c7x-admin-account-line">
                     <input type="checkbox" aria-label={`Вибрати ${item.username}`} checked={chosen.includes(item.id)}
                       onChange={(e) => setChosen((current) => e.target.checked ? [...current, item.id] : current.filter((x) => x !== item.id))} />
-                    <button type="button" className={accountId === item.id ? "is-selected" : ""} onClick={() => setAccountId(item.id)}>
+                    <img className="c7x-admin-avatar" src="/ui-illustrations/bot-agent-account.svg" alt="" /><button type="button" className={accountId === item.id ? "is-selected" : ""} onClick={() => setAccountId(item.id)}>
                       <strong>{item.username}</strong><small>{item.realm ?? "Без реалму"} · {item.activity}</small>
                     </button>
                     <span className={item.state === "ONLINE" ? "c7x-admin-online" : "c7x-admin-muted"}>{item.state}</span>
