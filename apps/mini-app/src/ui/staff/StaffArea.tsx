@@ -23,6 +23,9 @@ const BadgeAdmin = lazy(() =>
 const BetAdmin = lazy(() =>
   import("./bets/BetAdmin").then((module) => ({ default: module.BetAdmin })),
 )
+const BotAgentsAdmin = lazy(() =>
+  import("./bots/BotAgentsAdmin").then((module) => ({ default: module.BotAgentsAdmin })),
+)
 const CollectorAdmin = lazy(() =>
   import("./collectors/CollectorAdmin").then((module) => ({ default: module.CollectorAdmin })),
 )
@@ -85,6 +88,8 @@ export function StaffArea(props: Props) {
     content = <BadgeAdmin back={props.back} />
   } else if (props.routeId === "collector-admin") {
     content = <CollectorAdmin back={props.back} />
+  } else if (props.routeId === "bot-agent-admin") {
+    content = <BotAgentsAdmin back={props.back} />
   } else if (props.routeId === "wipe-admin") {
     content = <WipeAdmin back={props.back} />
   } else {
