@@ -233,7 +233,7 @@ export function AdministrationHome({
         />
 
         <AdministrationWorkspace
-          illustration="/ui-illustrations/admin-users.svg"
+          illustration="/ui-illustrations/bot-agent-workspace.svg"
           title="Керування ботами"
           description="Підключені ПК, акаунти Cristalix, автоматизація та журнали."
           tone="bots"
