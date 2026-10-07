@@ -463,6 +463,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       </select>
                     </label>
                   </div>
+                  <div className="c7x-admin-actions">
+                    {DUNGEONS.map((dungeon) => (
+                      <button key={dungeon} type="button" disabled={busy}
+                        onClick={() => void act("dungeon", { dungeon })}>
+                        Перейти: {dungeon}
+                      </button>
+                    ))}
+                    <button type="button" disabled={busy} onClick={() => {
+                      if (!selected || !window.confirm("Видалити акаунт із цієї програми?")) return
+                      const id = account.id
+                      void run(async () => {
+                        await workerRequest(selected, "POST", "/api/accounts/manage", { action: "remove", id })
+                        setAccountId(null)
+                      })
+                    }}>Видалити акаунт</button>
+                  </div>
                   <h3>Автоматизація</h3>
                   <div className="c7x-admin-toggle-row">
                     {([["autoDungeon", "Автоданжі"], ["swapper", "Автосвапер"], ["autoReconnect", "Автореконект"]] as const).map(([key, label]) => (
