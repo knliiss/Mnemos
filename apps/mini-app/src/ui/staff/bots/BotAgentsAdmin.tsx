@@ -83,19 +83,32 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }, [authorized, refreshAgents])
 
   useEffect(() => {
+    let cancelled = false
     setAccounts([])
     setAccountId(null)
     setLogEntries([])
     setChosen([])
     setProxyPools([])
     setGroupFilter("")
-    if (!selected) return
-    void getBotGroups(selected).then(setGroupState).catch(handleError)
-    if (!active?.online) return
-    void getBotProxyPools(selected).then((value) => setProxyPools(value.pools)).catch(handleError)
-    void refreshAccounts(selected)
-    const timer = window.setInterval(() => void refreshAccounts(selected), 4_000)
-    return () => window.clearInterval(timer)
+    setGroupState({ state: { groups: [], assignments: {} }, revision: 0 })
+    setPoolEditor(false)
+    setPoolName("")
+    setPoolProxies("")
+    setLogin(false)
+    setLoginPassword("")
+    if (selected) {
+      void getBotGroups(selected).then((data) => { if (!cancelled) setGroupState(data) }).catch(handleError)
+    }
+    let timer: number | undefined
+    if (selected && active?.online) {
+      void getBotProxyPools(selected).then((value) => { if (!cancelled) setProxyPools(value.pools) }).catch(handleError)
+      void refreshAccounts(selected)
+      timer = window.setInterval(() => void refreshAccounts(selected), 4_000)
+    }
+    return () => {
+      cancelled = true
+      if (timer !== undefined) window.clearInterval(timer)
+    }
   }, [selected, active?.online, refreshAccounts])
 
   useEffect(() => {
