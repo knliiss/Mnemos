@@ -3,6 +3,8 @@ import { useMnemosData } from "@/ui/data/MnemosDataProvider"
 import {
   botAccounts, botAction, botChat, botLogs, botManager, botSettings, createBotAgent,
   getBotAgents, renameBotAgent, revokeBotAgent, workerRequest,
+  getBotGroups, saveBotGroups, getBotProxyPools, modifyBotProxyPool,
+  type RemoteGroupState, type ProxyPool,
   type AgentCreation, type BotAccount, type BotAgent,
 } from "@/shared/api/botAgentApi"
 import { handleError } from "@/shared/errors/errorHandler"
