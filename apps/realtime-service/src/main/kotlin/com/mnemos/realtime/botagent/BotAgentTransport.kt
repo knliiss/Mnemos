@@ -93,17 +93,18 @@ class BotAgentRegistry(private val jdbc: JdbcTemplate) {
         if (username.isBlank() || !fingerprint.matches(Regex("[0-9a-f]{64}"))) {
             throw IllegalArgumentException("Invalid machine identity")
         }
-        jdbc.update(
+        val changed = jdbc.update(
             """
             UPDATE bot_agent_instances
             SET os_username = ?, machine_name = ?, fingerprint = ?,
                 name = CASE WHEN name = 'New worker' THEN ? ELSE name END,
                 first_seen_at = COALESCE(first_seen_at, NOW()), last_seen_at = NOW(),
                 disconnected_at = NULL
-            WHERE id = ? AND NOT revoked
+            WHERE id = ? AND NOT revoked AND (fingerprint IS NULL OR fingerprint = ?)
             """.trimIndent(),
-            username, machine, fingerprint, username, id,
+            username, machine, fingerprint, username, id, fingerprint,
         )
+        if (changed == 0) throw IllegalArgumentException("Worker identity mismatch")
     }
 
     fun heartbeat(id: UUID) {
@@ -151,6 +152,7 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
     private val pending = ConcurrentHashMap<UUID, PendingRequest>()
 
     fun connected(id: UUID, session: WebSocketSession) {
+        lastActive.remove(id)
         active.put(id, session)?.let { previous ->
             if (previous !== session) runCatching { previous.close(CloseStatus.NORMAL) }
         }
