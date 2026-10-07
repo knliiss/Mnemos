@@ -276,6 +276,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <button type="submit" className="c7x-admin-primary" disabled={busy}>Додати на ПК</button>
                 </form>
               ) : null}
+              <section className="c7x-admin-card c7x-admin-group-panel">
+                <div className="c7x-admin-section-head"><h3>Групи акаунтів</h3><span>Зберігаються у Mnemos</span></div>
+                <form className="c7x-admin-form-inline" onSubmit={(event) => { event.preventDefault(); void addGroup() }}>
+                  <input value={groupName} maxLength={64} placeholder="Нова група…" onChange={(event) => setGroupName(event.target.value)} />
+                  <button type="submit" disabled={busy || !groupName.trim()}>Створити</button>
+                </form>
+                <div className="c7x-admin-group-tags">
+                  <button type="button" className={!groupFilter ? "is-active" : ""} onClick={() => setGroupFilter("")}>Усі</button>
+                  {groupState.state.groups.map((group) => (
+                    <div className="c7x-admin-group-tag" key={group.id}>
+                      <button type="button" className={groupFilter === group.id ? "is-active" : ""} onClick={() => setGroupFilter(group.id)}>{group.name}</button>
+                      <button type="button" aria-label={"Видалити групу " + group.name} onClick={() => void deleteGroup(group.id)} disabled={busy}>×</button>
+                    </div>
+                  ))}
+                </div>
+              </section>
               <input className="c7x-admin-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Пошук за ніком…" />
               <div className="c7x-admin-actions">
                 <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>Запустити всіх</button>
