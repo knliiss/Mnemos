@@ -327,6 +327,15 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         dungeonLobby: "Лобі данжів", pause: "Пауза", resume: "Продовжити",
                       }[action]}</button>)}
                   </div>
+                  <div className="c7x-admin-form-inline">
+                    <label>Група акаунта
+                      <select value={groupState.state.assignments[account.id] ?? ""}
+                        onChange={(event) => void assignGroup(account.id, event.target.value)} disabled={busy}>
+                        <option value="">Без групи</option>
+                        {groupState.state.groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+                      </select>
+                    </label>
+                  </div>
                   <h3>Автоматизація</h3>
                   <div className="c7x-admin-toggle-row">
                     {([["autoDungeon", "Автоданжі"], ["swapper", "Автосвапер"], ["autoReconnect", "Автореконект"]] as const).map(([key, label]) => (
