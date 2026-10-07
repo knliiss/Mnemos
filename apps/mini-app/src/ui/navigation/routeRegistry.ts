@@ -51,6 +51,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
   "bet-admin": { area: "staff" },
   "badge-admin": { area: "staff" },
   "collector-admin": { area: "staff" },
+  "bot-agent-admin": { area: "staff" },
   "wipe-admin": { area: "staff" },
 }
 
