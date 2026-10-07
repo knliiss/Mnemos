@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMnemosData } from "@/ui/data/MnemosDataProvider"
 import {
   botAccounts, botAction, botChat, botLogs, botManager, botSettings, createBotAgent,
@@ -22,6 +22,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [accounts, setAccounts] = useState<BotAccount[]>([])
   const [accountId, setAccountId] = useState<string | null>(null)
   const [chosen, setChosen] = useState<string[]>([])
+  const logCursor = useRef(0)
   const [logEntries, setLogEntries] = useState<{ sequence: number; timestamp: string; category: string; message: string }[]>([])
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState("")
@@ -89,13 +90,32 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }, [selected, active?.online, refreshAccounts])
 
   useEffect(() => {
+    logCursor.current = 0
+    setLogEntries([])
     if (!selected || !accountId || !active?.online) return
     let running = true
-    const poll = () => void botLogs(selected, accountId).then((result) => {
-      if (running) setLogEntries(result.entries.slice(-80))
-    }).catch(() => {})
-    poll()
-    const timer = window.setInterval(poll, 3_000)
+    let inFlight = false
+    const poll = async () => {
+      if (inFlight || !running) return
+      inFlight = true
+      try {
+        let result = await botLogs(selected, accountId, logCursor.current)
+        if (logCursor.current === 0 && result.lastSequence > 100) {
+          result = await botLogs(selected, accountId, Math.max(0, result.lastSequence - 80))
+        }
+        if (!running) return
+        if (result.entries.length) {
+          logCursor.current = result.entries[result.entries.length - 1].sequence
+          setLogEntries((previous) => [...previous, ...result.entries].slice(-150))
+        }
+      } catch {
+        // A temporary worker disconnect should not clear the visible log.
+      } finally {
+        inFlight = false
+      }
+    }
+    void poll()
+    const timer = window.setInterval(() => void poll(), 2500)
     return () => { running = false; window.clearInterval(timer) }
   }, [selected, accountId, active?.online])
 
