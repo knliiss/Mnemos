@@ -76,3 +76,26 @@ export const botLogs = (id: string, accountId: string, after = 0) =>
     entries: { sequence: number; timestamp: string; category: string; message: string }[]
     lastSequence: number
   }>(id, "GET", `/api/account/${accountId}/logs?after=${after}&limit=80`)
+
+export type RemoteAccountGroup = { id: string; name: string }
+export type RemoteGroupState = {
+  state: { groups: RemoteAccountGroup[]; assignments: Record<string, string> }
+  revision: number
+}
+export const getBotGroups = (workerId: string) =>
+  api<RemoteGroupState>(`/api/v1/realtime/admin/bot-agents/${workerId}/groups`)
+export const saveBotGroups = (workerId: string, content: RemoteGroupState) =>
+  api<RemoteGroupState>(`/api/v1/realtime/admin/bot-agents/${workerId}/groups`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(content),
+  })
+export type ProxyPool = {
+  name: string
+  strategy: "STICKY" | "ROUND_ROBIN" | "RANDOM"
+  count: number
+  entries: Array<{ id: string; host: string; port: number; type: string; healthy: boolean; latencyMs: number; failures: number }>
+}
+export const getBotProxyPools = (workerId: string) =>
+  workerRequest<{ pools: ProxyPool[] }>(workerId, "GET", "/api/proxy-pools")
+export const modifyBotProxyPool = (workerId: string, body: Record<string, unknown>) =>
+  workerRequest<{ pools: ProxyPool[] }>(workerId, "POST", "/api/proxy-pools", body)
