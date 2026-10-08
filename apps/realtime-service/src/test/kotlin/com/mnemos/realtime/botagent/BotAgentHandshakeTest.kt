@@ -45,7 +45,9 @@ class BotAgentHandshakeTest {
 
     private fun request(header: String): ServerHttpRequest {
         val request = mock<ServerHttpRequest>()
-        whenever(request.headers).thenReturn(HttpHeaders().apply { set(HttpHeaders.AUTHORIZATION, header) })
+        whenever(request.headers).thenReturn(
+            HttpHeaders().apply { set(HttpHeaders.AUTHORIZATION, header) },
+        )
         return request
     }
 }
