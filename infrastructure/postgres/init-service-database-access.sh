@@ -223,6 +223,7 @@ configure_service_role "reward" "$REWARD_POSTGRES_USER" "$REWARD_POSTGRES_PASSWO
 configure_service_role "bet" "$BET_POSTGRES_USER" "$BET_POSTGRES_PASSWORD"
 configure_service_role "moderation" "$MODERATION_POSTGRES_USER" "$MODERATION_POSTGRES_PASSWORD"
 configure_service_role "realtime" "$REALTIME_POSTGRES_USER" "$REALTIME_POSTGRES_PASSWORD"
+configure_service_role "bot_management" "$BOT_MANAGEMENT_POSTGRES_USER" "$BOT_MANAGEMENT_POSTGRES_PASSWORD"
 configure_service_role "personalization" "$PERSONALIZATION_POSTGRES_USER" "$PERSONALIZATION_POSTGRES_PASSWORD"
 configure_service_role "social" "$SOCIAL_POSTGRES_USER" "$SOCIAL_POSTGRES_PASSWORD"
 configure_service_role "profile" "$PROFILE_POSTGRES_USER" "$PROFILE_POSTGRES_PASSWORD"
