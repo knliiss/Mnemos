@@ -49,6 +49,7 @@ DEPLOYMENT_PRIORITIES = {
     "notification-service": 40,
     "reward-service": 40,
     "realtime-service": 50,
+    "bot-management-service": 30,
     "gateway-service": 90,
     "telegram-bot-service": 100,
 }
