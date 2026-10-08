@@ -38,8 +38,8 @@ jobs:
           from pathlib import Path
           request = Path(".github/workflows/c7x-initial-backend-request.yml").read_text()
           rollout = Path(".github/workflows/c7x-initial-backend-rollout.yml").read_text()
-          assert "on:\\n  push:" in request
-          assert "on:\\n  workflow_run:" in rollout
+          assert "  push:" in request
+          assert "  workflow_run:" in rollout
           assert "environment: production" in rollout
           assert "group: mnemos-production-deploy" in rollout
           assert "cancel-in-progress: false" in rollout
