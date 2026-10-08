@@ -32,12 +32,13 @@ class BotAgentHandshakeTest {
     @Test
     fun `missing bot authorization cannot open worker websocket`() {
         val response = mock<ServerHttpResponse>()
-        val accepted = handshake.beforeHandshake(
-            request("Bearer " + "a".repeat(64)),
-            response,
-            mock<WebSocketHandler>(),
-            mutableMapOf(),
-        )
+        val accepted =
+            handshake.beforeHandshake(
+                request("Bearer " + "a".repeat(64)),
+                response,
+                mock<WebSocketHandler>(),
+                mutableMapOf(),
+            )
 
         assertFalse(accepted)
         verify(response).setStatusCode(HttpStatus.UNAUTHORIZED)
