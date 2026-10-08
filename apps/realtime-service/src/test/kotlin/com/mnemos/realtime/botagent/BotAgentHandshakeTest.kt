@@ -15,7 +15,7 @@ import org.springframework.web.socket.WebSocketHandler
 import java.util.UUID
 
 class BotAgentHandshakeTest {
-    private val registry = mock<BotAgentRegistry>()
+    private val registry = mock<BotAgentIdentityClient>()
     private val handshake = BotAgentHandshake(registry)
 
     @Test
