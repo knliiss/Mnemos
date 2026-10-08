@@ -1,0 +1,22 @@
+name: C7x Production Read-Only Preflight Request
+
+on:
+  push:
+    branches:
+      - deploy/c7x-production-preflight
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    if: github.repository == 'knliiss/Mnemos'
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    timeout-minutes: 5
+    steps:
+      - name: Record read-only production diagnosis request
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Read-only diagnosis requested for the Mnemos bot-management 404."
+          echo "This job holds no production runtime access, secrets, or mutation permission."
