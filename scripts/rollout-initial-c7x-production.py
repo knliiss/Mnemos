@@ -123,11 +123,14 @@ def rollback(touched, old_images, old_env, new_created):
             print("CRITICAL: Cannot restore " + name, file=sys.stderr)
             ok = False
     if new_created:
-        try:
-            docker("service", "rm", "mnemos_" + NEW)
-        except Exception:
-            print("CRITICAL: Cannot remove new bot-management service", file=sys.stderr)
-            ok = False
+        probe = subprocess.run(["docker", "service", "inspect", "mnemos_" + NEW],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if probe.returncode == 0:
+            try:
+                docker("service", "rm", "mnemos_" + NEW)
+            except Exception:
+                print("CRITICAL: Cannot remove new bot-management service", file=sys.stderr)
+                ok = False
     return ok
 
 def initial_manifest(catalog, old):
@@ -226,9 +229,9 @@ def main():
         try:
             call(["sh", "scripts/production-infra.sh", "run", "--rm", "--no-deps",
                   "app-postgres-security-init"], "Initialize bot_management PostgreSQL schema")
+            created = True  # Docker may create the service before returning a failed exit code.
             docker("stack", "deploy", "--compose-file", str(bot_file),
                    "--with-registry-auth", "--resolve-image", "always", "mnemos")
-            created = True
             readiness(NEW, manifest["services"][NEW]["image"])
             gateway = {"BOT_MANAGEMENT_SERVICE_URL": "http://bot-management-service:8095"}
             touched.append(("gateway-service", tuple(gateway)))
@@ -250,8 +253,8 @@ def main():
             new_path.write_text(json.dumps(desired, indent=2) + "\n")
             os.replace(new_path, STATE)
             wrote_state = True
+            installed_runtime = True  # Restore the symlink even if installation fails halfway.
             call(["sh", "scripts/install-production-runtime.sh", TAG], "Install verified tooling")
-            installed_runtime = True
             call(["python3", "scripts/production_runtime_state.py",
                   "verify", "--state", str(STATE)], "Verify canonical 17 service state")
             call(["sh", "scripts/verify-production-availability.sh"], "Final availability")
