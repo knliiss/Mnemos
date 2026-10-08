@@ -1,4 +1,9 @@
 export const botAgentsRU = {
+  programSections: "Разделы управления программой",
+  section_accounts: "Аккаунты",
+  section_groups: "Группы",
+  section_bulk: "Массовые действия",
+  section_proxies: "Прокси",
   never: "Никогда",
   done: "Выполнено",
   actionFailed: "Ошибка выполнения",
