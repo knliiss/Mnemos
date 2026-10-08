@@ -1,12 +1,13 @@
 package com.mnemos.botmanagement
 
-import tools.jackson.databind.JsonNode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
 import java.time.Duration
 import java.util.UUID
 
@@ -16,42 +17,61 @@ class BotAgentTransportClient(
     @Value("\${mnemos.bot.realtime-url}") baseUrl: String,
     @Value("\${mnemos.bot.realtime-api-key}") private val key: String,
 ) {
-    private val http = RestClient.builder().baseUrl(baseUrl)
-        .requestFactory(
-            org.springframework.http.client.JdkClientHttpRequestFactory().apply {
-                setReadTimeout(Duration.ofSeconds(85))
-            },
-        )
-        .build()
+    private val http =
+        RestClient
+            .builder()
+            .baseUrl(baseUrl)
+            .requestFactory(
+                JdkClientHttpRequestFactory().apply {
+                    setReadTimeout(Duration.ofSeconds(85))
+                },
+            ).build()
 
-    fun onlineIds(): Set<UUID> = try {
-        http.get().uri("/internal/v1/bot-agents/online")
-            .header("X-Mnemos-Service", "bot-management-service")
-                .header("X-Mnemos-API-Key", key)
-            .retrieve().body(Array<String>::class.java)
-            ?.mapNotNull { runCatching { UUID.fromString(it) }.getOrNull() }?.toSet() ?: emptySet()
-    } catch (_: Exception) {
-        emptySet()
-    }
+    fun onlineIds(): Set<UUID> =
+        try {
+            val online =
+                http
+                    .get()
+                    .uri("/internal/v1/bot-agents/online")
+                    .header("X-Mnemos-Service", "bot-management-service")
+                    .header("X-Mnemos-API-Key", key)
+                    .retrieve()
+                    .body(Array<String>::class.java)
+            online
+                ?.mapNotNull { runCatching { UUID.fromString(it) }.getOrNull() }
+                ?.toSet()
+                ?: emptySet()
+        } catch (_: Exception) {
+            emptySet()
+        }
 
     fun disconnect(id: UUID) {
         try {
-            http.post().uri("/internal/v1/bot-agents/{id}/disconnect", id)
+            http
+                .post()
+                .uri("/internal/v1/bot-agents/{id}/disconnect", id)
                 .header("X-Mnemos-Service", "bot-management-service")
                 .header("X-Mnemos-API-Key", key)
-                .retrieve().toBodilessEntity()
+                .retrieve()
+                .toBodilessEntity()
         } catch (_: Exception) {
-            // The database revocation takes effect even if the worker is already offline.
+            // Database revocation applies even if the worker is already offline.
         }
     }
 
-    fun request(id: UUID, body: JsonNode): JsonNode {
+    fun request(
+        id: UUID,
+        body: JsonNode,
+    ): JsonNode {
         try {
-            return http.post().uri("/internal/v1/bot-agents/{id}/request", id)
+            return http
+                .post()
+                .uri("/internal/v1/bot-agents/{id}/request", id)
                 .header("X-Mnemos-Service", "bot-management-service")
                 .header("X-Mnemos-API-Key", key)
                 .body(body)
-                .retrieve().body(JsonNode::class.java)
+                .retrieve()
+                .body(JsonNode::class.java)
                 ?: throw ResponseStatusException(HttpStatus.BAD_GATEWAY, "Empty worker reply")
         } catch (error: RestClientResponseException) {
             throw ResponseStatusException(
