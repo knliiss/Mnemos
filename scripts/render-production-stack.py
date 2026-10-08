@@ -18,6 +18,7 @@ from production_service_catalog import ProductionServiceCatalogError
 APPLICATION_SERVICES = (
     "account-service",
     "bet-service",
+    "bot-management-service",
     "event-service",
     "gateway-service",
     "moderation-service",

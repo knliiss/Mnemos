@@ -44,6 +44,9 @@ services:
   realtime-service:
     <<: *app-security
 
+  bot-management-service:
+    <<: *app-security
+
   personalization-service:
     <<: *app-security
 

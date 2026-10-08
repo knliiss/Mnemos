@@ -20,6 +20,7 @@ APPLICATION_PORTS = {
     "notification-service": 8084,
     "reward-service": 8085,
     "bet-service": 8086,
+    "bot-management-service": 8095,
     "moderation-service": 8087,
     "realtime-service": 8088,
     "personalization-service": 8089,

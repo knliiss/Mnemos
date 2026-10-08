@@ -47,6 +47,11 @@ services:
       <<: *production-datasource-defaults
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
 
+  bot-management-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
   personalization-service:
     environment:
       <<: *production-datasource-defaults

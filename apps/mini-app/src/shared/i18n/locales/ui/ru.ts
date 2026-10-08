@@ -84,6 +84,8 @@ export const uiRu = {
     home: "На главную",
   },
   administration: {
+    botAgents: "Управление ботами",
+    botAgentsDescription: "Подключённые ПК, аккаунты Cristalix, автоматизация и журналы",
     title: "Администрирование",
     introTitle: "Системные инструменты",
     introDescription: "Функции, доступные ADMIN / SUPER_ADMIN",

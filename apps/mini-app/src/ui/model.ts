@@ -109,6 +109,7 @@ export type RouteId =
   | "bet-admin"
   | "badge-admin"
   | "collector-admin"
+  | "bot-agent-admin"
   | "wipe-admin"
   | "user-personalization"
   | "user-wallet"

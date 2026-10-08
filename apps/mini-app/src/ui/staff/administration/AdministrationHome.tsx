@@ -33,6 +33,7 @@ type AdministrationWorkspaceProps = {
     | "bets"
     | "badges"
     | "collectors"
+    | "bots"
     | "wipes"
     | "spotlight"
     | "leaderboards"
@@ -229,6 +230,14 @@ export function AdministrationHome({
           description={t("wipeAdmin.workspaceDescription")}
           tone="wipes"
           onClick={() => navigate({ id: "wipe-admin" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/bot-agent-workspace.svg"
+          title={t("administration.botAgents")}
+          description={t("administration.botAgentsDescription")}
+          tone="bots"
+          onClick={() => navigate({ id: "bot-agent-admin" })}
         />
 
         <AdministrationWorkspace

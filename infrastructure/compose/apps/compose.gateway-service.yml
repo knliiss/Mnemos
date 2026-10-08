@@ -20,6 +20,7 @@ services:
       BET_SERVICE_URL: http://bet-service:8086
       MODERATION_SERVICE_URL: http://moderation-service:8087
       REALTIME_SERVICE_URL: http://realtime-service:8088
+      BOT_MANAGEMENT_SERVICE_URL: http://bot-management-service:8095
       REALTIME_SERVICE_HOST: realtime-service
       PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
       SOCIAL_SERVICE_URL: http://social-service:8090

@@ -98,6 +98,11 @@ spring:
                       factor: 2
                       basedOnPreviousValue: false
 
+            - id: bot-management-api
+              uri: ${BOT_MANAGEMENT_SERVICE_URL:http://localhost:8095}
+              predicates:
+                - Path=/api/v1/bot-management/**
+
             - id: personalization-api
               uri: ${PERSONALIZATION_SERVICE_URL:http://localhost:8089}
               predicates:
@@ -117,6 +122,11 @@ spring:
               uri: ${PAYMENT_SERVICE_URL:http://localhost:8093}
               predicates:
                 - Path=/api/v1/payments/**
+
+            - id: bot-agent-websocket
+              uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
+              predicates:
+                - Path=/ws/v1/bot-agent
 
             - id: collector-websocket
               uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088

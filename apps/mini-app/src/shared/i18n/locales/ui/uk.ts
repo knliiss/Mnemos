@@ -84,6 +84,8 @@ export const uiUk = {
     home: "На головну",
   },
   administration: {
+    botAgents: "Керування ботами",
+    botAgentsDescription: "Підключені ПК, акаунти Cristalix, автоматизація та журнали",
     title: "Адміністрування",
     introTitle: "Системні інструменти",
     introDescription: "Функції, доступні ADMIN / SUPER_ADMIN",

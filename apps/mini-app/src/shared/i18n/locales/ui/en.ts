@@ -85,6 +85,8 @@ export const uiEn = {
     home: "Go home",
   },
   administration: {
+    botAgents: "Bot management",
+    botAgentsDescription: "Connected PCs, Cristalix accounts, automation and logs",
     title: "Administration",
     introTitle: "System tools",
     introDescription: "Functions available to ADMIN / SUPER_ADMIN",

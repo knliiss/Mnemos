@@ -28,7 +28,7 @@ class CollectorWebSocketConfiguration(
     @Bean
     fun collectorWebSocketContainer(): ServletServerContainerFactoryBean =
         ServletServerContainerFactoryBean().apply {
-            setMaxTextMessageBufferSize(properties.maxMessageSize.toBytes().toInt())
+            setMaxTextMessageBufferSize(524_288) // Bot-agent diagnostic responses can be larger than collector reports.
             setMaxBinaryMessageBufferSize(BINARY_MESSAGE_BUFFER_BYTES)
             setMaxSessionIdleTimeout(properties.heartbeatTimeout.toMillis())
         }

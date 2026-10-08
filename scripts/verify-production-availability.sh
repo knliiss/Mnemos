@@ -24,6 +24,7 @@ personalization-service
 player-directory-service
 profile-service
 realtime-service
+bot-management-service
 reward-service
 social-service
 telegram-bot-service
