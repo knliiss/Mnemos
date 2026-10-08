@@ -194,11 +194,11 @@ class BotAgentSessions(
         }
 
         val idPath =
-            Regex("/api/account/[0-9a-fA-F-]{36}/(logs|diagnostics|payloads|settings|network|proxy-test|chat|action)")
+            Regex("/api/account/[0-9a-fA-F-]{36}/(logs|diagnostics|payloads|head|settings|network|proxy-test|chat|action)")
         if (method == "GET") {
             val accountRead =
                 idPath.matches(noQuery) &&
-                    noQuery.substringAfterLast('/') in setOf("logs", "diagnostics", "payloads", "network")
+                    noQuery.substringAfterLast('/') in setOf("logs", "diagnostics", "payloads", "network", "head")
             return noQuery in setOf("/api/overview", "/api/accounts", "/api/manager", "/api/proxy-pools", "/api/groups") ||
                 accountRead
         }
