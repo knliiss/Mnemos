@@ -1,3 +1,4 @@
+import { botAgentsRU } from "./bot-agents/ru"
 import { accountRu } from "./account/ru"
 import { betAdminRu } from "./bet-admin/ru"
 import { betsRu } from "./bets/ru"
@@ -9,6 +10,7 @@ import { personalizationRu } from "./personalization/ru"
 import { walletRu } from "./wallet/ru"
 
 export const uiRu = {
+  botAgents: botAgentsRU,
   appShell: {
     navigation: {
       aria: "Основная навигация",

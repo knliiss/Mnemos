@@ -1,3 +1,4 @@
+import { botAgentsUK } from "./bot-agents/uk"
 import { accountUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 import { betsUk } from "./bets/uk"
@@ -9,6 +10,7 @@ import { personalizationUk } from "./personalization/uk"
 import { walletUk } from "./wallet/uk"
 
 export const uiUk = {
+  botAgents: botAgentsUK,
   appShell: {
     navigation: {
       aria: "Основна навігація",

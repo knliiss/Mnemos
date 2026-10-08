@@ -1,3 +1,4 @@
+import { botAgentsEN } from "./bot-agents/en"
 import { accountEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
 import { betsEn } from "./bets/en"
@@ -9,6 +10,7 @@ import { personalizationEn } from "./personalization/en"
 import { walletEn } from "./wallet/en"
 
 export const uiEn = {
+  botAgents: botAgentsEN,
   appShell: {
     navigation: {
       aria: "Main navigation",

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useMnemosData } from "@/ui/data/MnemosDataProvider"
 import {
   botAccounts,
@@ -32,6 +33,7 @@ import "./bot-agents.css"
 const DUNGEONS = ["LIGHT", "MEDIUM", "HARD", "EXPERT"] as const
 
 export function BotAgentsAdmin({ back }: { back: () => void }) {
+  const { t } = useTranslation()
   const { user } = useMnemosData()
   const authorized = user.systemRoles.some((role) => role === "ADMIN" || role === "SUPER_ADMIN")
   const [agents, setAgents] = useState<BotAgent[]>([])
@@ -87,7 +89,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       ),
     [accounts, query, groupFilter, groupState],
   )
-  const formatDate = (date: string | null) => (date ? new Date(date).toLocaleString() : "Ніколи")
+  const formatDate = (date: string | null) =>
+    date ? new Date(date).toLocaleString() : t("botAgents.never")
 
   const refreshAgents = useCallback(async () => {
     if (!authorized) {
@@ -247,12 +250,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     setNotice("")
     try {
       await task()
-      setNotice("Виконано")
+      setNotice(t("botAgents.done"))
       if (selected && refresh) {
         await refreshAccounts(selected)
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Помилка виконання")
+      setNotice(error instanceof Error ? error.message : t("botAgents.actionFailed"))
       handleError(error)
     } finally {
       setBusy(false)
@@ -272,7 +275,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function renameWorker(agent: BotAgent) {
-    const name = window.prompt("Назва програми", agent.name)?.trim()
+    const name = window.prompt(t("botAgents.namePrompt"), agent.name)?.trim()
     if (!name || name === agent.name) {
       return
     }
@@ -283,9 +286,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function removeWorker(agent: BotAgent) {
-    if (
-      !window.confirm(`Відкликати доступ програми «${agent.name}»? Запис залишиться в історії.`)
-    ) {
+    if (!window.confirm(t("botAgents.revokeConfirm", { name: agent.name }))) {
       return
     }
     await run(async () => {
@@ -367,7 +368,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function deleteGroup(id: string) {
-    if (!window.confirm("Видалити групу? Акаунти залишаться у програмі.")) {
+    if (!window.confirm(t("botAgents.deleteGroupConfirm"))) {
       return
     }
     const assignments = Object.fromEntries(
@@ -416,8 +417,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   if (!authorized) {
     return (
       <div className="screen">
-        <PageHeader title="Боти" back={back} />
-        <p>Доступ лише для адміністратора.</p>
+        <PageHeader title={t("botAgents.bots")} back={back} />
+        <p>{t("botAgents.adminOnly")}</p>
       </div>
     )
   }
@@ -425,7 +426,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   return (
     <div className="screen c7x-admin">
       <PageHeader
-        title="C7x · Боти"
+        title={t("botAgents.pageTitle")}
         back={back}
         actions={
           <button
@@ -434,56 +435,53 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
             onClick={() => void addWorker()}
             disabled={busy}
           >
-            + Додати програму
+            {t("botAgents.addAgent")}
           </button>
         }
       />
       <section className="c7x-admin-hero">
         <div className="c7x-admin-hero-copy">
           <span className="c7x-admin-eyebrow">C7X · REMOTE CONTROL</span>
-          <strong>Центр керування ботами</strong>
-          <p>Акаунти працюють на окремих ПК, а керування доступне тут, у Mnemos.</p>
+          <strong>{t("botAgents.heroTitle")}</strong>
+          <p>{t("botAgents.heroDescription")}</p>
         </div>
         <img className="c7x-admin-hero-art" src="/ui-illustrations/bot-agent-hero.svg" alt="" />
         <div className="c7x-admin-total">
           <b>{agents.filter((a) => a.online).length}</b>
-          <span>онлайн / {agents.length}</span>
+          <span>{t("botAgents.onlineCount", { count: agents.length })}</span>
         </div>
       </section>
 
       {created ? (
         <section className="c7x-admin-card c7x-admin-pair">
-          <strong>Ключ підключення програми</strong>
-          <p>
-            Відкрий C7xBotManager на потрібному ПК, обери «Mnemos» і встав цей ключ. Він показується
-            лише зараз.
-          </p>
+          <strong>{t("botAgents.pairTitle")}</strong>
+          <p>{t("botAgents.pairInstructions")}</p>
           <code>{created.accessKey}</code>
           <div className="c7x-admin-actions">
             <button
               type="button"
               onClick={() => void navigator.clipboard.writeText(created.accessKey)}
             >
-              Скопіювати ключ
+              {t("botAgents.copyKey")}
             </button>
             <button type="button" onClick={() => setCreated(null)}>
-              Закрити
+              {t("botAgents.close")}
             </button>
           </div>
         </section>
       ) : null}
 
       <div className="c7x-admin-section-head">
-        <h2>Програми</h2>
+        <h2>{t("botAgents.agents")}</h2>
         <button type="button" onClick={() => void refreshAgents()}>
-          Оновити
+          {t("botAgents.refresh")}
         </button>
       </div>
       {agents.length === 0 ? (
         <div className="c7x-admin-empty">
           <img src="/ui-illustrations/bot-agent-offline.svg" alt="" />
-          <strong>Програм поки немає</strong>
-          <p>Створи підключення та встав ключ у C7xBotManager.</p>
+          <strong>{t("botAgents.noAgents")}</strong>
+          <p>{t("botAgents.noAgentsHint")}</p>
         </div>
       ) : null}
       <div className="c7x-admin-agent-list">
@@ -504,12 +502,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 <strong>{agent.name}</strong>
                 <small>
                   <i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />{" "}
-                  {agent.machineName ?? "ПК не визначений"} ·{" "}
-                  {agent.revoked ? "Доступ відкликано" : agent.online ? "Працює" : "Вимкнено"}
+                  {agent.machineName ?? t("botAgents.unknownPc")} ·{" "}
+                  {agent.revoked
+                    ? t("botAgents.revoked")
+                    : agent.online
+                      ? t("botAgents.running")
+                      : t("botAgents.disabled")}
                 </small>
               </span>
               <span className="c7x-admin-last">
-                {agent.online ? "Онлайн" : `Був: ${formatDate(agent.lastSeenAt)}`}
+                {agent.online
+                  ? t("botAgents.online")
+                  : t("botAgents.lastSeen", { date: formatDate(agent.lastSeenAt) })}
               </span>
             </button>
             <div className="c7x-admin-agent-actions">
@@ -518,11 +522,11 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 onClick={() => void renameWorker(agent)}
                 disabled={busy || agent.revoked}
               >
-                Назва
+                {t("botAgents.name")}
               </button>
               {!agent.revoked ? (
                 <button type="button" onClick={() => void removeWorker(agent)} disabled={busy}>
-                  Відкликати
+                  {t("botAgents.revoke")}
                 </button>
               ) : null}
             </div>
@@ -535,24 +539,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
           <div className="c7x-admin-section-head">
             <h2>{active.name}</h2>
             <span className="c7x-admin-muted">
-              {active.osUsername ?? "—"} · {active.fingerprint?.slice(0, 12) ?? "Без відбитка"}
+              {active.osUsername ?? "—"} ·{" "}
+              {active.fingerprint?.slice(0, 12) ?? t("botAgents.noFingerprint")}
             </span>
           </div>
           {!active.online ? (
             <div className="c7x-admin-card c7x-admin-offline-card">
               <img src="/ui-illustrations/bot-agent-offline.svg" alt="" />
-              <strong>Програма неактивна</strong>
-              <p>
-                Востаннє на зв’язку: {formatDate(active.lastSeenAt)}. Запис зберігається, коли ПК
-                вимкнений.
-              </p>
+              <strong>{t("botAgents.agentInactive")}</strong>
+              <p>{t("botAgents.lastConnected", { date: formatDate(active.lastSeenAt) })}</p>
             </div>
           ) : (
             <>
               <div className="c7x-admin-section-head">
-                <h2>Акаунти · {accounts.length}</h2>
+                <h2>{t("botAgents.accountsCount", { count: accounts.length })}</h2>
                 <button type="button" onClick={() => setLogin((x) => !x)}>
-                  + Додати акаунт
+                  {t("botAgents.addAccount")}
                 </button>
               </div>
               {login ? (
@@ -564,7 +566,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   }}
                 >
                   <label>
-                    Логін
+                    {t("botAgents.login")}
                     <input
                       autoComplete="username"
                       value={loginName}
@@ -573,7 +575,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     />
                   </label>
                   <label>
-                    Пароль
+                    {t("botAgents.password")}
                     <input
                       type="password"
                       autoComplete="new-password"
@@ -583,18 +585,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     />
                   </label>
                   <label>
-                    OTP (за потреби)
+                    {t("botAgents.otp")}
                     <input value={loginOtp} onChange={(e) => setLoginOtp(e.target.value)} />
                   </label>
                   <button type="submit" className="c7x-admin-primary" disabled={busy}>
-                    Додати на ПК
+                    {t("botAgents.addToPc")}
                   </button>
                 </form>
               ) : null}
               <section className="c7x-admin-card c7x-admin-group-panel">
                 <div className="c7x-admin-section-head">
-                  <h3>Групи акаунтів</h3>
-                  <span>Зберігаються у Mnemos</span>
+                  <h3>{t("botAgents.accountGroups")}</h3>
+                  <span>{t("botAgents.savedInMnemos")}</span>
                 </div>
                 <form
                   className="c7x-admin-form-inline"
@@ -606,11 +608,11 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <input
                     value={groupName}
                     maxLength={64}
-                    placeholder="Нова група…"
+                    placeholder={t("botAgents.newGroup")}
                     onChange={(event) => setGroupName(event.target.value)}
                   />
                   <button type="submit" disabled={busy || !groupName.trim()}>
-                    Створити
+                    {t("botAgents.create")}
                   </button>
                 </form>
                 <div className="c7x-admin-group-tags">
@@ -619,7 +621,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     className={!groupFilter ? "is-active" : ""}
                     onClick={() => setGroupFilter("")}
                   >
-                    Усі
+                    {t("botAgents.all")}
                   </button>
                   {groupState.state.groups.map((group) => (
                     <div className="c7x-admin-group-tag" key={group.id}>
@@ -632,7 +634,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       </button>
                       <button
                         type="button"
-                        aria-label={"Видалити групу " + group.name}
+                        aria-label={t("botAgents.deleteGroupAria", { name: group.name })}
                         onClick={() => void deleteGroup(group.id)}
                         disabled={busy}
                       >
@@ -646,81 +648,81 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 className="c7x-admin-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Пошук за ніком…"
+                placeholder={t("botAgents.searchNick")}
               />
               <div className="c7x-admin-actions">
                 <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>
-                  Запустити всіх
+                  {t("botAgents.startAll")}
                 </button>
                 <button type="button" onClick={() => void bulk("disconnectAll")} disabled={busy}>
-                  Зупинити всіх
+                  {t("botAgents.stopAll")}
                 </button>
                 <button
                   type="button"
                   onClick={() => void bulk("cancelBulkConnect")}
                   disabled={busy}
                 >
-                  Скасувати чергу запуску
+                  {t("botAgents.cancelQueue")}
                 </button>
                 {chosen.length > 0 ? (
                   <>
                     <button type="button" onClick={() => void bulk("bulkConnect")} disabled={busy}>
-                      Запустити вибраних ({chosen.length})
+                      {t("botAgents.startSelected", { count: chosen.length })}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkReconnect")}
                       disabled={busy}
                     >
-                      Реконект
+                      {t("botAgents.reconnect")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkDisconnect")}
                       disabled={busy}
                     >
-                      Зупинити
+                      {t("botAgents.stop")}
                     </button>
                     <button type="button" onClick={() => void bulk("bulkEnterSao")} disabled={busy}>
-                      На SAO
+                      {t("botAgents.enterSao")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkDungeonLobby")}
                       disabled={busy}
                     >
-                      Лобі данжів
+                      {t("botAgents.dungeonLobby")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkAutomation", { autoDungeon: true })}
                       disabled={busy}
                     >
-                      Автоданжі ✓
+                      {t("botAgents.enableDungeons")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkAutomation", { autoDungeon: false })}
                       disabled={busy}
                     >
-                      Автоданжі ✕
+                      {t("botAgents.disableDungeons")}
                     </button>
                     <button type="button" onClick={() => void bulk("bulkDirect")} disabled={busy}>
-                      Без проксі
+                      {t("botAgents.direct")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkSpoofGenerate")}
                       disabled={busy}
                     >
-                      Нові Spoof
+                      {t("botAgents.newSpoof")}
                     </button>
                     <button
                       type="button"
                       onClick={() => void bulk("bulkStopNavigation")}
                       disabled={busy}
                     >
-                      Стоп навігації
+                      {t("botAgents.stopNavigation")}
                     </button>
                   </>
                 ) : null}
@@ -728,7 +730,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
               {chosen.length > 0 ? (
                 <section className="c7x-admin-card c7x-admin-bulk">
                   <div className="c7x-admin-section-head">
-                    <h3>Масові команди · {chosen.length} акаунтів</h3>
+                    <h3>{t("botAgents.bulkCommands", { count: chosen.length })}</h3>
                   </div>
                   <div className="c7x-admin-actions">
                     {DUNGEONS.map((dungeon) => (
@@ -767,12 +769,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         })
                       }
                     >
-                      Навігація вибраних
+                      {t("botAgents.navigateSelected")}
                     </button>
                   </div>
                   <div className="c7x-admin-form-inline">
                     <label>
-                      Цільовий реалм
+                      {t("botAgents.targetRealm")}
                       <input
                         type="number"
                         min="1"
@@ -787,21 +789,21 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         void bulk("bulkAutomation", { swapper: true, realm: Number(realm) })
                       }
                     >
-                      Увімкнути свапер
+                      {t("botAgents.enableSwapper")}
                     </button>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => void bulk("bulkAutomation", { swapper: false })}
                     >
-                      Вимкнути свапер
+                      {t("botAgents.disableSwapper")}
                     </button>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => void bulk("bulkAutomation", { autoReconnect: true })}
                     >
-                      Автореконект ✓
+                      {t("botAgents.autoReconnectCheck")}
                     </button>
                   </div>
                   <form
@@ -818,10 +820,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       value={bulkChatText}
                       onChange={(event) => setBulkChatText(event.target.value)}
                       maxLength={256}
-                      placeholder="Чат або команда для вибраних…"
+                      placeholder={t("botAgents.bulkMessagePlaceholder")}
                     />
                     <button type="submit" disabled={busy || !bulkChatText.trim()}>
-                      Надіслати
+                      {t("botAgents.send")}
                     </button>
                   </form>
                 </section>
@@ -830,14 +832,14 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 {visibleAccounts.length === 0 ? (
                   <div className="c7x-admin-empty">
                     <img src="/ui-illustrations/bot-agent-account.svg" alt="" />
-                    <strong>Акаунтів не знайдено</strong>
+                    <strong>{t("botAgents.noAccounts")}</strong>
                   </div>
                 ) : null}
                 {visibleAccounts.map((item) => (
                   <div key={item.id} className="c7x-admin-account-line">
                     <input
                       type="checkbox"
-                      aria-label={`Вибрати ${item.username}`}
+                      aria-label={t("botAgents.selectAccountAria", { name: item.username })}
                       checked={chosen.includes(item.id)}
                       onChange={(e) =>
                         setChosen((current) =>
@@ -859,7 +861,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     >
                       <strong>{item.username}</strong>
                       <small>
-                        {item.realm ?? "Без реалму"} · {item.activity}
+                        {item.realm ?? t("botAgents.noRealm")} · {item.activity}
                       </small>
                     </button>
                     <span
@@ -873,9 +875,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
               <section className="c7x-admin-card c7x-admin-pools">
                 <div className="c7x-admin-section-head">
-                  <h3>Пули проксі · {proxyPools.length}</h3>
+                  <h3>{t("botAgents.proxyPoolsCount", { count: proxyPools.length })}</h3>
                   <button type="button" onClick={() => setPoolEditor((value) => !value)}>
-                    {poolEditor ? "Закрити" : "+ Налаштувати"}
+                    {poolEditor ? t("botAgents.close") : t("botAgents.configure")}
                   </button>
                 </div>
                 {proxyPools.map((pool) => (
@@ -883,28 +885,31 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     <span>
                       <strong>{pool.name}</strong>
                       <small>
-                        {pool.strategy} · {pool.count} проксі ·{" "}
-                        {pool.entries.filter((entry) => entry.healthy).length} здорових
+                        {t("botAgents.poolSummary", {
+                          strategy: pool.strategy,
+                          count: pool.count,
+                          healthy: pool.entries.filter((entry) => entry.healthy).length,
+                        })}
                       </small>
                     </span>
                     <button
                       disabled={busy}
                       onClick={() => void proxyOperation({ action: "test", name: pool.name })}
                     >
-                      Тест
+                      {t("botAgents.test")}
                     </button>
                     {chosen.length > 0 ? (
                       <button
                         disabled={busy}
                         onClick={() => void bulk("bulkPool", { poolName: pool.name })}
                       >
-                        Призначити {chosen.length}
+                        {t("botAgents.assignSelected", { count: chosen.length })}
                       </button>
                     ) : null}
                     <button
                       disabled={busy}
                       onClick={() => {
-                        if (window.confirm("Видалити пул " + pool.name + "?")) {
+                        if (window.confirm(t("botAgents.removePoolConfirm", { name: pool.name }))) {
                           void proxyOperation({ action: "delete", name: pool.name })
                         }
                       }}
@@ -927,7 +932,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     }}
                   >
                     <label>
-                      Назва пулу
+                      {t("botAgents.poolName")}
                       <input
                         value={poolName}
                         maxLength={64}
@@ -936,18 +941,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       />
                     </label>
                     <label>
-                      Стратегія
+                      {t("botAgents.strategy")}
                       <select
                         value={poolStrategy}
                         onChange={(event) => setPoolStrategy(event.target.value)}
                       >
-                        <option value="STICKY">Постійний проксі</option>
-                        <option value="ROUND_ROBIN">По черзі</option>
-                        <option value="LEAST_USED">Найменш зайнятий</option>
+                        <option value="STICKY">{t("botAgents.sticky")}</option>
+                        <option value="ROUND_ROBIN">{t("botAgents.roundRobin")}</option>
+                        <option value="LEAST_USED">{t("botAgents.leastUsed")}</option>
                       </select>
                     </label>
                     <label>
-                      Проксі (по одному в рядку)
+                      {t("botAgents.proxiesPerLine")}
                       <textarea
                         rows={4}
                         value={poolProxies}
@@ -956,7 +961,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       />
                     </label>
                     <button type="submit" disabled={busy || !poolName.trim()}>
-                      Зберегти пул на ПК
+                      {t("botAgents.savePool")}
                     </button>
                   </form>
                 ) : null}
@@ -990,13 +995,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       >
                         {
                           {
-                            connect: "Запуск",
-                            disconnect: "Стоп",
-                            reconnect: "Реконект",
-                            enterSao: "На SAO",
-                            dungeonLobby: "Лобі данжів",
-                            pause: "Пауза",
-                            resume: "Продовжити",
+                            connect: t("botAgents.start"),
+                            disconnect: t("botAgents.stopShort"),
+                            reconnect: t("botAgents.reconnect"),
+                            enterSao: t("botAgents.enterSao"),
+                            dungeonLobby: t("botAgents.dungeonLobby"),
+                            pause: t("botAgents.pause"),
+                            resume: t("botAgents.resume"),
                           }[action]
                         }
                       </button>
@@ -1004,13 +1009,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </div>
                   <div className="c7x-admin-form-inline">
                     <label>
-                      Група акаунта
+                      {t("botAgents.accountGroup")}
                       <select
                         value={groupState.state.assignments[account.id] ?? ""}
                         onChange={(event) => void assignGroup(account.id, event.target.value)}
                         disabled={busy}
                       >
-                        <option value="">Без групи</option>
+                        <option value="">{t("botAgents.noGroup")}</option>
                         {groupState.state.groups.map((group) => (
                           <option key={group.id} value={group.id}>
                             {group.name}
@@ -1027,14 +1032,14 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         disabled={busy}
                         onClick={() => void act("dungeon", { dungeon })}
                       >
-                        Перейти: {dungeon}
+                        {t("botAgents.enterDungeon", { dungeon })}
                       </button>
                     ))}
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => {
-                        if (!selected || !window.confirm("Видалити акаунт із цієї програми?")) {
+                        if (!selected || !window.confirm(t("botAgents.removeAccountConfirm"))) {
                           return
                         }
                         const id = account.id
@@ -1047,16 +1052,16 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         })
                       }}
                     >
-                      Видалити акаунт
+                      {t("botAgents.deleteAccount")}
                     </button>
                   </div>
-                  <h3>Автоматизація</h3>
+                  <h3>{t("botAgents.automation")}</h3>
                   <div className="c7x-admin-toggle-row">
                     {(
                       [
-                        ["autoDungeon", "Автоданжі"],
-                        ["swapper", "Автосвапер"],
-                        ["autoReconnect", "Автореконект"],
+                        ["autoDungeon", t("botAgents.autoDungeons")],
+                        ["swapper", t("botAgents.autoSwapper")],
+                        ["autoReconnect", t("botAgents.autoReconnect")],
                       ] as const
                     ).map(([key, label]) => (
                       <label key={key}>
@@ -1091,7 +1096,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </div>
                   <div className="c7x-admin-form-inline">
                     <label>
-                      Реалм
+                      {t("botAgents.realm")}
                       <input
                         type="number"
                         min="1"
@@ -1104,17 +1109,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       disabled={busy || !Number(realm)}
                       onClick={() => void act("changeRealm", { realm: Number(realm) })}
                     >
-                      Перейти
+                      {t("botAgents.go")}
                     </button>
                     <button
                       type="button"
                       disabled={busy || !Number(realm)}
                       onClick={() => void settings({ realm: Number(realm) })}
                     >
-                      Ціль свапера
+                      {t("botAgents.swapperTarget")}
                     </button>
                   </div>
-                  <h3>Навігація</h3>
+                  <h3>{t("botAgents.navigation")}</h3>
                   <div className="c7x-admin-form-inline">
                     {(["x", "y", "z"] as const).map((key) => (
                       <label key={key}>
@@ -1138,17 +1143,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         })
                       }
                     >
-                      Йти
+                      {t("botAgents.walk")}
                     </button>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => void act("stopNavigation")}
                     >
-                      Стоп
+                      {t("botAgents.stopShort")}
                     </button>
                   </div>
-                  <h3>Чат</h3>
+                  <h3>{t("botAgents.chat")}</h3>
                   <form
                     className="c7x-admin-form-inline"
                     onSubmit={(e) => {
@@ -1164,18 +1169,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       value={chatText}
                       maxLength={256}
                       onChange={(e) => setChatText(e.target.value)}
-                      placeholder="Написати повідомлення…"
+                      placeholder={t("botAgents.messagePlaceholder")}
                     />
                     <button disabled={busy || !chatText.trim()} type="submit">
-                      Надіслати
+                      {t("botAgents.send")}
                     </button>
                   </form>
-                  <h3>Мережа та Spoof</h3>
+                  <h3>{t("botAgents.networkSpoof")}</h3>
                   {network ? (
                     <div className="c7x-admin-network">
                       <div className="c7x-admin-form-inline">
                         <label>
-                          Тип підключення
+                          {t("botAgents.connectionType")}
                           <select
                             value={networkMode}
                             disabled={busy}
@@ -1193,17 +1198,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                               })
                             }}
                           >
-                            <option value="INHERIT">За замовчуванням</option>
-                            <option value="DIRECT">Пряме</option>
+                            <option value="INHERIT">{t("botAgents.inherit")}</option>
+                            <option value="DIRECT">{t("botAgents.directMode")}</option>
                             <option value="POOL" disabled={!proxyPools.length}>
-                              Пул проксі
+                              {t("botAgents.proxyPool")}
                             </option>
-                            <option value="CUSTOM">Власний проксі</option>
+                            <option value="CUSTOM">{t("botAgents.customProxy")}</option>
                           </select>
                         </label>
                         {network.proxy.mode === "POOL" ? (
                           <label>
-                            Пул
+                            {t("botAgents.pool")}
                             <select
                               value={network.proxy.poolName ?? ""}
                               disabled={busy}
@@ -1241,7 +1246,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         >
                           <div className="c7x-admin-form-inline">
                             <label>
-                              Протокол
+                              {t("botAgents.protocol")}
                               <select
                                 value={proxyType}
                                 onChange={(event) => setProxyType(event.target.value)}
@@ -1253,7 +1258,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                               </select>
                             </label>
                             <label>
-                              Хост
+                              {t("botAgents.host")}
                               <input
                                 value={proxyHost}
                                 onChange={(event) => setProxyHost(event.target.value)}
@@ -1261,7 +1266,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                               />
                             </label>
                             <label>
-                              Порт
+                              {t("botAgents.port")}
                               <input
                                 type="number"
                                 min="1"
@@ -1274,14 +1279,14 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           </div>
                           <div className="c7x-admin-form-inline">
                             <label>
-                              Користувач
+                              {t("botAgents.username")}
                               <input
                                 value={proxyUsername}
                                 onChange={(event) => setProxyUsername(event.target.value)}
                               />
                             </label>
                             <label>
-                              Новий пароль (необов’язково)
+                              {t("botAgents.newPassword")}
                               <input
                                 type="password"
                                 value={proxyPassword}
@@ -1290,13 +1295,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                             </label>
                           </div>
                           <button type="submit" disabled={busy || !proxyHost.trim()}>
-                            Зберегти проксі
+                            {t("botAgents.saveProxy")}
                           </button>
                         </form>
                       ) : null}
                       <div className="c7x-admin-form-inline">
                         <label>
-                          Spoof-профіль
+                          {t("botAgents.spoofProfile")}
                           <select
                             value={network.spoof.mode}
                             disabled={busy}
@@ -1304,10 +1309,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                               void applyNetwork({ spoof: { mode: event.target.value } })
                             }
                           >
-                            <option value="INHERIT">За замовчуванням</option>
-                            <option value="DISABLED">Вимкнено</option>
-                            <option value="PERSISTENT">Постійний</option>
-                            <option value="SESSION_RANDOM">Новий на сесію</option>
+                            <option value="INHERIT">{t("botAgents.inherit")}</option>
+                            <option value="DISABLED">{t("botAgents.disabled")}</option>
+                            <option value="PERSISTENT">{t("botAgents.persistent")}</option>
+                            <option value="SESSION_RANDOM">{t("botAgents.perSession")}</option>
                           </select>
                         </label>
                         <button
@@ -1323,7 +1328,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                             })
                           }
                         >
-                          Новий Spoof
+                          {t("botAgents.newSpoofSingle")}
                         </button>
                         <button
                           type="button"
@@ -1344,14 +1349,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                             )
                           }}
                         >
-                          Перевірити проксі
+                          {t("botAgents.testProxy")}
                         </button>
                       </div>
                     </div>
                   ) : null}
-                  <h3>Діагностика</h3>
+                  <h3>{t("botAgents.diagnostics")}</h3>
                   <p className="c7x-admin-muted">
-                    Проксі: {account.proxy} · {account.proxyStatus}
+                    {t("botAgents.proxyStatus", {
+                      proxy: account.proxy,
+                      status: account.proxyStatus,
+                    })}
                   </p>
                   <button
                     type="button"
@@ -1372,13 +1380,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       }, false)
                     }}
                   >
-                    Отримати діагностику
+                    {t("botAgents.getDiagnostics")}
                   </button>
                   {showDiagnostics ? (
                     <pre className="c7x-admin-log">{JSON.stringify(diagnostics, null, 2)}</pre>
                   ) : null}
                   <div className="c7x-admin-section-head">
-                    <h3>Журнал</h3>
+                    <h3>{t("botAgents.journal")}</h3>
                     <button
                       type="button"
                       onClick={() =>
@@ -1389,7 +1397,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         )
                       }
                     >
-                      Копіювати
+                      {t("botAgents.copy")}
                     </button>
                   </div>
                   <div className="c7x-admin-log">
@@ -1402,7 +1410,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                             <span>{entry.message}</span>
                           </div>
                         ))
-                      : "Записів поки немає"}
+                      : t("botAgents.noLogs")}
                   </div>
                 </section>
               ) : null}
