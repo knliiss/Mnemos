@@ -14,7 +14,6 @@ import {
   revokeBotAgent,
   workerRequest,
   getBotGroups,
-  saveBotGroups,
   getBotProxyPools,
   modifyBotProxyPool,
   getBotNetwork,
