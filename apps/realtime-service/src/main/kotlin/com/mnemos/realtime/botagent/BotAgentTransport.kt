@@ -2,7 +2,6 @@ package com.mnemos.realtime.botagent
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -13,9 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
@@ -25,7 +24,6 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
-import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -222,51 +220,18 @@ class BotAgentWebSocketConfiguration(
  */
 @RestController
 @RequestMapping("/internal/v1/bot-agents")
-class BotAgentTransportInternalController(
-    private val sessions: BotAgentSessions,
-    @Value("\${mnemos.bot.internal-token}") private val internalKey: String,
-) {
-    private fun verify(secret: String?) {
-        if (internalKey.length < 32 ||
-            !MessageDigest.isEqual(
-                internalKey.toByteArray(Charsets.UTF_8),
-                (secret ?: "").toByteArray(Charsets.UTF_8),
-            )
-        ) {
-            throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
-        }
-    }
-
+@PreAuthorize("authentication.name == 'bot-management-service'")
+class BotAgentTransportInternalController(private val sessions: BotAgentSessions) {
     @GetMapping("/online")
-    fun online(
-        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
-    ): List<String> {
-        verify(secret)
-        return sessions.onlineIds()
-    }
+    fun online(): List<String> = sessions.onlineIds()
 
     @PostMapping("/{id}/disconnect")
-    fun disconnect(
-        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
-        @PathVariable id: UUID,
-    ): Map<String, Boolean> {
-        verify(secret)
+    fun disconnect(@PathVariable id: UUID): Map<String, Boolean> {
         sessions.close(id)
         return mapOf("ok" to true)
     }
 
     @PostMapping("/{id}/request")
-    fun request(
-        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
-        @PathVariable id: UUID,
-        @RequestBody body: JsonNode,
-    ): JsonNode {
-        verify(secret)
-        return sessions.request(
-            id,
-            body.path("method").asText(""),
-            body.path("path").asText(""),
-            body.get("body"),
-        )
-    }
+    fun request(@PathVariable id: UUID, @RequestBody body: JsonNode): JsonNode =
+        sessions.request(id, body.path("method").asText(""), body.path("path").asText(""), body.get("body"))
 }

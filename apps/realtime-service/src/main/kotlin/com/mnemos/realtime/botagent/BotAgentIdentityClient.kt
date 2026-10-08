@@ -10,13 +10,11 @@ import org.springframework.web.server.ResponseStatusException
 import java.time.Duration
 import java.util.UUID
 
-internal const val BOT_INTERNAL_HEADER = "X-Mnemos-Bot-Internal-Token"
-
 /** The bot-management-service is the sole owner of worker identity and persistence. */
 @Component
 class BotAgentIdentityClient(
     @Value("\${mnemos.bot.management-url}") managementUrl: String,
-    @Value("\${mnemos.bot.internal-token}") private val internalKey: String,
+    @Value("\${mnemos.bot.management-api-key}") private val internalKey: String,
 ) {
     private val client = RestClient.builder().baseUrl(managementUrl)
         .requestFactory(
@@ -30,7 +28,8 @@ class BotAgentIdentityClient(
         if (authorization == null || !authorization.startsWith("BotAgent ")) return null
         return try {
             val response = client.post().uri("/internal/v1/bot-agents/authenticate")
-                .header(BOT_INTERNAL_HEADER, internalKey)
+                .header("X-Mnemos-Service", "realtime-service")
+                .header("X-Mnemos-API-Key", internalKey)
                 .body(mapOf("authorization" to authorization))
                 .retrieve().body(JsonNode::class.java)
             UUID.fromString(response?.path("agentId")?.asText())
@@ -41,21 +40,24 @@ class BotAgentIdentityClient(
 
     fun hello(id: UUID, details: JsonNode) {
         client.post().uri("/internal/v1/bot-agents/{id}/hello", id)
-            .header(BOT_INTERNAL_HEADER, internalKey)
+            .header("X-Mnemos-Service", "realtime-service")
+                .header("X-Mnemos-API-Key", internalKey)
             .body(details)
             .retrieve().toBodilessEntity()
     }
 
     fun heartbeat(id: UUID) {
         client.post().uri("/internal/v1/bot-agents/{id}/heartbeat", id)
-            .header(BOT_INTERNAL_HEADER, internalKey)
+            .header("X-Mnemos-Service", "realtime-service")
+                .header("X-Mnemos-API-Key", internalKey)
             .retrieve().toBodilessEntity()
     }
 
     fun disconnected(id: UUID) {
         runCatching {
             client.post().uri("/internal/v1/bot-agents/{id}/disconnected", id)
-                .header(BOT_INTERNAL_HEADER, internalKey)
+                .header("X-Mnemos-Service", "realtime-service")
+                .header("X-Mnemos-API-Key", internalKey)
                 .retrieve().toBodilessEntity()
         }
     }
