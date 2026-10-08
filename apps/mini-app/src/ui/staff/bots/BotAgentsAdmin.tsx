@@ -40,6 +40,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [agents, setAgents] = useState<BotAgent[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [programTab, setProgramTab] = useState<"accounts" | "groups" | "bulk" | "proxies">("accounts")
+  const [accountTab, setAccountTab] = useState<"overview" | "automation" | "network" | "logs">("overview")
   const [created, setCreated] = useState<AgentCreation | null>(null)
   const [accounts, setAccounts] = useState<BotAccount[]>([])
   const [accountId, setAccountId] = useState<string | null>(null)
@@ -290,6 +291,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   function chooseAccount(id: string) {
     setAccountId(id)
+    setAccountTab("overview")
     setNetwork(null)
     setLogEntries([])
     setLogError(null)
@@ -1066,6 +1068,20 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
       {active && account ? (
                 <section className="c7x-admin-card c7x-admin-detail">
+                  <nav className="c7x-program-tabs" aria-label={t("botAgents.accountSections")}>
+                    {(["overview", "automation", "network", "logs"] as const).map((tab) => (
+                      <button
+                        type="button"
+                        key={tab}
+                        className={accountTab === tab ? "is-current" : ""}
+                        aria-current={accountTab === tab ? "page" : undefined}
+                        onClick={() => setAccountTab(tab)}
+                      >
+                        {t("botAgents.accountTab_" + tab)}
+                        {tab === "logs" && logError ? " !" : ""}
+                      </button>
+                    ))}
+                  </nav>
                   <div className="c7x-admin-section-head">
                     <div className="c7x-agent-account-title">
                       <LeaderboardPlayerHead
@@ -1084,6 +1100,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   {account.lastError ? (
                     <p className="c7x-admin-error">{account.lastError}</p>
                   ) : null}
+                  <div hidden={accountTab !== "overview"}>
                   <div className="c7x-admin-actions">
                     {(
                       [
@@ -1164,6 +1181,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       {t("botAgents.deleteAccount")}
                     </button>
                   </div>
+                  </div>
+                  <div hidden={accountTab !== "automation"}>
                   <h3>{t("botAgents.automation")}</h3>
                   <div className="c7x-admin-toggle-row">
                     {(
@@ -1284,6 +1303,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       {t("botAgents.send")}
                     </button>
                   </form>
+                  </div>
+                  <div hidden={accountTab !== "network"}>
                   <h3>{t("botAgents.networkSpoof")}</h3>
                   {network ? (
                     <div className="c7x-admin-network">
@@ -1494,6 +1515,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   {showDiagnostics ? (
                     <pre className="c7x-admin-log">{JSON.stringify(diagnostics, null, 2)}</pre>
                   ) : null}
+                  </div>
+                  <div hidden={accountTab !== "logs"}>
                   <div className="c7x-admin-section-head">
                     <h3>{t("botAgents.journal")}</h3>
                     <button
@@ -1522,6 +1545,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           </div>
                         ))
                       : !logLoading && !logError ? t("botAgents.noLogs") : null}
+                  </div>
                   </div>
                 </section>
               ) : null}
