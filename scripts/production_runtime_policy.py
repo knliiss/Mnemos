@@ -6,6 +6,7 @@ from __future__ import annotations
 APPLICATION_SERVICES = (
     "account-service",
     "bet-service",
+    "bot-management-service",
     "event-service",
     "gateway-service",
     "moderation-service",
