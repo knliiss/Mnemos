@@ -65,7 +65,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     date ? new Date(date).toLocaleString() : "Ніколи"
 
   const refreshAgents = useCallback(async () => {
-    if (!authorized) return
+    if (!authorized) { return }
     try { setAgents(await getBotAgents()) }
     catch (error) { handleError(error) }
   }, [authorized])
@@ -76,7 +76,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }, [])
 
   useEffect(() => {
-    if (!authorized) return
+    if (!authorized) { return }
     void refreshAgents()
     const timer = window.setInterval(() => void refreshAgents(), 10_000)
     return () => window.clearInterval(timer)
@@ -85,11 +85,11 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   useEffect(() => {
     let cancelled = false
     if (selected) {
-      void getBotGroups(selected).then((data) => { if (!cancelled) setGroupState(data) }).catch(handleError)
+      void getBotGroups(selected).then((data) => { if (!cancelled) { setGroupState(data) } }).catch(handleError)
     }
     let timer: number | undefined
     if (selected && active?.online) {
-      void getBotProxyPools(selected).then((value) => { if (!cancelled) setProxyPools(value.pools) }).catch(handleError)
+      void getBotProxyPools(selected).then((value) => { if (!cancelled) { setProxyPools(value.pools) } }).catch(handleError)
       void refreshAccounts(selected)
       timer = window.setInterval(() => void refreshAccounts(selected), 10_000)
     }
@@ -101,18 +101,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     logCursor.current = 0
-    if (!selected || !accountId || !active?.online) return
+    if (!selected || !accountId || !active?.online) { return }
     let running = true
     let inFlight = false
     const poll = async () => {
-      if (inFlight || !running) return
+      if (inFlight || !running) { return }
       inFlight = true
       try {
         let result = await botLogs(selected, accountId, logCursor.current)
         if (logCursor.current === 0 && result.lastSequence > 100) {
           result = await botLogs(selected, accountId, Math.max(0, result.lastSequence - 80))
         }
-        if (!running) return
+        if (!running) { return }
         if (result.entries.length) {
           logCursor.current = result.entries[result.entries.length - 1].sequence
           setLogEntries((previous) => [...previous, ...result.entries].slice(-150))
@@ -129,10 +129,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }, [selected, accountId, active?.online])
 
   useEffect(() => {
-    if (!selected || !accountId || !active?.online) return
+    if (!selected || !accountId || !active?.online) { return }
     let cancelled = false
     void getBotNetwork(selected, accountId).then((value) => {
-      if (cancelled) return
+      if (cancelled) { return }
       setNetwork(value)
       setNetworkMode(value.proxy.mode)
       setProxyHost(value.proxy.host ?? "")
@@ -175,7 +175,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     try {
       await task()
       setNotice("Виконано")
-      if (selected && refresh) await refreshAccounts(selected)
+      if (selected && refresh) { await refreshAccounts(selected) }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Помилка виконання")
       handleError(error)
@@ -195,22 +195,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   async function renameWorker(agent: BotAgent) {
     const name = window.prompt("Назва програми", agent.name)?.trim()
-    if (!name || name === agent.name) return
+    if (!name || name === agent.name) { return }
     await run(async () => { await renameBotAgent(agent.id, name); await refreshAgents() }, false)
   }
 
   async function removeWorker(agent: BotAgent) {
-    if (!window.confirm(`Відкликати доступ програми «${agent.name}»? Запис залишиться в історії.`)) return
+    if (!window.confirm(`Відкликати доступ програми «${agent.name}»? Запис залишиться в історії.`)) { return }
     await run(async () => { await revokeBotAgent(agent.id); await refreshAgents() }, false)
   }
 
   async function act(action: string, extra: Record<string, unknown> = {}) {
-    if (!selected || !account) return
+    if (!selected || !account) { return }
     await run(() => botAction(selected, account.id, action, extra))
   }
 
   async function settings(patch: Record<string, unknown>) {
-    if (!selected || !account) return
+    if (!selected || !account) { return }
     await run(() => botSettings(selected, account.id, {
       autoDungeon: account.autoDungeon,
       swapper: account.swapper,
@@ -222,12 +222,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function bulk(action: string, extra: Record<string, unknown> = {}) {
-    if (!selected) return
+    if (!selected) { return }
     await run(() => botManager(selected, { action, ids: chosen, ...extra }))
   }
 
   async function addAccount() {
-    if (!selected || !loginName || !loginPassword) return
+    if (!selected || !loginName || !loginPassword) { return }
     await run(async () => {
       await workerRequest(selected, "POST", "/api/accounts/manage", {
         action: "login", username: loginName, password: loginPassword,
@@ -238,7 +238,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function updateGroups(state: RemoteGroupState["state"]) {
-    if (!selected) return
+    if (!selected) { return }
     await run(async () => {
       const next = await saveBotGroups(selected, { state, revision: groupState.revision })
       setGroupState(next)
@@ -247,7 +247,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   async function addGroup() {
     const name = groupName.trim()
-    if (!name || name.length > 64 || !selected) return
+    if (!name || name.length > 64 || !selected) { return }
     const id = crypto.randomUUID()
     await updateGroups({
       groups: [...groupState.state.groups, { id, name }],
@@ -257,7 +257,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function deleteGroup(id: string) {
-    if (!window.confirm("Видалити групу? Акаунти залишаться у програмі.")) return
+    if (!window.confirm("Видалити групу? Акаунти залишаться у програмі.")) { return }
     const assignments = Object.fromEntries(
       Object.entries(groupState.state.assignments).filter(([, groupId]) => groupId !== id),
     )
@@ -265,7 +265,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       groups: groupState.state.groups.filter((group) => group.id !== id),
       assignments,
     })
-    if (groupFilter === id) setGroupFilter("")
+    if (groupFilter === id) { setGroupFilter("") }
   }
 
   async function assignGroup(accountId: string, id: string) {
@@ -276,7 +276,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function applyNetwork(changes: Record<string, unknown>) {
-    if (!selected || !accountId) return
+    if (!selected || !accountId) { return }
     await run(async () => {
       const next = await updateBotNetwork(selected, accountId, changes)
       setNetwork(next)
@@ -285,14 +285,14 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function proxyOperation(data: Record<string, unknown>) {
-    if (!selected) return
+    if (!selected) { return }
     await run(async () => {
       const result = await modifyBotProxyPool(selected, data)
       setProxyPools(result.pools)
     }, false)
   }
 
-  if (!authorized) return <div className="screen"><PageHeader title="Боти" back={back} /><p>Доступ лише для адміністратора.</p></div>
+  if (!authorized) { return <div className="screen"><PageHeader title="Боти" back={back} /><p>Доступ лише для адміністратора.</p></div> }
 
   return (
     <div className="screen c7x-admin">
@@ -422,7 +422,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </div>
                   <form className="c7x-admin-form-inline" onSubmit={(event) => {
                     event.preventDefault()
-                    if (!bulkChatText.trim()) return
+                    if (!bulkChatText.trim()) { return }
                     void bulk("bulkChat", { message: bulkChatText.trim() })
                   }}>
                     <input value={bulkChatText} onChange={(event) => setBulkChatText(event.target.value)} maxLength={256} placeholder="Чат або команда для вибраних…" />
@@ -455,7 +455,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     <button disabled={busy} onClick={() => void proxyOperation({ action: "test", name: pool.name })}>Тест</button>
                     {chosen.length > 0 ? <button disabled={busy} onClick={() => void bulk("bulkPool", { poolName: pool.name })}>Призначити {chosen.length}</button> : null}
                     <button disabled={busy} onClick={() => {
-                      if (window.confirm("Видалити пул " + pool.name + "?")) void proxyOperation({ action: "delete", name: pool.name })
+                      if (window.confirm("Видалити пул " + pool.name + "?")) { void proxyOperation({ action: "delete", name: pool.name }) }
                     }}>×</button>
                   </div>
                 ))}
@@ -507,7 +507,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       </button>
                     ))}
                     <button type="button" disabled={busy} onClick={() => {
-                      if (!selected || !window.confirm("Видалити акаунт із цієї програми?")) return
+                      if (!selected || !window.confirm("Видалити акаунт із цієї програми?")) { return }
                       const id = account.id
                       void run(async () => {
                         await workerRequest(selected, "POST", "/api/accounts/manage", { action: "remove", id })
@@ -547,7 +547,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <h3>Чат</h3>
                   <form className="c7x-admin-form-inline" onSubmit={(e) => {
                     e.preventDefault()
-                    if (!selected || !chatText.trim()) return
+                    if (!selected || !chatText.trim()) { return }
                     void run(() => botChat(selected, account.id, chatText.trim()), false)
                     setChatText("")
                   }}>
@@ -562,7 +562,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           <select value={networkMode} disabled={busy} onChange={(event) => {
                             const mode = event.target.value
                             setNetworkMode(mode)
-                            if (mode === "CUSTOM" || (mode === "POOL" && !proxyPools.length)) return
+                            if (mode === "CUSTOM" || (mode === "POOL" && !proxyPools.length)) { return }
                             void applyNetwork({ proxy: mode === "POOL" ?
                               { mode, poolName: proxyPools[0].name } : { mode } })
                           }}>
@@ -615,7 +615,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                           spoof: { mode: "PERSISTENT", profileName: network.spoof.profileName ?? "Natural Desktop", regenerate: true },
                         })}>Новий Spoof</button>
                         <button type="button" disabled={busy} onClick={() => {
-                          if (!selected || !account) return
+                          if (!selected || !account) { return }
                           void run(() => workerRequest(selected, "POST", `/api/account/${account.id}/proxy-test`, {}), false)
                         }}>Перевірити проксі</button>
                       </div>
@@ -624,7 +624,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <h3>Діагностика</h3>
                   <p className="c7x-admin-muted">Проксі: {account.proxy} · {account.proxyStatus}</p>
                   <button type="button" disabled={busy} onClick={() => {
-                    if (!selected) return
+                    if (!selected) { return }
                     void run(async () => {
                       setDiagnostics(await workerRequest(selected, "GET", `/api/account/${account.id}/diagnostics`))
                       setShowDiagnostics(true)
