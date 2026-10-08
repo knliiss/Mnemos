@@ -3,12 +3,37 @@ import { workerRequest } from "@/shared/api/botAgentApi"
 import { LeaderboardPlayerHead } from "../../leaderboards/LeaderboardPlayerHead"
 
 const headCache = new Map<string, Promise<string | null>>()
+const headQueue: Array<() => void> = []
+let activeHeadRequests = 0
+
+function drainHeadQueue() {
+  while (activeHeadRequests < 3) {
+    const next = headQueue.shift()
+    if (!next) break
+    activeHeadRequests += 1
+    next()
+  }
+}
+
+function limitedHeadRequest(factory: () => Promise<string | null>): Promise<string | null> {
+  return new Promise((resolve) => {
+    headQueue.push(() => {
+      void factory()
+        .then(resolve)
+        .finally(() => {
+          activeHeadRequests -= 1
+          drainHeadQueue()
+        })
+    })
+    drainHeadQueue()
+  })
+}
 
 function fetchHead(agentId: string, accountId: string): Promise<string | null> {
   const key = agentId + "/" + accountId
   const previous = headCache.get(key)
   if (previous) return previous
-  const request = workerRequest<{ pngBase64: string }>(
+  const request = limitedHeadRequest(() => workerRequest<{ pngBase64: string }>(
     agentId,
     "GET",
     `/api/account/${accountId}/head`,
@@ -19,7 +44,7 @@ function fetchHead(agentId: string, accountId: string): Promise<string | null> {
       }
       return `data:image/png;base64,${result.pngBase64}`
     })
-    .catch(() => null)
+    .catch(() => null))
   headCache.set(key, request)
   return request
 }
