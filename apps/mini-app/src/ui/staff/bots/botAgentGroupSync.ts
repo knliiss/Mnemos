@@ -31,7 +31,7 @@ function withMarker(
 }
 
 export async function synchronizeBotGroups(agentId: string): Promise<RemoteGroupState> {
-  let database = await getBotGroups(agentId)
+  const database = await getBotGroups(agentId)
   const worker = await workerRequest<WorkerGroupState>(agentId, "GET", "/api/groups")
 
   const workerRevision = worker.revision
