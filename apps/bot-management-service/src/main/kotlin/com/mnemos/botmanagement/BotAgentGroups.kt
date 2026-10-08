@@ -1,7 +1,7 @@
 package com.mnemos.botmanagement
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.access.prepost.PreAuthorize
@@ -85,7 +85,7 @@ class BotAgentGroupStore(
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid group name/id")
             }
         }
-        val iterator = assignments.fields()
+        val iterator = assignments.properties().iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
             if (runCatching { UUID.fromString(entry.key) }.isFailure ||

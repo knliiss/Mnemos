@@ -1,13 +1,13 @@
 package com.mnemos.realtime.botagent
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 
 class BotAgentSessionsTest {
-    private val sessions = BotAgentSessions(ObjectMapper(), mock(BotAgentIdentityClient::class.java))
+    private val sessions = BotAgentSessions(JsonMapper.builder().build(), mock(BotAgentIdentityClient::class.java))
     private val account = "00000000-0000-0000-0000-000000000001"
 
     @Test
