@@ -27,6 +27,7 @@ import {
   type BotAgent,
 } from "@/shared/api/botAgentApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { persistBotGroupChange, synchronizeBotGroups } from "./botAgentGroupSync"
 import { PageHeader } from "../../shared/Primitives"
 import { LeaderboardPlayerHead } from "../../leaderboards/LeaderboardPlayerHead"
 import "./bot-agents.css"
@@ -139,38 +140,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     let cancelled = false
+    let groupsTimer: number | undefined
     if (selected) {
       const agentId = selected
-      void (async () => {
+      const sync = async () => {
         try {
-          let data = await getBotGroups(agentId)
-          if (active?.online) {
-            const worker = await workerRequest<RemoteGroupState & { initialized: boolean }>(
-              agentId, "GET", "/api/groups",
-            )
-            const serverEmpty = data.revision === 0 &&
-              data.state.groups.length === 0 &&
-              Object.keys(data.state.assignments).length === 0
-            if (serverEmpty && worker.initialized && worker.state.groups.length) {
-              data = await saveBotGroups(agentId, { state: worker.state, revision: data.revision })
-            } else if (
-              JSON.stringify(worker.state) !== JSON.stringify(data.state)
-            ) {
-              await workerRequest(agentId, "POST", "/api/groups", {
-                state: data.state, revision: worker.revision,
-              })
-            }
-          }
-          if (!cancelled) {
-            setGroupState(data)
-          }
+          const data = active?.online ? await synchronizeBotGroups(agentId) : await getBotGroups(agentId)
+          if (!cancelled) setGroupState(data)
         } catch (error) {
           if (!cancelled) {
             setNotice(error instanceof Error ? error.message : t("botAgents.groupSyncError"))
             handleError(error)
           }
         }
-      })()
+      }
+      void sync()
+      if (active?.online) groupsTimer = window.setInterval(() => void sync(), 20_000)
     }
     let timer: number | undefined
     let initial: number | undefined
@@ -187,6 +172,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     }
     return () => {
       cancelled = true
+      if (groupsTimer !== undefined) window.clearInterval(groupsTimer)
       if (initial !== undefined) {
         window.clearTimeout(initial)
       }
@@ -411,15 +397,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       return
     }
     await run(async () => {
-      const workerId = selected
-      const next = await saveBotGroups(workerId, { state, revision: groupState.revision })
+      const next = await persistBotGroupChange(selected, groupState, state, Boolean(active?.online))
       setGroupState(next)
-      if (active?.online) {
-        const current = await workerRequest<RemoteGroupState>(workerId, "GET", "/api/groups")
-        await workerRequest(workerId, "POST", "/api/groups", {
-          state: next.state, revision: current.revision,
-        })
-      }
     }, false)
   }
 
