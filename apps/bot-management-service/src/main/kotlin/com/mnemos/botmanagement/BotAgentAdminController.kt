@@ -1,6 +1,5 @@
 package com.mnemos.botmanagement
 
-import tools.jackson.databind.JsonNode
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.databind.JsonNode
 import java.util.UUID
 
 @RestController
@@ -37,7 +37,9 @@ class BotAgentAdminController(
     }
 
     @DeleteMapping("/{id}")
-    fun revoke(@PathVariable id: UUID): Map<String, Boolean> {
+    fun revoke(
+        @PathVariable id: UUID,
+    ): Map<String, Boolean> {
         registry.revoke(id)
         transport.disconnect(id)
         return mapOf("ok" to true)
