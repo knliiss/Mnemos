@@ -1,4 +1,9 @@
 export const botAgentsUK = {
+  programSections: "Розділи керування програмою",
+  section_accounts: "Акаунти",
+  section_groups: "Групи",
+  section_bulk: "Масові дії",
+  section_proxies: "Проксі",
   never: "Ніколи",
   done: "Виконано",
   actionFailed: "Помилка виконання",
