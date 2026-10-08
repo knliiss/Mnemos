@@ -95,7 +95,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       }
       scope.add(id)
       for (const child of groupsById.get(id)?.childGroupIds ?? []) {
-        if (groupsById.has(child)) visit(child)
+        if (groupsById.has(child)) {
+          visit(child)
+        }
       }
     }
     if (groupFilter) {
