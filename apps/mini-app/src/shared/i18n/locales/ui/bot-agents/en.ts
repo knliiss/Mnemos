@@ -1,4 +1,9 @@
 export const botAgentsEN = {
+  programSections: "Agent sections",
+  section_accounts: "Accounts",
+  section_groups: "Groups",
+  section_bulk: "Bulk actions",
+  section_proxies: "Proxies",
   never: "Never",
   done: "Done",
   actionFailed: "Action failed",
