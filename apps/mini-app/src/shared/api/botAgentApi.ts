@@ -84,7 +84,7 @@ export const botLogs = (id: string, accountId: string, after = 0) =>
     lastSequence: number
   }>(id, "GET", `/api/account/${accountId}/logs?after=${after}&limit=80`)
 
-export type RemoteAccountGroup = { id: string; name: string }
+export type RemoteAccountGroup = { id: string; name: string; childGroupIds?: string[] }
 export type RemoteGroupState = {
   state: { groups: RemoteAccountGroup[]; assignments: Record<string, string> }
   revision: number
