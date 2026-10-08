@@ -36,14 +36,15 @@ jobs:
           python3 scripts/verify-production-deployment-state.py
           python3 - <<'PY'
           from pathlib import Path
-          import yaml
-          paths = (
-              ".github/workflows/c7x-initial-backend-request.yml",
-              ".github/workflows/c7x-initial-backend-rollout.yml",
-          )
-          for name in paths:
-              with Path(name).open() as stream:
-                  data = yaml.safe_load(stream)
-              assert "jobs" in data, name
-          print("One-time C7x production workflow syntax validated")
+          request = Path(".github/workflows/c7x-initial-backend-request.yml").read_text()
+          rollout = Path(".github/workflows/c7x-initial-backend-rollout.yml").read_text()
+          assert "on:\\n  push:" in request
+          assert "on:\\n  workflow_run:" in rollout
+          assert "environment: production" in rollout
+          assert "group: mnemos-production-deploy" in rollout
+          assert "cancel-in-progress: false" in rollout
+          assert "persist-credentials: false" in rollout
+          assert "if: needs.publish.result == 'success'" in rollout
+          assert "C7x Initial Backend Rollout Request" in rollout
+          print("C7x production workflow safety invariants validated")
           PY
