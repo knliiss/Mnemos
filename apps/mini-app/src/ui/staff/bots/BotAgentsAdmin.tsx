@@ -84,18 +84,6 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     let cancelled = false
-    setAccounts([])
-    setAccountId(null)
-    setLogEntries([])
-    setChosen([])
-    setProxyPools([])
-    setGroupFilter("")
-    setGroupState({ state: { groups: [], assignments: {} }, revision: 0 })
-    setPoolEditor(false)
-    setPoolName("")
-    setPoolProxies("")
-    setLogin(false)
-    setLoginPassword("")
     if (selected) {
       void getBotGroups(selected).then((data) => { if (!cancelled) setGroupState(data) }).catch(handleError)
     }
@@ -113,7 +101,6 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     logCursor.current = 0
-    setLogEntries([])
     if (!selected || !accountId || !active?.online) return
     let running = true
     let inFlight = false
@@ -142,7 +129,6 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }, [selected, accountId, active?.online])
 
   useEffect(() => {
-    setNetwork(null)
     if (!selected || !accountId || !active?.online) return
     let cancelled = false
     void getBotNetwork(selected, accountId).then((value) => {
@@ -157,6 +143,31 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     }).catch(handleError)
     return () => { cancelled = true }
   }, [selected, accountId, active?.online])
+
+  function chooseWorker(id: string) {
+    setSelected(id)
+    setAccounts([])
+    setAccountId(null)
+    setLogEntries([])
+    setChosen([])
+    setProxyPools([])
+    setGroupFilter("")
+    setGroupState({ state: { groups: [], assignments: {} }, revision: 0 })
+    setPoolEditor(false)
+    setPoolName("")
+    setPoolProxies("")
+    setLogin(false)
+    setLoginPassword("")
+    setNetwork(null)
+    logCursor.current = 0
+  }
+
+  function chooseAccount(id: string) {
+    setAccountId(id)
+    setNetwork(null)
+    setLogEntries([])
+    logCursor.current = 0
+  }
 
   async function run(task: () => Promise<unknown>, refresh = true) {
     setBusy(true)
@@ -312,7 +323,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       <div className="c7x-admin-agent-list">
         {agents.map((agent) => (
           <div className={`c7x-admin-card c7x-admin-agent ${selected === agent.id ? "is-selected" : ""}`} key={agent.id}>
-            <button type="button" className="c7x-admin-agent-main" onClick={() => setSelected(agent.id)}>
+            <button type="button" className="c7x-admin-agent-main" onClick={() => chooseWorker(agent.id)}>
               <span className="c7x-admin-worker-art"><img src="/ui-illustrations/bot-agent-workspace.svg" alt="" /></span>
               <span><strong>{agent.name}</strong><small><i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} /> {agent.machineName ?? "ПК не визначений"} · {agent.revoked ? "Доступ відкликано" : agent.online ? "Працює" : "Вимкнено"}</small></span>
               <span className="c7x-admin-last">{agent.online ? "Онлайн" : `Був: ${formatDate(agent.lastSeenAt)}`}</span>
@@ -400,7 +411,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <div key={item.id} className="c7x-admin-account-line">
                     <input type="checkbox" aria-label={`Вибрати ${item.username}`} checked={chosen.includes(item.id)}
                       onChange={(e) => setChosen((current) => e.target.checked ? [...current, item.id] : current.filter((x) => x !== item.id))} />
-                    <img className="c7x-admin-avatar" src="/ui-illustrations/bot-agent-account.svg" alt="" /><button type="button" className={accountId === item.id ? "is-selected" : ""} onClick={() => setAccountId(item.id)}>
+                    <img className="c7x-admin-avatar" src="/ui-illustrations/bot-agent-account.svg" alt="" /><button type="button" className={accountId === item.id ? "is-selected" : ""} onClick={() => chooseAccount(item.id)}>
                       <strong>{item.username}</strong><small>{item.realm ?? "Без реалму"} · {item.activity}</small>
                     </button>
                     <span className={item.state === "ONLINE" ? "c7x-admin-online" : "c7x-admin-muted"}>{item.state}</span>
