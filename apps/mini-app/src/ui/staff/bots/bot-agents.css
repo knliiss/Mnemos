@@ -613,3 +613,281 @@
   display: grid;
   gap: 5px;
 }
+
+/* Full-page C7x agent management: a readable list, workspace and account screen. */
+.c7x-admin {
+  --c7x-text: var(--text-primary, #e8f0e5);
+  --c7x-muted: #a7b1a1;
+  --c7x-border: rgba(210, 234, 199, 0.14);
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
+.c7x-admin-list-page {
+  min-width: 0;
+}
+.c7x-admin-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 160px);
+  min-height: 180px;
+  padding: 20px;
+  border-radius: 22px;
+}
+.c7x-admin-total {
+  display: none;
+}
+.c7x-admin-hero-copy strong {
+  font-size: clamp(20px, 4vw, 29px);
+}
+.c7x-admin-hero-copy p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+.c7x-admin-hero-art {
+  width: min(100%, 150px);
+}
+.c7x-admin-agent-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
+}
+.c7x-admin-agent {
+  gap: 15px;
+  padding: 16px;
+  border-radius: 18px;
+  min-height: 100px;
+}
+.c7x-admin-agent-main {
+  gap: 14px;
+}
+.c7x-admin-agent-main strong {
+  font-size: 15px;
+}
+.c7x-admin-agent-main small {
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: normal;
+}
+.c7x-admin-worker-art {
+  width: 62px;
+  height: 62px;
+  background: rgba(203, 255, 45, 0.07);
+  border-radius: 14px;
+}
+.c7x-admin-worker-art img {
+  width: 56px;
+  height: 52px;
+}
+.c7x-admin-last {
+  max-width: 106px;
+  font-size: 10px;
+}
+.c7x-admin-agent-actions button {
+  min-height: 35px;
+  font-size: 11px;
+}
+.c7x-admin-workspace {
+  display: grid;
+  gap: 14px;
+  margin-top: 0;
+}
+.c7x-admin-section-head h2,
+.c7x-admin-section-head h3 {
+  font-size: 17px;
+}
+.c7x-admin-section-head button {
+  font-size: 12px;
+  min-height: 38px;
+}
+.c7x-admin-card {
+  padding: 17px;
+  border-radius: 16px;
+}
+.c7x-admin-accounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 10px;
+}
+.c7x-admin-account-line {
+  gap: 12px;
+  padding: 12px;
+  min-height: 72px;
+}
+.c7x-admin-account-line strong {
+  font-size: 14px;
+}
+.c7x-admin-account-line small,
+.c7x-admin-account-line > span {
+  font-size: 11px;
+}
+.c7x-admin-account-line .cristalix-head {
+  flex: 0 0 auto;
+}
+.c7x-admin-avatar {
+  width: 48px;
+  height: 48px;
+}
+.c7x-admin-form label,
+.c7x-admin-form-inline label {
+  font-size: 12px;
+}
+.c7x-admin-muted,
+.c7x-admin-pair p {
+  font-size: 12px;
+}
+.c7x-admin-actions button,
+.c7x-admin-form button,
+.c7x-admin-form-inline button {
+  min-height: 40px;
+  font-size: 12px;
+}
+.c7x-admin-detail {
+  display: grid;
+  gap: 17px;
+  margin-top: 12px;
+  padding: clamp(16px, 3vw, 28px);
+  border-radius: 22px;
+}
+.c7x-admin-detail h3 {
+  font-size: 15px;
+}
+.c7x-agent-account-title {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+.c7x-agent-account-title div {
+  display: grid;
+  gap: 5px;
+}
+.c7x-agent-account-title h2 {
+  margin: 0;
+  font-size: clamp(20px, 5vw, 28px);
+}
+.c7x-agent-account-title small {
+  color: var(--c7x-muted);
+  font-size: 12px;
+}
+.c7x-admin-log {
+  min-height: 120px;
+  max-height: 480px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.c7x-admin-log small {
+  font-size: 10px;
+}
+.c7x-admin-error {
+  padding: 10px;
+  border: 1px solid rgba(232, 100, 105, 0.34);
+  border-radius: 11px;
+  font-size: 12px;
+}
+.c7x-modal-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(5, 9, 5, 0.75);
+  backdrop-filter: blur(6px);
+}
+.c7x-modal-dialog {
+  display: grid;
+  gap: 17px;
+  width: min(100%, 440px);
+  padding: 24px;
+  border: 1px solid rgba(203, 255, 45, 0.19);
+  border-radius: 20px;
+  background: #19221b;
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.45);
+}
+.c7x-modal-dialog h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.c7x-modal-dialog input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid rgba(235, 241, 213, 0.24);
+  border-radius: 11px;
+  background: #252d25;
+  color: #eef8ea;
+}
+.c7x-modal-dialog .c7x-admin-actions {
+  justify-content: flex-end;
+}
+@media (max-width: 560px) {
+  .c7x-admin-hero {
+    grid-template-columns: minmax(0, 1fr) 90px;
+    padding: 16px;
+  }
+  .c7x-admin-hero-copy strong {
+    font-size: 21px;
+  }
+  .c7x-admin-worker-art {
+    width: 54px;
+    height: 54px;
+  }
+  .c7x-admin-worker-art img {
+    width: 50px;
+    height: 49px;
+  }
+  .c7x-admin-agent-actions {
+    justify-content: flex-start;
+  }
+  .c7x-admin-last {
+    max-width: 86px;
+  }
+  .c7x-admin-accounts {
+    grid-template-columns: 1fr;
+  }
+  .c7x-agent-account-title .cristalix-head {
+    flex: 0 0 auto;
+  }
+}
+
+.c7x-admin [hidden] {
+  display: none !important;
+}
+.c7x-program-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 5px;
+  border: 1px solid rgba(203, 255, 45, 0.11);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.c7x-program-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #adb9a4;
+  font-size: 12px;
+  font-weight: 700;
+}
+.c7x-program-tabs button.is-current {
+  color: #e7ffb0;
+  border-color: rgba(203, 255, 45, 0.27);
+  background: rgba(203, 255, 45, 0.1);
+}
+@media (max-width: 440px) {
+  .c7x-program-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.c7x-agent-head-image {
+  display: block;
+  flex: 0 0 auto;
+  padding: 4px;
+  border: 1px solid rgba(203, 255, 45, 0.13);
+  border-radius: 12px;
+  background: rgba(203, 255, 45, 0.055);
+  image-rendering: pixelated;
+  object-fit: contain;
+}
