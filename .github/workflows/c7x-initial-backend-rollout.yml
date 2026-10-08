@@ -89,6 +89,14 @@ jobs:
           print("Immutable C7x initial rollout authorization verified")
           PY
 
+      - name: Check bootstrap Python syntax and production catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/rollout-initial-c7x-production.py
+          python3 scripts/verify-production-service-catalog.py
+          python3 scripts/verify-production-release-manifest.py
+
       - name: Configure pinned Java toolchain
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
