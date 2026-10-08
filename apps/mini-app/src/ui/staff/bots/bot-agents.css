@@ -2,7 +2,7 @@
 .c7x-admin button{appearance:none;-webkit-appearance:none;font:inherit;cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
 .c7x-admin button:disabled{opacity:.45;cursor:not-allowed}
 .c7x-admin button:focus-visible,.c7x-admin input:focus-visible{outline:2px solid rgba(203,255,45,.55);outline-offset:2px}
-.c7x-admin-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 140px;align-items:center;gap:10px;min-height:156px;margin:9px 0 14px;padding:18px 14px 18px 18px;overflow:hidden;border:1px solid rgba(203,255,45,.14);border-radius:19px;background:radial-gradient(circle at 84% 27%,rgba(203,255,45,.105),transparent 42%),linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015))}
+.c7x-admin-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 140px 68px;align-items:center;gap:10px;min-height:156px;margin:9px 0 14px;padding:18px 14px 18px 18px;overflow:hidden;border:1px solid rgba(203,255,45,.14);border-radius:19px;background:radial-gradient(circle at 84% 27%,rgba(203,255,45,.105),transparent 42%),linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015))}
 .c7x-admin-hero-copy{position:relative;z-index:1;display:grid;gap:8px;min-width:0}
 .c7x-admin-eyebrow{color:#c3ee64;font-family:var(--font-meta);font-size:9px;font-weight:800;letter-spacing:.13em}
 .c7x-admin-hero-copy strong{font-size:19px;line-height:1.2;letter-spacing:-.018em}
