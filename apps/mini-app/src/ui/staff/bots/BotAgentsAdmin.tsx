@@ -39,6 +39,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const authorized = user.systemRoles.some((role) => role === "ADMIN" || role === "SUPER_ADMIN")
   const [agents, setAgents] = useState<BotAgent[]>([])
   const [selected, setSelected] = useState<string | null>(null)
+  const [programTab, setProgramTab] = useState<"accounts" | "groups" | "bulk" | "proxies">("accounts")
   const [created, setCreated] = useState<AgentCreation | null>(null)
   const [accounts, setAccounts] = useState<BotAccount[]>([])
   const [accountId, setAccountId] = useState<string | null>(null)
@@ -272,6 +273,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   function chooseWorker(id: string) {
     setSelected(id)
+    setProgramTab("accounts")
     setAccounts([])
     setAccountId(null)
     setLogEntries([])
@@ -615,7 +617,20 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         </div>
       ) : null}
       {active && !account ? (
-        <section className="c7x-admin-workspace">
+        <section className="c7x-admin-workspace" data-tab={programTab}>
+          <nav className="c7x-program-tabs" aria-label={t("botAgents.programSections")}>
+            {(["accounts", "groups", "bulk", "proxies"] as const).map((tab) => (
+              <button
+                type="button"
+                key={tab}
+                className={tab === programTab ? "is-current" : ""}
+                aria-current={tab === programTab ? "page" : undefined}
+                onClick={() => setProgramTab(tab)}
+              >
+                {t("botAgents.section_" + tab)}
+              </button>
+            ))}
+          </nav>
           <div className="c7x-admin-section-head">
             <h2>{active.name}</h2>
             <span className="c7x-admin-muted">
@@ -631,6 +646,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
             </div>
           ) : (
             <>
+              <div hidden={programTab !== "accounts"}>
               <div className="c7x-admin-section-head">
                 <h2>{t("botAgents.accountsCount", { count: accounts.length })}</h2>
                 <button type="button" onClick={() => setLogin((x) => !x)}>
@@ -673,7 +689,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </button>
                 </form>
               ) : null}
-              <section className="c7x-admin-card c7x-admin-group-panel">
+              </div>
+              <section className="c7x-admin-card c7x-admin-group-panel" hidden={programTab !== "groups"}>
                 <div className="c7x-admin-section-head">
                   <h3>{t("botAgents.accountGroups")}</h3>
                   <span>{t("botAgents.savedInMnemos")}</span>
@@ -724,12 +741,15 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   ))}
                 </div>
               </section>
+              <div hidden={programTab !== "accounts" && programTab !== "bulk"}>
               <input
                 className="c7x-admin-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t("botAgents.searchNick")}
               />
+              </div>
+              <div hidden={programTab !== "bulk"}>
               <div className="c7x-admin-actions">
                 <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>
                   {t("botAgents.startAll")}
@@ -908,6 +928,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </form>
                 </section>
               ) : null}
+              </div>
+              <div hidden={programTab !== "accounts" && programTab !== "bulk"}>
               <div className="c7x-admin-accounts">
                 {visibleAccounts.length === 0 ? (
                   <div className="c7x-admin-empty">
@@ -953,7 +975,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 ))}
               </div>
 
-              <section className="c7x-admin-card c7x-admin-pools">
+              </div>
+              <section className="c7x-admin-card c7x-admin-pools" hidden={programTab !== "proxies"}>
                 <div className="c7x-admin-section-head">
                   <h3>{t("botAgents.proxyPoolsCount", { count: proxyPools.length })}</h3>
                   <button type="button" onClick={() => setPoolEditor((value) => !value)}>
