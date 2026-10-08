@@ -4,9 +4,7 @@ import { botAgentsRU } from "./ru"
 import { botAgentsUK } from "./uk"
 
 const interpolationKeys = (message: string) =>
-  [...message.matchAll(/{{\\s*([a-zA-Z]+)\\s*}}/g)]
-    .map((match) => match[1])
-    .sort()
+  [...message.matchAll(/{{\\s*([a-zA-Z]+)\\s*}}/g)].map((match) => match[1]).sort()
 
 describe("C7x bot manager localizations", () => {
   it("has matching nonempty labels in all three languages", () => {
