@@ -89,7 +89,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       ),
     [accounts, query, groupFilter, groupState],
   )
-  const formatDate = (date: string | null) => (date ? new Date(date).toLocaleString() : t("botAgents.never"))
+  const formatDate = (date: string | null) =>
+    date ? new Date(date).toLocaleString() : t("botAgents.never")
 
   const refreshAgents = useCallback(async () => {
     if (!authorized) {
@@ -285,9 +286,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   }
 
   async function removeWorker(agent: BotAgent) {
-    if (
-      !window.confirm(t("botAgents.revokeConfirm", { name: agent.name }))
-    ) {
+    if (!window.confirm(t("botAgents.revokeConfirm", { name: agent.name }))) {
       return
     }
     await run(async () => {
@@ -504,11 +503,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 <small>
                   <i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />{" "}
                   {agent.machineName ?? t("botAgents.unknownPc")} ·{" "}
-                  {agent.revoked ? t("botAgents.revoked") : agent.online ? t("botAgents.running") : t("botAgents.disabled")}
+                  {agent.revoked
+                    ? t("botAgents.revoked")
+                    : agent.online
+                      ? t("botAgents.running")
+                      : t("botAgents.disabled")}
                 </small>
               </span>
               <span className="c7x-admin-last">
-                {agent.online ? t("botAgents.online") : t("botAgents.lastSeen", { date: formatDate(agent.lastSeenAt) })}
+                {agent.online
+                  ? t("botAgents.online")
+                  : t("botAgents.lastSeen", { date: formatDate(agent.lastSeenAt) })}
               </span>
             </button>
             <div className="c7x-admin-agent-actions">
@@ -534,7 +539,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
           <div className="c7x-admin-section-head">
             <h2>{active.name}</h2>
             <span className="c7x-admin-muted">
-              {active.osUsername ?? "—"} · {active.fingerprint?.slice(0, 12) ?? t("botAgents.noFingerprint")}
+              {active.osUsername ?? "—"} ·{" "}
+              {active.fingerprint?.slice(0, 12) ?? t("botAgents.noFingerprint")}
             </span>
           </div>
           {!active.online ? (
@@ -879,7 +885,11 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                     <span>
                       <strong>{pool.name}</strong>
                       <small>
-                        {t("botAgents.poolSummary", { strategy: pool.strategy, count: pool.count, healthy: pool.entries.filter((entry) => entry.healthy).length })}
+                        {t("botAgents.poolSummary", {
+                          strategy: pool.strategy,
+                          count: pool.count,
+                          healthy: pool.entries.filter((entry) => entry.healthy).length,
+                        })}
                       </small>
                     </span>
                     <button
@@ -1346,7 +1356,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   ) : null}
                   <h3>{t("botAgents.diagnostics")}</h3>
                   <p className="c7x-admin-muted">
-                    {t("botAgents.proxyStatus", { proxy: account.proxy, status: account.proxyStatus })}
+                    {t("botAgents.proxyStatus", {
+                      proxy: account.proxy,
+                      status: account.proxyStatus,
+                    })}
                   </p>
                   <button
                     type="button"
