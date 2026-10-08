@@ -44,6 +44,7 @@ expected_pool_sizes = {
     "bet-service": 3,
     "moderation-service": 4,
     "realtime-service": 3,
+    "bot-management-service": 3,
     "personalization-service": 3,
     "social-service": 3,
     "profile-service": 3,
