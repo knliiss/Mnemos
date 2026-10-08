@@ -1,7 +1,5 @@
 package com.mnemos.botmanagement
 
-import tools.jackson.databind.JsonNode
-import tools.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.access.prepost.PreAuthorize
@@ -13,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Repository
@@ -22,13 +22,19 @@ class BotAgentGroupStore(
 ) {
     fun get(agentId: UUID): Map<String, Any?> {
         checkAgent(agentId)
-        return jdbc.query(
-            "SELECT payload::text AS payload, revision FROM bot_agent_group_state WHERE agent_id = ?",
-            { rs, _ ->
-                mapOf("state" to mapper.readTree(rs.getString("payload")), "revision" to rs.getLong("revision"))
-            },
-            agentId,
-        ).firstOrNull() ?: mapOf(
+        val found =
+            jdbc
+                .query(
+                    "SELECT payload::text AS payload, revision FROM bot_agent_group_state WHERE agent_id = ?",
+                    { rs, _ ->
+                        mapOf(
+                            "state" to mapper.readTree(rs.getString("payload")),
+                            "revision" to rs.getLong("revision"),
+                        )
+                    },
+                    agentId,
+                ).firstOrNull()
+        return found ?: mapOf(
             "state" to mapper.readTree("""{"groups":[],"assignments":{}}"""),
             "revision" to 0L,
         )
@@ -50,7 +56,8 @@ class BotAgentGroupStore(
                     VALUES (?, CAST(? AS jsonb), 1)
                     ON CONFLICT (agent_id) DO NOTHING
                     """.trimIndent(),
-                    agentId, content,
+                    agentId,
+                    content,
                 )
             } else {
                 jdbc.update(
@@ -59,15 +66,24 @@ class BotAgentGroupStore(
                     SET payload = CAST(? AS jsonb), revision = revision + 1, updated_at = NOW()
                     WHERE agent_id = ? AND revision = ?
                     """.trimIndent(),
-                    content, agentId, expectedRevision,
+                    content,
+                    agentId,
+                    expectedRevision,
                 )
             }
-        if (changed != 1) throw ResponseStatusException(HttpStatus.CONFLICT, "Groups changed; refresh the list")
+        if (changed != 1) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Groups changed; refresh the list")
+        }
         return get(agentId)
     }
 
     private fun checkAgent(id: UUID) {
-        val count = jdbc.queryForObject("SELECT COUNT(*) FROM bot_agent_instances WHERE id = ?", Int::class.java, id)
+        val count =
+            jdbc.queryForObject(
+                "SELECT COUNT(*) FROM bot_agent_instances WHERE id = ?",
+                Int::class.java,
+                id,
+            )
         if (count != 1) throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown worker")
     }
 
@@ -88,7 +104,8 @@ class BotAgentGroupStore(
         val iterator = assignments.properties().iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
-            if (runCatching { UUID.fromString(entry.key) }.isFailure ||
+            if (
+                runCatching { UUID.fromString(entry.key) }.isFailure ||
                 !entry.value.isTextual ||
                 !ids.contains(entry.value.asText())
             ) {
@@ -101,15 +118,21 @@ class BotAgentGroupStore(
 @RestController
 @RequestMapping("/api/v1/bot-management/admin/bot-agents/{agentId}/groups")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-class BotAgentGroupsController(private val store: BotAgentGroupStore) {
+class BotAgentGroupsController(
+    private val store: BotAgentGroupStore,
+) {
     @GetMapping
-    fun get(@PathVariable agentId: UUID) = store.get(agentId)
+    fun get(
+        @PathVariable agentId: UUID,
+    ) = store.get(agentId)
 
     @PutMapping
     fun save(
         @PathVariable agentId: UUID,
         @RequestBody request: JsonNode,
     ) = store.save(
-        agentId, request.path("state"), request.path("revision").asLong(-1),
+        agentId,
+        request.path("state"),
+        request.path("revision").asLong(-1),
     )
 }
