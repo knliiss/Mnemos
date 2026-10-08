@@ -98,6 +98,11 @@ spring:
                       factor: 2
                       basedOnPreviousValue: false
 
+            - id: bot-management-api
+              uri: ${BOT_MANAGEMENT_SERVICE_URL:http://localhost:8095}
+              predicates:
+                - Path=/api/v1/bot-management/**
+
             - id: personalization-api
               uri: ${PERSONALIZATION_SERVICE_URL:http://localhost:8089}
               predicates:
