@@ -198,7 +198,15 @@ def main():
         stack = json.loads(full_file.read_text())
         bot = stack["services"][NEW]
         require(bot["image"] == manifest["services"][NEW]["image"], "Rendered bot image mismatch")
-        require(not bot.get("configs") and not bot.get("secrets"), "Bot unexpectedly references configs")
+        # The common production renderer mounts Kafka truststore on every app.
+        # This service has no Kafka client, so omit this otherwise non-existent
+        # placeholder config from the isolated first-install stack only.
+        configured = bot.pop("configs", [])
+        require(len(configured) == 1 and
+                configured[0].get("source") == "kafka_truststore" and
+                configured[0].get("target") == "/etc/mnemos/kafka/kafka.truststore.p12",
+                "Unexpected bot configs; refusing to omit any unrelated config")
+        require(not bot.get("secrets"), "Bot unexpectedly references secrets")
         require(bot.get("networks") == ["mnemos-network"], "Unexpected bot network")
         network = stack["networks"]["mnemos-network"]
         require(network == {"external": True, "name": "mnemos-production-network"},
