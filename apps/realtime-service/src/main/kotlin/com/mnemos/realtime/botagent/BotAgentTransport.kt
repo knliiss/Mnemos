@@ -2,21 +2,19 @@ package com.mnemos.realtime.botagent
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.socket.CloseStatus
@@ -28,119 +26,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
 import java.security.MessageDigest
-import java.security.SecureRandom
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-/**
- * Private, outbound-only C7x worker transport. A worker key is independent of
- * the user-facing Keycloak session and can never authorize the admin REST API.
- */
 @Component
-class BotAgentRegistry(private val jdbc: JdbcTemplate) {
-    private val random = SecureRandom()
-
-    fun create(): Map<String, Any?> {
-        val id = UUID.randomUUID()
-        val bytes = ByteArray(32).also(random::nextBytes)
-        val key = bytes.joinToString("") { "%02x".format(it) }
-        jdbc.update(
-            "INSERT INTO bot_agent_instances (id, name, secret_hash) VALUES (?, ?, ?)",
-            id, "New worker", hash(key),
-        )
-        return mapOf("id" to id, "name" to "New worker", "accessKey" to key)
-    }
-
-    fun authenticate(header: String?): UUID? {
-        if (header == null || !header.startsWith("BotAgent ")) return null
-        val key = header.removePrefix("BotAgent ")
-        if (!key.matches(Regex("[0-9a-f]{64}"))) return null
-        return jdbc.query(
-            "SELECT id FROM bot_agent_instances WHERE secret_hash = ? AND NOT revoked",
-            { rs, _ -> rs.getObject("id", UUID::class.java) }, hash(key),
-        ).firstOrNull()
-    }
-
-    fun list(online: (UUID) -> Boolean): List<Map<String, Any?>> =
-        jdbc.query(
-            """
-            SELECT id, name, os_username, machine_name, fingerprint, first_seen_at,
-                   last_seen_at, disconnected_at, revoked
-            FROM bot_agent_instances ORDER BY COALESCE(last_seen_at, created_at) DESC
-            """.trimIndent(),
-        ) { rs, _ ->
-            val id = rs.getObject("id", UUID::class.java)
-            mapOf(
-                "id" to id.toString(), "name" to rs.getString("name"),
-                "osUsername" to rs.getString("os_username"),
-                "machineName" to rs.getString("machine_name"),
-                "fingerprint" to rs.getString("fingerprint"),
-                "firstSeenAt" to rs.getTimestamp("first_seen_at")?.toInstant()?.toString(),
-                "lastSeenAt" to rs.getTimestamp("last_seen_at")?.toInstant()?.toString(),
-                "disconnectedAt" to rs.getTimestamp("disconnected_at")?.toInstant()?.toString(),
-                "online" to (online(id) && !rs.getBoolean("revoked")),
-                "revoked" to rs.getBoolean("revoked"),
-            )
-        }
-
-    fun hello(id: UUID, data: JsonNode) {
-        val username = data.path("username").asText("").take(100).trim()
-        val machine = data.path("machineName").asText("").take(100).trim()
-        val fingerprint = data.path("fingerprint").asText("")
-        if (username.isBlank() || !fingerprint.matches(Regex("[0-9a-f]{64}"))) {
-            throw IllegalArgumentException("Invalid machine identity")
-        }
-        val changed = jdbc.update(
-            """
-            UPDATE bot_agent_instances
-            SET os_username = ?, machine_name = ?, fingerprint = ?,
-                name = CASE WHEN name = 'New worker' THEN ? ELSE name END,
-                first_seen_at = COALESCE(first_seen_at, NOW()), last_seen_at = NOW(),
-                disconnected_at = NULL
-            WHERE id = ? AND NOT revoked AND (fingerprint IS NULL OR fingerprint = ?)
-            """.trimIndent(),
-            username, machine, fingerprint, username, id, fingerprint,
-        )
-        if (changed == 0) throw IllegalArgumentException("Worker identity mismatch")
-    }
-
-    fun heartbeat(id: UUID) {
-        jdbc.update(
-            "UPDATE bot_agent_instances SET last_seen_at = NOW() WHERE id = ? AND NOT revoked", id,
-        )
-    }
-
-    fun disconnected(id: UUID) {
-        jdbc.update(
-            "UPDATE bot_agent_instances SET disconnected_at = NOW() WHERE id = ?", id,
-        )
-    }
-
-    fun rename(id: UUID, name: String) {
-        val cleaned = name.trim()
-        if (cleaned.length !in 1..100) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name")
-        if (jdbc.update("UPDATE bot_agent_instances SET name = ? WHERE id = ? AND NOT revoked", cleaned, id) == 0) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
-    }
-
-    fun revoke(id: UUID) {
-        if (jdbc.update("UPDATE bot_agent_instances SET revoked = TRUE WHERE id = ?", id) == 0) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
-    }
-
-    private fun hash(key: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(key.toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it) }
-}
-
-@Component
-class BotAgentSessions(private val mapper: ObjectMapper, private val registry: BotAgentRegistry) {
+class BotAgentSessions(private val mapper: ObjectMapper, private val identity: BotAgentIdentityClient) {
     private val active = ConcurrentHashMap<UUID, WebSocketSession>()
     private data class PendingRequest(
         val agentId: UUID,
@@ -165,6 +58,8 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
     fun isReady(id: UUID, session: WebSocketSession): Boolean =
         active[id] === session && isOnline(id)
 
+    fun onlineIds(): List<String> = active.keys.filter(::isOnline).map(UUID::toString)
+
     fun isOnline(id: UUID): Boolean {
         val lastSeen = lastActive[id] ?: return false
         return active[id]?.isOpen == true && lastSeen.isAfter(Instant.now().minusSeconds(35))
@@ -174,7 +69,7 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
         if (active.remove(id, session)) {
             lastActive.remove(id)
             pending.values.filter { it.agentId == id }.forEach { it.future.completeExceptionally(IllegalStateException("Disconnected")) }
-            registry.disconnected(id)
+            identity.disconnected(id)
         }
     }
 
@@ -182,7 +77,7 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
         active.remove(id)?.let { runCatching { it.close(CloseStatus.POLICY_VIOLATION) } }
         lastActive.remove(id)
         pending.values.filter { it.agentId == id }.forEach { it.future.completeExceptionally(IllegalStateException("Revoked")) }
-        registry.disconnected(id)
+        identity.disconnected(id)
     }
 
     fun complete(id: UUID, session: WebSocketSession, message: JsonNode) {
@@ -243,12 +138,12 @@ class BotAgentSessions(private val mapper: ObjectMapper, private val registry: B
 }
 
 @Component
-class BotAgentHandshake(private val registry: BotAgentRegistry) : HandshakeInterceptor {
+class BotAgentHandshake(private val identity: BotAgentIdentityClient) : HandshakeInterceptor {
     override fun beforeHandshake(
         request: ServerHttpRequest, response: ServerHttpResponse,
         wsHandler: WebSocketHandler, attributes: MutableMap<String, Any>,
     ): Boolean {
-        val id = registry.authenticate(request.headers.getFirst(HttpHeaders.AUTHORIZATION))
+        val id = identity.authenticate(request.headers.getFirst(HttpHeaders.AUTHORIZATION))
         if (id == null) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED)
             return false
@@ -264,7 +159,7 @@ class BotAgentHandshake(private val registry: BotAgentRegistry) : HandshakeInter
 
 @Component
 class BotAgentSocket(
-    private val registry: BotAgentRegistry,
+    private val identity: BotAgentIdentityClient,
     private val sessions: BotAgentSessions,
     private val mapper: ObjectMapper,
 ) : TextWebSocketHandler() {
@@ -284,13 +179,13 @@ class BotAgentSocket(
         val id = id(session)
         when (node.path("type").asText()) {
             "hello" -> try {
-                registry.hello(id, node)
+                identity.hello(id, node)
                 sessions.ready(id, session)
                 sessions.send(session, mapOf("type" to "ready"))
-            } catch (_: IllegalArgumentException) { session.close(CloseStatus.BAD_DATA) }
+            } catch (_: Exception) { session.close(CloseStatus.BAD_DATA) }
             "heartbeat" -> if (sessions.isReady(id, session)) {
                 sessions.ready(id, session)
-                registry.heartbeat(id)
+                identity.heartbeat(id)
             } else session.close(CloseStatus.POLICY_VIOLATION)
             "response" -> if (sessions.isReady(id, session)) {
                 sessions.complete(id, session, node)
@@ -321,37 +216,57 @@ class BotAgentWebSocketConfiguration(
     }
 }
 
+/**
+ * Internal relay ONLY: the public gateway has no route to this namespace.
+ * Admin requests and durable worker state are owned by bot-management-service.
+ */
 @RestController
-@RequestMapping("/api/v1/realtime/admin/bot-agents")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-class BotAgentAdminController(
-    private val registry: BotAgentRegistry,
+@RequestMapping("/internal/v1/bot-agents")
+class BotAgentTransportInternalController(
     private val sessions: BotAgentSessions,
+    @Value("\${mnemos.bot.internal-token}") private val internalKey: String,
 ) {
-    @GetMapping
-    fun list() = registry.list(sessions::isOnline)
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    fun create() = registry.create()
-
-    @PostMapping("/{id}/rename")
-    fun rename(@PathVariable id: UUID, @RequestBody body: JsonNode): Map<String, Boolean> {
-        registry.rename(id, body.path("name").asText(""))
-        return mapOf("ok" to true)
+    private fun verify(secret: String?) {
+        if (internalKey.length < 32 ||
+            !MessageDigest.isEqual(
+                internalKey.toByteArray(Charsets.UTF_8),
+                (secret ?: "").toByteArray(Charsets.UTF_8),
+            )
+        ) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        }
     }
 
-    @DeleteMapping("/{id}")
-    fun revoke(@PathVariable id: UUID): Map<String, Boolean> {
-        registry.revoke(id)
+    @GetMapping("/online")
+    fun online(
+        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
+    ): List<String> {
+        verify(secret)
+        return sessions.onlineIds()
+    }
+
+    @PostMapping("/{id}/disconnect")
+    fun disconnect(
+        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
+        @PathVariable id: UUID,
+    ): Map<String, Boolean> {
+        verify(secret)
         sessions.close(id)
         return mapOf("ok" to true)
     }
 
     @PostMapping("/{id}/request")
-    fun request(@PathVariable id: UUID, @RequestBody body: JsonNode): JsonNode {
-        val method = body.path("method").asText("")
-        val path = body.path("path").asText("")
-        return sessions.request(id, method, path, body.get("body"))
+    fun request(
+        @RequestHeader(value = BOT_INTERNAL_HEADER, required = false) secret: String?,
+        @PathVariable id: UUID,
+        @RequestBody body: JsonNode,
+    ): JsonNode {
+        verify(secret)
+        return sessions.request(
+            id,
+            body.path("method").asText(""),
+            body.path("path").asText(""),
+            body.get("body"),
+        )
     }
 }
