@@ -15,10 +15,11 @@ concurrency:
 
 permissions:
   contents: read
+  deployments: write
 
 jobs:
   deploy-preview:
-    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: preview
     env:
