@@ -46,6 +46,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const [logEntries, setLogEntries] = useState<
     { sequence: number; timestamp: string; category: string; message: string }[]
   >([])
+  const [logError, setLogError] = useState<string | null>(null)
+  const [logLoading, setLogLoading] = useState(false)
+  const [renameAgent, setRenameAgent] = useState<BotAgent | null>(null)
+  const [renameValue, setRenameValue] = useState("")
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState("")
   const [query, setQuery] = useState("")
@@ -126,13 +130,35 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   useEffect(() => {
     let cancelled = false
     if (selected) {
-      void getBotGroups(selected)
-        .then((data) => {
-          if (!cancelled) {
-            setGroupState(data)
+      const agentId = selected
+      void (async () => {
+        try {
+          let data = await getBotGroups(agentId)
+          if (active?.online) {
+            const worker = await workerRequest<RemoteGroupState & { initialized: boolean }>(
+              agentId, "GET", "/api/groups",
+            )
+            const serverEmpty = data.revision === 0 &&
+              data.state.groups.length === 0 &&
+              Object.keys(data.state.assignments).length === 0
+            if (serverEmpty && worker.initialized && worker.state.groups.length) {
+              data = await saveBotGroups(agentId, { state: worker.state, revision: data.revision })
+            } else if (
+              JSON.stringify(worker.state) !== JSON.stringify(data.state)
+            ) {
+              await workerRequest(agentId, "POST", "/api/groups", {
+                state: data.state, revision: worker.revision,
+              })
+            }
           }
-        })
-        .catch(handleError)
+          if (!cancelled) setGroupState(data)
+        } catch (error) {
+          if (!cancelled) {
+            setNotice(error instanceof Error ? error.message : t("botAgents.groupSyncError"))
+            handleError(error)
+          }
+        }
+      })()
     }
     let timer: number | undefined
     let initial: number | undefined
@@ -156,45 +182,50 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         window.clearInterval(timer)
       }
     }
-  }, [selected, active?.online, refreshAccounts])
+  }, [selected, active?.online, refreshAccounts, t])
 
   useEffect(() => {
     logCursor.current = 0
+    setLogEntries([])
+    setLogError(null)
     if (!selected || !accountId || !active?.online) {
       return
     }
     let running = true
     let inFlight = false
     const poll = async () => {
-      if (inFlight || !running) {
-        return
-      }
+      if (inFlight || !running || document.visibilityState === "hidden") return
       inFlight = true
+      setLogLoading(true)
       try {
         let result = await botLogs(selected, accountId, logCursor.current)
-        if (logCursor.current === 0 && result.lastSequence > 100) {
+        if (logCursor.current === 0 && result.lastSequence > 80) {
           result = await botLogs(selected, accountId, Math.max(0, result.lastSequence - 80))
         }
-        if (!running) {
-          return
-        }
+        if (!running) return
+        setLogError(null)
         if (result.entries.length) {
           logCursor.current = result.entries[result.entries.length - 1].sequence
-          setLogEntries((previous) => [...previous, ...result.entries].slice(-150))
+          setLogEntries((previous) => {
+            const merged = new Map(previous.map((entry) => [entry.sequence, entry]))
+            for (const entry of result.entries) merged.set(entry.sequence, entry)
+            return [...merged.values()].sort((a, b) => a.sequence - b.sequence).slice(-400)
+          })
         }
-      } catch {
-        // A temporary worker disconnect should not clear the visible log.
+      } catch (error) {
+        if (running) setLogError(error instanceof Error ? error.message : t("botAgents.logError"))
       } finally {
         inFlight = false
+        if (running) setLogLoading(false)
       }
     }
     void poll()
-    const timer = window.setInterval(() => void poll(), 5_000)
+    const timer = window.setInterval(() => void poll(), 2_000)
     return () => {
       running = false
       window.clearInterval(timer)
     }
-  }, [selected, accountId, active?.online])
+  }, [selected, accountId, active?.online, t])
 
   useEffect(() => {
     if (!selected || !accountId || !active?.online) {
@@ -274,14 +305,22 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     }
   }
 
-  async function renameWorker(agent: BotAgent) {
-    const name = window.prompt(t("botAgents.namePrompt"), agent.name)?.trim()
-    if (!name || name === agent.name) {
+  function renameWorker(agent: BotAgent) {
+    setRenameAgent(agent)
+    setRenameValue(agent.name)
+  }
+
+  async function submitRename() {
+    if (!renameAgent || !renameValue.trim() || renameValue.trim() === renameAgent.name) {
+      setRenameAgent(null)
       return
     }
+    const agent = renameAgent
+    const name = renameValue.trim()
     await run(async () => {
       await renameBotAgent(agent.id, name)
       await refreshAgents()
+      setRenameAgent(null)
     }, false)
   }
 
@@ -349,8 +388,15 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       return
     }
     await run(async () => {
-      const next = await saveBotGroups(selected, { state, revision: groupState.revision })
+      const workerId = selected
+      const next = await saveBotGroups(workerId, { state, revision: groupState.revision })
       setGroupState(next)
+      if (active?.online) {
+        const current = await workerRequest<RemoteGroupState>(workerId, "GET", "/api/groups")
+        await workerRequest(workerId, "POST", "/api/groups", {
+          state: next.state, revision: current.revision,
+        })
+      }
     }, false)
   }
 
