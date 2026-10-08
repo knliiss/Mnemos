@@ -56,6 +56,7 @@ include(
     ":apps:moderation-service",
     ":apps:gateway-service",
     ":apps:realtime-service",
+    ":apps:bot-management-service",
     ":apps:personalization-service",
     ":apps:social-service",
     ":apps:profile-service",
