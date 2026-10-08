@@ -103,7 +103,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     if (selected && active?.online) {
       void getBotProxyPools(selected).then((value) => { if (!cancelled) setProxyPools(value.pools) }).catch(handleError)
       void refreshAccounts(selected)
-      timer = window.setInterval(() => void refreshAccounts(selected), 4_000)
+      timer = window.setInterval(() => void refreshAccounts(selected), 10_000)
     }
     return () => {
       cancelled = true
@@ -137,7 +137,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       }
     }
     void poll()
-    const timer = window.setInterval(() => void poll(), 2500)
+    const timer = window.setInterval(() => void poll(), 5_000)
     return () => { running = false; window.clearInterval(timer) }
   }, [selected, accountId, active?.online])
 
