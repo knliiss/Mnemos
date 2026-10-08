@@ -39,8 +39,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   const authorized = user.systemRoles.some((role) => role === "ADMIN" || role === "SUPER_ADMIN")
   const [agents, setAgents] = useState<BotAgent[]>([])
   const [selected, setSelected] = useState<string | null>(null)
-  const [programTab, setProgramTab] = useState<"accounts" | "groups" | "bulk" | "proxies">("accounts")
-  const [accountTab, setAccountTab] = useState<"overview" | "automation" | "network" | "logs">("overview")
+  const [programTab, setProgramTab] = useState<"accounts" | "groups" | "bulk" | "proxies">(
+    "accounts",
+  )
+  const [accountTab, setAccountTab] = useState<"overview" | "automation" | "network" | "logs">(
+    "overview",
+  )
   const [created, setCreated] = useState<AgentCreation | null>(null)
   const [accounts, setAccounts] = useState<BotAccount[]>([])
   const [accountId, setAccountId] = useState<string | null>(null)
@@ -151,10 +155,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       const agentId = selected
       const sync = async () => {
         try {
-          const data = active?.online ? await synchronizeBotGroups(agentId) : await getBotGroups(agentId)
+          const data = active?.online
+            ? await synchronizeBotGroups(agentId)
+            : await getBotGroups(agentId)
           if (!cancelled) {
-        setGroupState(data)
-      }
+            setGroupState(data)
+          }
         } catch (error) {
           if (!cancelled) {
             setNotice(error instanceof Error ? error.message : t("botAgents.groupSyncError"))
@@ -499,11 +505,20 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         }}
         actions={
           active ? (
-            <button type="button" onClick={() => renameWorker(active)} disabled={busy || active.revoked}>
+            <button
+              type="button"
+              onClick={() => renameWorker(active)}
+              disabled={busy || active.revoked}
+            >
               {t("botAgents.name")}
             </button>
           ) : (
-            <button type="button" className="c7x-admin-primary" onClick={() => void addWorker()} disabled={busy}>
+            <button
+              type="button"
+              className="c7x-admin-primary"
+              onClick={() => void addWorker()}
+              disabled={busy}
+            >
               {t("botAgents.addAgent")}
             </button>
           )
@@ -511,101 +526,100 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       />
       {!active ? (
         <div className="c7x-admin-list-page">
-      <section className="c7x-admin-hero">
-        <div className="c7x-admin-hero-copy">
-          <span className="c7x-admin-eyebrow">C7X · REMOTE CONTROL</span>
-          <strong>{t("botAgents.heroTitle")}</strong>
-          <p>{t("botAgents.heroDescription")}</p>
-        </div>
-        <img className="c7x-admin-hero-art" src="/ui-illustrations/bot-agent-hero.svg" alt="" />
-        <div className="c7x-admin-total">
-          <b>{agents.filter((a) => a.online).length}</b>
-          <span>{t("botAgents.onlineCount", { count: agents.length })}</span>
-        </div>
-      </section>
-
-      {created ? (
-        <section className="c7x-admin-card c7x-admin-pair">
-          <strong>{t("botAgents.pairTitle")}</strong>
-          <p>{t("botAgents.pairInstructions")}</p>
-          <code>{created.accessKey}</code>
-          <div className="c7x-admin-actions">
-            <button
-              type="button"
-              onClick={() => void navigator.clipboard.writeText(created.accessKey)}
-            >
-              {t("botAgents.copyKey")}
-            </button>
-            <button type="button" onClick={() => setCreated(null)}>
-              {t("botAgents.close")}
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      <div className="c7x-admin-section-head">
-        <h2>{t("botAgents.agents")}</h2>
-        <button type="button" onClick={() => void refreshAgents()}>
-          {t("botAgents.refresh")}
-        </button>
-      </div>
-      {agents.length === 0 ? (
-        <div className="c7x-admin-empty">
-          <img src="/ui-illustrations/bot-agent-offline.svg" alt="" />
-          <strong>{t("botAgents.noAgents")}</strong>
-          <p>{t("botAgents.noAgentsHint")}</p>
-        </div>
-      ) : null}
-      <div className="c7x-admin-agent-list">
-        {agents.map((agent) => (
-          <div
-            className={`c7x-admin-card c7x-admin-agent ${selected === agent.id ? "is-selected" : ""}`}
-            key={agent.id}
-          >
-            <button
-              type="button"
-              className="c7x-admin-agent-main"
-              onClick={() => chooseWorker(agent.id)}
-            >
-              <span className="c7x-admin-worker-art">
-                <img src="/ui-illustrations/bot-agent-workspace.svg" alt="" />
-              </span>
-              <span>
-                <strong>{agent.name}</strong>
-                <small>
-                  <i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />{" "}
-                  {agent.machineName ?? t("botAgents.unknownPc")} ·{" "}
-                  {agent.revoked
-                    ? t("botAgents.revoked")
-                    : agent.online
-                      ? t("botAgents.running")
-                      : t("botAgents.disabled")}
-                </small>
-              </span>
-              <span className="c7x-admin-last">
-                {agent.online
-                  ? t("botAgents.online")
-                  : t("botAgents.lastSeen", { date: formatDate(agent.lastSeenAt) })}
-              </span>
-            </button>
-            <div className="c7x-admin-agent-actions">
-              <button
-                type="button"
-                onClick={() => void renameWorker(agent)}
-                disabled={busy || agent.revoked}
-              >
-                {t("botAgents.name")}
-              </button>
-              {!agent.revoked ? (
-                <button type="button" onClick={() => void removeWorker(agent)} disabled={busy}>
-                  {t("botAgents.revoke")}
-                </button>
-              ) : null}
+          <section className="c7x-admin-hero">
+            <div className="c7x-admin-hero-copy">
+              <span className="c7x-admin-eyebrow">C7X · REMOTE CONTROL</span>
+              <strong>{t("botAgents.heroTitle")}</strong>
+              <p>{t("botAgents.heroDescription")}</p>
             </div>
-          </div>
-        ))}
-      </div>
+            <img className="c7x-admin-hero-art" src="/ui-illustrations/bot-agent-hero.svg" alt="" />
+            <div className="c7x-admin-total">
+              <b>{agents.filter((a) => a.online).length}</b>
+              <span>{t("botAgents.onlineCount", { count: agents.length })}</span>
+            </div>
+          </section>
 
+          {created ? (
+            <section className="c7x-admin-card c7x-admin-pair">
+              <strong>{t("botAgents.pairTitle")}</strong>
+              <p>{t("botAgents.pairInstructions")}</p>
+              <code>{created.accessKey}</code>
+              <div className="c7x-admin-actions">
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(created.accessKey)}
+                >
+                  {t("botAgents.copyKey")}
+                </button>
+                <button type="button" onClick={() => setCreated(null)}>
+                  {t("botAgents.close")}
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          <div className="c7x-admin-section-head">
+            <h2>{t("botAgents.agents")}</h2>
+            <button type="button" onClick={() => void refreshAgents()}>
+              {t("botAgents.refresh")}
+            </button>
+          </div>
+          {agents.length === 0 ? (
+            <div className="c7x-admin-empty">
+              <img src="/ui-illustrations/bot-agent-offline.svg" alt="" />
+              <strong>{t("botAgents.noAgents")}</strong>
+              <p>{t("botAgents.noAgentsHint")}</p>
+            </div>
+          ) : null}
+          <div className="c7x-admin-agent-list">
+            {agents.map((agent) => (
+              <div
+                className={`c7x-admin-card c7x-admin-agent ${selected === agent.id ? "is-selected" : ""}`}
+                key={agent.id}
+              >
+                <button
+                  type="button"
+                  className="c7x-admin-agent-main"
+                  onClick={() => chooseWorker(agent.id)}
+                >
+                  <span className="c7x-admin-worker-art">
+                    <img src="/ui-illustrations/bot-agent-workspace.svg" alt="" />
+                  </span>
+                  <span>
+                    <strong>{agent.name}</strong>
+                    <small>
+                      <i className={`c7x-admin-dot ${agent.online ? "is-online" : ""}`} />{" "}
+                      {agent.machineName ?? t("botAgents.unknownPc")} ·{" "}
+                      {agent.revoked
+                        ? t("botAgents.revoked")
+                        : agent.online
+                          ? t("botAgents.running")
+                          : t("botAgents.disabled")}
+                    </small>
+                  </span>
+                  <span className="c7x-admin-last">
+                    {agent.online
+                      ? t("botAgents.online")
+                      : t("botAgents.lastSeen", { date: formatDate(agent.lastSeenAt) })}
+                  </span>
+                </button>
+                <div className="c7x-admin-agent-actions">
+                  <button
+                    type="button"
+                    onClick={() => void renameWorker(agent)}
+                    disabled={busy || agent.revoked}
+                  >
+                    {t("botAgents.name")}
+                  </button>
+                  {!agent.revoked ? (
+                    <button type="button" onClick={() => void removeWorker(agent)} disabled={busy}>
+                      {t("botAgents.revoke")}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
       {active && !account ? (
@@ -639,50 +653,53 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
           ) : (
             <>
               <div hidden={programTab !== "accounts"}>
-              <div className="c7x-admin-section-head">
-                <h2>{t("botAgents.accountsCount", { count: accounts.length })}</h2>
-                <button type="button" onClick={() => setLogin((x) => !x)}>
-                  {t("botAgents.addAccount")}
-                </button>
-              </div>
-              {login ? (
-                <form
-                  className="c7x-admin-card c7x-admin-form"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    void addAccount()
-                  }}
-                >
-                  <label>
-                    {t("botAgents.login")}
-                    <input
-                      autoComplete="username"
-                      value={loginName}
-                      onChange={(e) => setLoginName(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <label>
-                    {t("botAgents.password")}
-                    <input
-                      type="password"
-                      autoComplete="new-password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <label>
-                    {t("botAgents.otp")}
-                    <input value={loginOtp} onChange={(e) => setLoginOtp(e.target.value)} />
-                  </label>
-                  <button type="submit" className="c7x-admin-primary" disabled={busy}>
-                    {t("botAgents.addToPc")}
+                <div className="c7x-admin-section-head">
+                  <h2>{t("botAgents.accountsCount", { count: accounts.length })}</h2>
+                  <button type="button" onClick={() => setLogin((x) => !x)}>
+                    {t("botAgents.addAccount")}
                   </button>
-                </form>
-              ) : null}
+                </div>
+                {login ? (
+                  <form
+                    className="c7x-admin-card c7x-admin-form"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      void addAccount()
+                    }}
+                  >
+                    <label>
+                      {t("botAgents.login")}
+                      <input
+                        autoComplete="username"
+                        value={loginName}
+                        onChange={(e) => setLoginName(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <label>
+                      {t("botAgents.password")}
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <label>
+                      {t("botAgents.otp")}
+                      <input value={loginOtp} onChange={(e) => setLoginOtp(e.target.value)} />
+                    </label>
+                    <button type="submit" className="c7x-admin-primary" disabled={busy}>
+                      {t("botAgents.addToPc")}
+                    </button>
+                  </form>
+                ) : null}
               </div>
-              <section className="c7x-admin-card c7x-admin-group-panel" hidden={programTab !== "groups"}>
+              <section
+                className="c7x-admin-card c7x-admin-group-panel"
+                hidden={programTab !== "groups"}
+              >
                 <div className="c7x-admin-section-head">
                   <h3>{t("botAgents.accountGroups")}</h3>
                   <span>{t("botAgents.savedInMnemos")}</span>
@@ -734,241 +751,248 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                 </div>
               </section>
               <div hidden={programTab !== "accounts" && programTab !== "bulk"}>
-              <input
-                className="c7x-admin-search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("botAgents.searchNick")}
-              />
+                <input
+                  className="c7x-admin-search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("botAgents.searchNick")}
+                />
               </div>
               <div hidden={programTab !== "bulk"}>
-              <div className="c7x-admin-actions">
-                <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>
-                  {t("botAgents.startAll")}
-                </button>
-                <button type="button" onClick={() => void bulk("disconnectAll")} disabled={busy}>
-                  {t("botAgents.stopAll")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void bulk("cancelBulkConnect")}
-                  disabled={busy}
-                >
-                  {t("botAgents.cancelQueue")}
-                </button>
-                {chosen.length > 0 ? (
-                  <>
-                    <button type="button" onClick={() => void bulk("bulkConnect")} disabled={busy}>
-                      {t("botAgents.startSelected", { count: chosen.length })}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkReconnect")}
-                      disabled={busy}
-                    >
-                      {t("botAgents.reconnect")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkDisconnect")}
-                      disabled={busy}
-                    >
-                      {t("botAgents.stop")}
-                    </button>
-                    <button type="button" onClick={() => void bulk("bulkEnterSao")} disabled={busy}>
-                      {t("botAgents.enterSao")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkDungeonLobby")}
-                      disabled={busy}
-                    >
-                      {t("botAgents.dungeonLobby")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkAutomation", { autoDungeon: true })}
-                      disabled={busy}
-                    >
-                      {t("botAgents.enableDungeons")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkAutomation", { autoDungeon: false })}
-                      disabled={busy}
-                    >
-                      {t("botAgents.disableDungeons")}
-                    </button>
-                    <button type="button" onClick={() => void bulk("bulkDirect")} disabled={busy}>
-                      {t("botAgents.direct")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkSpoofGenerate")}
-                      disabled={busy}
-                    >
-                      {t("botAgents.newSpoof")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void bulk("bulkStopNavigation")}
-                      disabled={busy}
-                    >
-                      {t("botAgents.stopNavigation")}
-                    </button>
-                  </>
-                ) : null}
-              </div>
-              {chosen.length > 0 ? (
-                <section className="c7x-admin-card c7x-admin-bulk">
-                  <div className="c7x-admin-section-head">
-                    <h3>{t("botAgents.bulkCommands", { count: chosen.length })}</h3>
-                  </div>
-                  <div className="c7x-admin-actions">
-                    {DUNGEONS.map((dungeon) => (
+                <div className="c7x-admin-actions">
+                  <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>
+                    {t("botAgents.startAll")}
+                  </button>
+                  <button type="button" onClick={() => void bulk("disconnectAll")} disabled={busy}>
+                    {t("botAgents.stopAll")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void bulk("cancelBulkConnect")}
+                    disabled={busy}
+                  >
+                    {t("botAgents.cancelQueue")}
+                  </button>
+                  {chosen.length > 0 ? (
+                    <>
                       <button
-                        key={dungeon}
+                        type="button"
+                        onClick={() => void bulk("bulkConnect")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.startSelected", { count: chosen.length })}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkReconnect")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.reconnect")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkDisconnect")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.stop")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkEnterSao")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.enterSao")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkDungeonLobby")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.dungeonLobby")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkAutomation", { autoDungeon: true })}
+                        disabled={busy}
+                      >
+                        {t("botAgents.enableDungeons")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkAutomation", { autoDungeon: false })}
+                        disabled={busy}
+                      >
+                        {t("botAgents.disableDungeons")}
+                      </button>
+                      <button type="button" onClick={() => void bulk("bulkDirect")} disabled={busy}>
+                        {t("botAgents.direct")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkSpoofGenerate")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.newSpoof")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void bulk("bulkStopNavigation")}
+                        disabled={busy}
+                      >
+                        {t("botAgents.stopNavigation")}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+                {chosen.length > 0 ? (
+                  <section className="c7x-admin-card c7x-admin-bulk">
+                    <div className="c7x-admin-section-head">
+                      <h3>{t("botAgents.bulkCommands", { count: chosen.length })}</h3>
+                    </div>
+                    <div className="c7x-admin-actions">
+                      {DUNGEONS.map((dungeon) => (
+                        <button
+                          key={dungeon}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void bulk("bulkDungeon", { dungeon })}
+                        >
+                          {dungeon}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="c7x-admin-form-inline">
+                      {(["x", "y", "z"] as const).map((axis) => (
+                        <label key={axis}>
+                          {axis.toUpperCase()}
+                          <input
+                            type="number"
+                            value={navigation[axis]}
+                            onChange={(event) =>
+                              setNavigation((old) => ({ ...old, [axis]: event.target.value }))
+                            }
+                          />
+                        </label>
+                      ))}
+                      <button
                         type="button"
                         disabled={busy}
-                        onClick={() => void bulk("bulkDungeon", { dungeon })}
+                        onClick={() =>
+                          void bulk("bulkNavigate", {
+                            x: Number(navigation.x),
+                            y: Number(navigation.y),
+                            z: Number(navigation.z),
+                            reach: 1,
+                          })
+                        }
                       >
-                        {dungeon}
+                        {t("botAgents.navigateSelected")}
                       </button>
-                    ))}
-                  </div>
-                  <div className="c7x-admin-form-inline">
-                    {(["x", "y", "z"] as const).map((axis) => (
-                      <label key={axis}>
-                        {axis.toUpperCase()}
+                    </div>
+                    <div className="c7x-admin-form-inline">
+                      <label>
+                        {t("botAgents.targetRealm")}
                         <input
                           type="number"
-                          value={navigation[axis]}
-                          onChange={(event) =>
-                            setNavigation((old) => ({ ...old, [axis]: event.target.value }))
-                          }
+                          min="1"
+                          value={realm}
+                          onChange={(event) => setRealm(event.target.value)}
                         />
                       </label>
-                    ))}
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() =>
-                        void bulk("bulkNavigate", {
-                          x: Number(navigation.x),
-                          y: Number(navigation.y),
-                          z: Number(navigation.z),
-                          reach: 1,
-                        })
-                      }
+                      <button
+                        type="button"
+                        disabled={busy || Number(realm) < 1}
+                        onClick={() =>
+                          void bulk("bulkAutomation", { swapper: true, realm: Number(realm) })
+                        }
+                      >
+                        {t("botAgents.enableSwapper")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void bulk("bulkAutomation", { swapper: false })}
+                      >
+                        {t("botAgents.disableSwapper")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void bulk("bulkAutomation", { autoReconnect: true })}
+                      >
+                        {t("botAgents.autoReconnectCheck")}
+                      </button>
+                    </div>
+                    <form
+                      className="c7x-admin-form-inline"
+                      onSubmit={(event) => {
+                        event.preventDefault()
+                        if (!bulkChatText.trim()) {
+                          return
+                        }
+                        void bulk("bulkChat", { message: bulkChatText.trim() })
+                      }}
                     >
-                      {t("botAgents.navigateSelected")}
-                    </button>
-                  </div>
-                  <div className="c7x-admin-form-inline">
-                    <label>
-                      {t("botAgents.targetRealm")}
                       <input
-                        type="number"
-                        min="1"
-                        value={realm}
-                        onChange={(event) => setRealm(event.target.value)}
+                        value={bulkChatText}
+                        onChange={(event) => setBulkChatText(event.target.value)}
+                        maxLength={256}
+                        placeholder={t("botAgents.bulkMessagePlaceholder")}
                       />
-                    </label>
-                    <button
-                      type="button"
-                      disabled={busy || Number(realm) < 1}
-                      onClick={() =>
-                        void bulk("bulkAutomation", { swapper: true, realm: Number(realm) })
-                      }
-                    >
-                      {t("botAgents.enableSwapper")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void bulk("bulkAutomation", { swapper: false })}
-                    >
-                      {t("botAgents.disableSwapper")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void bulk("bulkAutomation", { autoReconnect: true })}
-                    >
-                      {t("botAgents.autoReconnectCheck")}
-                    </button>
-                  </div>
-                  <form
-                    className="c7x-admin-form-inline"
-                    onSubmit={(event) => {
-                      event.preventDefault()
-                      if (!bulkChatText.trim()) {
-                        return
-                      }
-                      void bulk("bulkChat", { message: bulkChatText.trim() })
-                    }}
-                  >
-                    <input
-                      value={bulkChatText}
-                      onChange={(event) => setBulkChatText(event.target.value)}
-                      maxLength={256}
-                      placeholder={t("botAgents.bulkMessagePlaceholder")}
-                    />
-                    <button type="submit" disabled={busy || !bulkChatText.trim()}>
-                      {t("botAgents.send")}
-                    </button>
-                  </form>
-                </section>
-              ) : null}
+                      <button type="submit" disabled={busy || !bulkChatText.trim()}>
+                        {t("botAgents.send")}
+                      </button>
+                    </form>
+                  </section>
+                ) : null}
               </div>
               <div hidden={programTab !== "accounts" && programTab !== "bulk"}>
-              <div className="c7x-admin-accounts">
-                {visibleAccounts.length === 0 ? (
-                  <div className="c7x-admin-empty">
-                    <img src="/ui-illustrations/bot-agent-account.svg" alt="" />
-                    <strong>{t("botAgents.noAccounts")}</strong>
-                  </div>
-                ) : null}
-                {visibleAccounts.map((item) => (
-                  <div key={item.id} className="c7x-admin-account-line">
-                    <input
-                      type="checkbox"
-                      aria-label={t("botAgents.selectAccountAria", { name: item.username })}
-                      checked={chosen.includes(item.id)}
-                      onChange={(e) =>
-                        setChosen((current) =>
-                          e.target.checked
-                            ? [...current, item.id]
-                            : current.filter((x) => x !== item.id),
-                        )
-                      }
-                    />
-                    <BotAccountHead
-                      agentId={active.id}
-                      accountId={item.id}
-                      nickname={item.username}
-                      size={46}
-                      online={active.online}
-                    />
-                    <button
-                      type="button"
-                      className={accountId === item.id ? "is-selected" : ""}
-                      onClick={() => chooseAccount(item.id)}
-                    >
-                      <strong>{item.username}</strong>
-                      <small>
-                        {item.realm ?? t("botAgents.noRealm")} · {item.activity}
-                      </small>
-                    </button>
-                    <span
-                      className={item.state === "ONLINE" ? "c7x-admin-online" : "c7x-admin-muted"}
-                    >
-                      {item.state}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
+                <div className="c7x-admin-accounts">
+                  {visibleAccounts.length === 0 ? (
+                    <div className="c7x-admin-empty">
+                      <img src="/ui-illustrations/bot-agent-account.svg" alt="" />
+                      <strong>{t("botAgents.noAccounts")}</strong>
+                    </div>
+                  ) : null}
+                  {visibleAccounts.map((item) => (
+                    <div key={item.id} className="c7x-admin-account-line">
+                      <input
+                        type="checkbox"
+                        aria-label={t("botAgents.selectAccountAria", { name: item.username })}
+                        checked={chosen.includes(item.id)}
+                        onChange={(e) =>
+                          setChosen((current) =>
+                            e.target.checked
+                              ? [...current, item.id]
+                              : current.filter((x) => x !== item.id),
+                          )
+                        }
+                      />
+                      <BotAccountHead
+                        agentId={active.id}
+                        accountId={item.id}
+                        nickname={item.username}
+                        size={46}
+                        online={active.online}
+                      />
+                      <button
+                        type="button"
+                        className={accountId === item.id ? "is-selected" : ""}
+                        onClick={() => chooseAccount(item.id)}
+                      >
+                        <strong>{item.username}</strong>
+                        <small>
+                          {item.realm ?? t("botAgents.noRealm")} · {item.activity}
+                        </small>
+                      </button>
+                      <span
+                        className={item.state === "ONLINE" ? "c7x-admin-online" : "c7x-admin-muted"}
+                      >
+                        {item.state}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <section className="c7x-admin-card c7x-admin-pools" hidden={programTab !== "proxies"}>
                 <div className="c7x-admin-section-head">
@@ -1069,492 +1093,487 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       ) : null}
 
       {active && account ? (
-                <section className="c7x-admin-card c7x-admin-detail">
-                  <nav className="c7x-program-tabs" aria-label={t("botAgents.accountSections")}>
-                    {(["overview", "automation", "network", "logs"] as const).map((tab) => (
-                      <button
-                        type="button"
-                        key={tab}
-                        className={accountTab === tab ? "is-current" : ""}
-                        aria-current={accountTab === tab ? "page" : undefined}
-                        onClick={() => setAccountTab(tab)}
-                      >
-                        {t("botAgents.accountTab_" + tab)}
-                        {tab === "logs" && logError ? " !" : ""}
-                      </button>
-                    ))}
-                  </nav>
-                  <div className="c7x-admin-section-head">
-                    <div className="c7x-agent-account-title">
-                      <BotAccountHead
-                        agentId={active.id}
-                        accountId={account.id}
-                        nickname={account.username}
-                        size={76}
-                        online={active.online}
-                      />
-                      <div>
-                        <span className="c7x-admin-eyebrow">{t("botAgents.accountDetails")}</span>
-                        <h2>{account.username}</h2>
-                        <small>{account.state} · {account.realm ?? t("botAgents.noRealm")}</small>
-                      </div>
-                    </div>
-                    <span>{account.location ?? "—"}</span>
-                  </div>
-                  {account.lastError ? (
-                    <p className="c7x-admin-error">{account.lastError}</p>
-                  ) : null}
-                  <div hidden={accountTab !== "overview"}>
-                  <div className="c7x-admin-actions">
-                    {(
-                      [
-                        "connect",
-                        "disconnect",
-                        "reconnect",
-                        "enterSao",
-                        "dungeonLobby",
-                        "pause",
-                        "resume",
-                      ] as const
-                    ).map((action) => (
-                      <button
-                        type="button"
-                        key={action}
-                        disabled={busy}
-                        onClick={() => void act(action)}
-                      >
-                        {
-                          {
-                            connect: t("botAgents.start"),
-                            disconnect: t("botAgents.stopShort"),
-                            reconnect: t("botAgents.reconnect"),
-                            enterSao: t("botAgents.enterSao"),
-                            dungeonLobby: t("botAgents.dungeonLobby"),
-                            pause: t("botAgents.pause"),
-                            resume: t("botAgents.resume"),
-                          }[action]
+        <section className="c7x-admin-card c7x-admin-detail">
+          <nav className="c7x-program-tabs" aria-label={t("botAgents.accountSections")}>
+            {(["overview", "automation", "network", "logs"] as const).map((tab) => (
+              <button
+                type="button"
+                key={tab}
+                className={accountTab === tab ? "is-current" : ""}
+                aria-current={accountTab === tab ? "page" : undefined}
+                onClick={() => setAccountTab(tab)}
+              >
+                {t("botAgents.accountTab_" + tab)}
+                {tab === "logs" && logError ? " !" : ""}
+              </button>
+            ))}
+          </nav>
+          <div className="c7x-admin-section-head">
+            <div className="c7x-agent-account-title">
+              <BotAccountHead
+                agentId={active.id}
+                accountId={account.id}
+                nickname={account.username}
+                size={76}
+                online={active.online}
+              />
+              <div>
+                <span className="c7x-admin-eyebrow">{t("botAgents.accountDetails")}</span>
+                <h2>{account.username}</h2>
+                <small>
+                  {account.state} · {account.realm ?? t("botAgents.noRealm")}
+                </small>
+              </div>
+            </div>
+            <span>{account.location ?? "—"}</span>
+          </div>
+          {account.lastError ? <p className="c7x-admin-error">{account.lastError}</p> : null}
+          <div hidden={accountTab !== "overview"}>
+            <div className="c7x-admin-actions">
+              {(
+                [
+                  "connect",
+                  "disconnect",
+                  "reconnect",
+                  "enterSao",
+                  "dungeonLobby",
+                  "pause",
+                  "resume",
+                ] as const
+              ).map((action) => (
+                <button type="button" key={action} disabled={busy} onClick={() => void act(action)}>
+                  {
+                    {
+                      connect: t("botAgents.start"),
+                      disconnect: t("botAgents.stopShort"),
+                      reconnect: t("botAgents.reconnect"),
+                      enterSao: t("botAgents.enterSao"),
+                      dungeonLobby: t("botAgents.dungeonLobby"),
+                      pause: t("botAgents.pause"),
+                      resume: t("botAgents.resume"),
+                    }[action]
+                  }
+                </button>
+              ))}
+            </div>
+            <div className="c7x-admin-form-inline">
+              <label>
+                {t("botAgents.accountGroup")}
+                <select
+                  value={groupState.state.assignments[account.id] ?? ""}
+                  onChange={(event) => void assignGroup(account.id, event.target.value)}
+                  disabled={busy}
+                >
+                  <option value="">{t("botAgents.noGroup")}</option>
+                  {groupState.state.groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="c7x-admin-actions">
+              {DUNGEONS.map((dungeon) => (
+                <button
+                  key={dungeon}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void act("dungeon", { dungeon })}
+                >
+                  {t("botAgents.enterDungeon", { dungeon })}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (!selected || !window.confirm(t("botAgents.removeAccountConfirm"))) {
+                    return
+                  }
+                  const id = account.id
+                  void run(async () => {
+                    await workerRequest(selected, "POST", "/api/accounts/manage", {
+                      action: "remove",
+                      id,
+                    })
+                    setAccountId(null)
+                  })
+                }}
+              >
+                {t("botAgents.deleteAccount")}
+              </button>
+            </div>
+          </div>
+          <div hidden={accountTab !== "automation"}>
+            <h3>{t("botAgents.automation")}</h3>
+            <div className="c7x-admin-toggle-row">
+              {(
+                [
+                  ["autoDungeon", t("botAgents.autoDungeons")],
+                  ["swapper", t("botAgents.autoSwapper")],
+                  ["autoReconnect", t("botAgents.autoReconnect")],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={account[key]}
+                    disabled={busy}
+                    onChange={(e) => void settings({ [key]: e.target.checked })}
+                  />{" "}
+                  {label}
+                </label>
+              ))}
+            </div>
+            <div className="c7x-admin-toggle-row">
+              {DUNGEONS.map((dungeon) => (
+                <label key={dungeon}>
+                  <input
+                    type="checkbox"
+                    disabled={busy}
+                    checked={account.dungeons.includes(dungeon)}
+                    onChange={(e) =>
+                      void settings({
+                        dungeons: e.target.checked
+                          ? [...account.dungeons, dungeon]
+                          : account.dungeons.filter((x) => x !== dungeon),
+                      })
+                    }
+                  />{" "}
+                  {dungeon}
+                </label>
+              ))}
+            </div>
+            <div className="c7x-admin-form-inline">
+              <label>
+                {t("botAgents.realm")}
+                <input
+                  type="number"
+                  min="1"
+                  value={realm}
+                  onChange={(e) => setRealm(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={busy || !Number(realm)}
+                onClick={() => void act("changeRealm", { realm: Number(realm) })}
+              >
+                {t("botAgents.go")}
+              </button>
+              <button
+                type="button"
+                disabled={busy || !Number(realm)}
+                onClick={() => void settings({ realm: Number(realm) })}
+              >
+                {t("botAgents.swapperTarget")}
+              </button>
+            </div>
+            <h3>{t("botAgents.navigation")}</h3>
+            <div className="c7x-admin-form-inline">
+              {(["x", "y", "z"] as const).map((key) => (
+                <label key={key}>
+                  {key.toUpperCase()}
+                  <input
+                    type="number"
+                    value={navigation[key]}
+                    onChange={(e) => setNavigation((s) => ({ ...s, [key]: e.target.value }))}
+                  />
+                </label>
+              ))}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  void act("navigate", {
+                    x: Number(navigation.x),
+                    y: Number(navigation.y),
+                    z: Number(navigation.z),
+                    reach: 1,
+                  })
+                }
+              >
+                {t("botAgents.walk")}
+              </button>
+              <button type="button" disabled={busy} onClick={() => void act("stopNavigation")}>
+                {t("botAgents.stopShort")}
+              </button>
+            </div>
+            <h3>{t("botAgents.chat")}</h3>
+            <form
+              className="c7x-admin-form-inline"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!selected || !chatText.trim()) {
+                  return
+                }
+                void run(() => botChat(selected, account.id, chatText.trim()), false)
+                setChatText("")
+              }}
+            >
+              <input
+                value={chatText}
+                maxLength={256}
+                onChange={(e) => setChatText(e.target.value)}
+                placeholder={t("botAgents.messagePlaceholder")}
+              />
+              <button disabled={busy || !chatText.trim()} type="submit">
+                {t("botAgents.send")}
+              </button>
+            </form>
+          </div>
+          <div hidden={accountTab !== "network"}>
+            <h3>{t("botAgents.networkSpoof")}</h3>
+            {network ? (
+              <div className="c7x-admin-network">
+                <div className="c7x-admin-form-inline">
+                  <label>
+                    {t("botAgents.connectionType")}
+                    <select
+                      value={networkMode}
+                      disabled={busy}
+                      onChange={(event) => {
+                        const mode = event.target.value
+                        setNetworkMode(mode)
+                        if (mode === "CUSTOM" || (mode === "POOL" && !proxyPools.length)) {
+                          return
                         }
-                      </button>
-                    ))}
-                  </div>
-                  <div className="c7x-admin-form-inline">
+                        void applyNetwork({
+                          proxy:
+                            mode === "POOL" ? { mode, poolName: proxyPools[0].name } : { mode },
+                        })
+                      }}
+                    >
+                      <option value="INHERIT">{t("botAgents.inherit")}</option>
+                      <option value="DIRECT">{t("botAgents.directMode")}</option>
+                      <option value="POOL" disabled={!proxyPools.length}>
+                        {t("botAgents.proxyPool")}
+                      </option>
+                      <option value="CUSTOM">{t("botAgents.customProxy")}</option>
+                    </select>
+                  </label>
+                  {network.proxy.mode === "POOL" ? (
                     <label>
-                      {t("botAgents.accountGroup")}
+                      {t("botAgents.pool")}
                       <select
-                        value={groupState.state.assignments[account.id] ?? ""}
-                        onChange={(event) => void assignGroup(account.id, event.target.value)}
+                        value={network.proxy.poolName ?? ""}
                         disabled={busy}
+                        onChange={(event) =>
+                          void applyNetwork({
+                            proxy: { mode: "POOL", poolName: event.target.value },
+                          })
+                        }
                       >
-                        <option value="">{t("botAgents.noGroup")}</option>
-                        {groupState.state.groups.map((group) => (
-                          <option key={group.id} value={group.id}>
-                            {group.name}
+                        {proxyPools.map((pool) => (
+                          <option key={pool.name} value={pool.name}>
+                            {pool.name}
                           </option>
                         ))}
                       </select>
                     </label>
-                  </div>
-                  <div className="c7x-admin-actions">
-                    {DUNGEONS.map((dungeon) => (
-                      <button
-                        key={dungeon}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void act("dungeon", { dungeon })}
-                      >
-                        {t("botAgents.enterDungeon", { dungeon })}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        if (!selected || !window.confirm(t("botAgents.removeAccountConfirm"))) {
-                          return
-                        }
-                        const id = account.id
-                        void run(async () => {
-                          await workerRequest(selected, "POST", "/api/accounts/manage", {
-                            action: "remove",
-                            id,
-                          })
-                          setAccountId(null)
-                        })
-                      }}
-                    >
-                      {t("botAgents.deleteAccount")}
-                    </button>
-                  </div>
-                  </div>
-                  <div hidden={accountTab !== "automation"}>
-                  <h3>{t("botAgents.automation")}</h3>
-                  <div className="c7x-admin-toggle-row">
-                    {(
-                      [
-                        ["autoDungeon", t("botAgents.autoDungeons")],
-                        ["swapper", t("botAgents.autoSwapper")],
-                        ["autoReconnect", t("botAgents.autoReconnect")],
-                      ] as const
-                    ).map(([key, label]) => (
-                      <label key={key}>
-                        <input
-                          type="checkbox"
-                          checked={account[key]}
-                          disabled={busy}
-                          onChange={(e) => void settings({ [key]: e.target.checked })}
-                        />{" "}
-                        {label}
-                      </label>
-                    ))}
-                  </div>
-                  <div className="c7x-admin-toggle-row">
-                    {DUNGEONS.map((dungeon) => (
-                      <label key={dungeon}>
-                        <input
-                          type="checkbox"
-                          disabled={busy}
-                          checked={account.dungeons.includes(dungeon)}
-                          onChange={(e) =>
-                            void settings({
-                              dungeons: e.target.checked
-                                ? [...account.dungeons, dungeon]
-                                : account.dungeons.filter((x) => x !== dungeon),
-                            })
-                          }
-                        />{" "}
-                        {dungeon}
-                      </label>
-                    ))}
-                  </div>
-                  <div className="c7x-admin-form-inline">
-                    <label>
-                      {t("botAgents.realm")}
-                      <input
-                        type="number"
-                        min="1"
-                        value={realm}
-                        onChange={(e) => setRealm(e.target.value)}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      disabled={busy || !Number(realm)}
-                      onClick={() => void act("changeRealm", { realm: Number(realm) })}
-                    >
-                      {t("botAgents.go")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy || !Number(realm)}
-                      onClick={() => void settings({ realm: Number(realm) })}
-                    >
-                      {t("botAgents.swapperTarget")}
-                    </button>
-                  </div>
-                  <h3>{t("botAgents.navigation")}</h3>
-                  <div className="c7x-admin-form-inline">
-                    {(["x", "y", "z"] as const).map((key) => (
-                      <label key={key}>
-                        {key.toUpperCase()}
-                        <input
-                          type="number"
-                          value={navigation[key]}
-                          onChange={(e) => setNavigation((s) => ({ ...s, [key]: e.target.value }))}
-                        />
-                      </label>
-                    ))}
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() =>
-                        void act("navigate", {
-                          x: Number(navigation.x),
-                          y: Number(navigation.y),
-                          z: Number(navigation.z),
-                          reach: 1,
-                        })
-                      }
-                    >
-                      {t("botAgents.walk")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void act("stopNavigation")}
-                    >
-                      {t("botAgents.stopShort")}
-                    </button>
-                  </div>
-                  <h3>{t("botAgents.chat")}</h3>
+                  ) : null}
+                </div>
+                {networkMode === "CUSTOM" ? (
                   <form
-                    className="c7x-admin-form-inline"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      if (!selected || !chatText.trim()) {
-                        return
-                      }
-                      void run(() => botChat(selected, account.id, chatText.trim()), false)
-                      setChatText("")
+                    className="c7x-admin-form"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      void applyNetwork({
+                        proxy: {
+                          mode: "CUSTOM",
+                          type: proxyType,
+                          host: proxyHost,
+                          port: Number(proxyPort),
+                          username: proxyUsername,
+                          ...(proxyPassword ? { password: proxyPassword } : {}),
+                        },
+                      })
                     }}
                   >
-                    <input
-                      value={chatText}
-                      maxLength={256}
-                      onChange={(e) => setChatText(e.target.value)}
-                      placeholder={t("botAgents.messagePlaceholder")}
-                    />
-                    <button disabled={busy || !chatText.trim()} type="submit">
-                      {t("botAgents.send")}
+                    <div className="c7x-admin-form-inline">
+                      <label>
+                        {t("botAgents.protocol")}
+                        <select
+                          value={proxyType}
+                          onChange={(event) => setProxyType(event.target.value)}
+                        >
+                          <option value="SOCKS5">SOCKS5</option>
+                          <option value="SOCKS4">SOCKS4</option>
+                          <option value="HTTP">HTTP</option>
+                          <option value="HTTPS">HTTPS</option>
+                        </select>
+                      </label>
+                      <label>
+                        {t("botAgents.host")}
+                        <input
+                          value={proxyHost}
+                          onChange={(event) => setProxyHost(event.target.value)}
+                          required
+                        />
+                      </label>
+                      <label>
+                        {t("botAgents.port")}
+                        <input
+                          type="number"
+                          min="1"
+                          max="65535"
+                          value={proxyPort}
+                          onChange={(event) => setProxyPort(event.target.value)}
+                          required
+                        />
+                      </label>
+                    </div>
+                    <div className="c7x-admin-form-inline">
+                      <label>
+                        {t("botAgents.username")}
+                        <input
+                          value={proxyUsername}
+                          onChange={(event) => setProxyUsername(event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        {t("botAgents.newPassword")}
+                        <input
+                          type="password"
+                          value={proxyPassword}
+                          onChange={(event) => setProxyPassword(event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <button type="submit" disabled={busy || !proxyHost.trim()}>
+                      {t("botAgents.saveProxy")}
                     </button>
                   </form>
-                  </div>
-                  <div hidden={accountTab !== "network"}>
-                  <h3>{t("botAgents.networkSpoof")}</h3>
-                  {network ? (
-                    <div className="c7x-admin-network">
-                      <div className="c7x-admin-form-inline">
-                        <label>
-                          {t("botAgents.connectionType")}
-                          <select
-                            value={networkMode}
-                            disabled={busy}
-                            onChange={(event) => {
-                              const mode = event.target.value
-                              setNetworkMode(mode)
-                              if (mode === "CUSTOM" || (mode === "POOL" && !proxyPools.length)) {
-                                return
-                              }
-                              void applyNetwork({
-                                proxy:
-                                  mode === "POOL"
-                                    ? { mode, poolName: proxyPools[0].name }
-                                    : { mode },
-                              })
-                            }}
-                          >
-                            <option value="INHERIT">{t("botAgents.inherit")}</option>
-                            <option value="DIRECT">{t("botAgents.directMode")}</option>
-                            <option value="POOL" disabled={!proxyPools.length}>
-                              {t("botAgents.proxyPool")}
-                            </option>
-                            <option value="CUSTOM">{t("botAgents.customProxy")}</option>
-                          </select>
-                        </label>
-                        {network.proxy.mode === "POOL" ? (
-                          <label>
-                            {t("botAgents.pool")}
-                            <select
-                              value={network.proxy.poolName ?? ""}
-                              disabled={busy}
-                              onChange={(event) =>
-                                void applyNetwork({
-                                  proxy: { mode: "POOL", poolName: event.target.value },
-                                })
-                              }
-                            >
-                              {proxyPools.map((pool) => (
-                                <option key={pool.name} value={pool.name}>
-                                  {pool.name}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                        ) : null}
-                      </div>
-                      {networkMode === "CUSTOM" ? (
-                        <form
-                          className="c7x-admin-form"
-                          onSubmit={(event) => {
-                            event.preventDefault()
-                            void applyNetwork({
-                              proxy: {
-                                mode: "CUSTOM",
-                                type: proxyType,
-                                host: proxyHost,
-                                port: Number(proxyPort),
-                                username: proxyUsername,
-                                ...(proxyPassword ? { password: proxyPassword } : {}),
-                              },
-                            })
-                          }}
-                        >
-                          <div className="c7x-admin-form-inline">
-                            <label>
-                              {t("botAgents.protocol")}
-                              <select
-                                value={proxyType}
-                                onChange={(event) => setProxyType(event.target.value)}
-                              >
-                                <option value="SOCKS5">SOCKS5</option>
-                                <option value="SOCKS4">SOCKS4</option>
-                                <option value="HTTP">HTTP</option>
-                                <option value="HTTPS">HTTPS</option>
-                              </select>
-                            </label>
-                            <label>
-                              {t("botAgents.host")}
-                              <input
-                                value={proxyHost}
-                                onChange={(event) => setProxyHost(event.target.value)}
-                                required
-                              />
-                            </label>
-                            <label>
-                              {t("botAgents.port")}
-                              <input
-                                type="number"
-                                min="1"
-                                max="65535"
-                                value={proxyPort}
-                                onChange={(event) => setProxyPort(event.target.value)}
-                                required
-                              />
-                            </label>
-                          </div>
-                          <div className="c7x-admin-form-inline">
-                            <label>
-                              {t("botAgents.username")}
-                              <input
-                                value={proxyUsername}
-                                onChange={(event) => setProxyUsername(event.target.value)}
-                              />
-                            </label>
-                            <label>
-                              {t("botAgents.newPassword")}
-                              <input
-                                type="password"
-                                value={proxyPassword}
-                                onChange={(event) => setProxyPassword(event.target.value)}
-                              />
-                            </label>
-                          </div>
-                          <button type="submit" disabled={busy || !proxyHost.trim()}>
-                            {t("botAgents.saveProxy")}
-                          </button>
-                        </form>
-                      ) : null}
-                      <div className="c7x-admin-form-inline">
-                        <label>
-                          {t("botAgents.spoofProfile")}
-                          <select
-                            value={network.spoof.mode}
-                            disabled={busy}
-                            onChange={(event) =>
-                              void applyNetwork({ spoof: { mode: event.target.value } })
-                            }
-                          >
-                            <option value="INHERIT">{t("botAgents.inherit")}</option>
-                            <option value="DISABLED">{t("botAgents.disabled")}</option>
-                            <option value="PERSISTENT">{t("botAgents.persistent")}</option>
-                            <option value="SESSION_RANDOM">{t("botAgents.perSession")}</option>
-                          </select>
-                        </label>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() =>
-                            void applyNetwork({
-                              spoof: {
-                                mode: "PERSISTENT",
-                                profileName: network.spoof.profileName ?? "Natural Desktop",
-                                regenerate: true,
-                              },
-                            })
-                          }
-                        >
-                          {t("botAgents.newSpoofSingle")}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => {
-                            if (!selected || !account) {
-                              return
-                            }
-                            void run(
-                              () =>
-                                workerRequest(
-                                  selected,
-                                  "POST",
-                                  `/api/account/${account.id}/proxy-test`,
-                                  {},
-                                ),
-                              false,
-                            )
-                          }}
-                        >
-                          {t("botAgents.testProxy")}
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-                  <h3>{t("botAgents.diagnostics")}</h3>
-                  <p className="c7x-admin-muted">
-                    {t("botAgents.proxyStatus", {
-                      proxy: account.proxy,
-                      status: account.proxyStatus,
-                    })}
-                  </p>
+                ) : null}
+                <div className="c7x-admin-form-inline">
+                  <label>
+                    {t("botAgents.spoofProfile")}
+                    <select
+                      value={network.spoof.mode}
+                      disabled={busy}
+                      onChange={(event) =>
+                        void applyNetwork({ spoof: { mode: event.target.value } })
+                      }
+                    >
+                      <option value="INHERIT">{t("botAgents.inherit")}</option>
+                      <option value="DISABLED">{t("botAgents.disabled")}</option>
+                      <option value="PERSISTENT">{t("botAgents.persistent")}</option>
+                      <option value="SESSION_RANDOM">{t("botAgents.perSession")}</option>
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      void applyNetwork({
+                        spoof: {
+                          mode: "PERSISTENT",
+                          profileName: network.spoof.profileName ?? "Natural Desktop",
+                          regenerate: true,
+                        },
+                      })
+                    }
+                  >
+                    {t("botAgents.newSpoofSingle")}
+                  </button>
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => {
-                      if (!selected) {
+                      if (!selected || !account) {
                         return
                       }
-                      void run(async () => {
-                        setDiagnostics(
-                          await workerRequest(
+                      void run(
+                        () =>
+                          workerRequest(
                             selected,
-                            "GET",
-                            `/api/account/${account.id}/diagnostics`,
+                            "POST",
+                            `/api/account/${account.id}/proxy-test`,
+                            {},
                           ),
-                        )
-                        setShowDiagnostics(true)
-                      }, false)
+                        false,
+                      )
                     }}
                   >
-                    {t("botAgents.getDiagnostics")}
+                    {t("botAgents.testProxy")}
                   </button>
-                  {showDiagnostics ? (
-                    <pre className="c7x-admin-log">{JSON.stringify(diagnostics, null, 2)}</pre>
-                  ) : null}
-                  </div>
-                  <div hidden={accountTab !== "logs"}>
-                  <div className="c7x-admin-section-head">
-                    <h3>{t("botAgents.journal")}</h3>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void navigator.clipboard.writeText(
-                          logEntries
-                            .map((x) => `[${x.timestamp}] ${x.category} ${x.message}`)
-                            .join("\n"),
-                        )
-                      }
-                    >
-                      {t("botAgents.copy")}
-                    </button>
-                  </div>
-                  {logError ? <p className="c7x-admin-error" role="alert">{t("botAgents.logFailed", { reason: logError })}</p> : null}
-                  {logLoading && logEntries.length === 0 ? <p className="c7x-admin-muted">{t("botAgents.loadingLogs")}</p> : null}
-                  <div className="c7x-admin-log">
-                    {logEntries.length
-                      ? logEntries.map((entry) => (
-                          <div key={entry.sequence}>
-                            <small>
-                              {entry.timestamp} · {entry.category}
-                            </small>
-                            <span>{entry.message}</span>
-                          </div>
-                        ))
-                      : !logLoading && !logError ? t("botAgents.noLogs") : null}
-                  </div>
-                  </div>
-                </section>
-              ) : null}
+                </div>
+              </div>
+            ) : null}
+            <h3>{t("botAgents.diagnostics")}</h3>
+            <p className="c7x-admin-muted">
+              {t("botAgents.proxyStatus", {
+                proxy: account.proxy,
+                status: account.proxyStatus,
+              })}
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                if (!selected) {
+                  return
+                }
+                void run(async () => {
+                  setDiagnostics(
+                    await workerRequest(selected, "GET", `/api/account/${account.id}/diagnostics`),
+                  )
+                  setShowDiagnostics(true)
+                }, false)
+              }}
+            >
+              {t("botAgents.getDiagnostics")}
+            </button>
+            {showDiagnostics ? (
+              <pre className="c7x-admin-log">{JSON.stringify(diagnostics, null, 2)}</pre>
+            ) : null}
+          </div>
+          <div hidden={accountTab !== "logs"}>
+            <div className="c7x-admin-section-head">
+              <h3>{t("botAgents.journal")}</h3>
+              <button
+                type="button"
+                onClick={() =>
+                  void navigator.clipboard.writeText(
+                    logEntries.map((x) => `[${x.timestamp}] ${x.category} ${x.message}`).join("\n"),
+                  )
+                }
+              >
+                {t("botAgents.copy")}
+              </button>
+            </div>
+            {logError ? (
+              <p className="c7x-admin-error" role="alert">
+                {t("botAgents.logFailed", { reason: logError })}
+              </p>
+            ) : null}
+            {logLoading && logEntries.length === 0 ? (
+              <p className="c7x-admin-muted">{t("botAgents.loadingLogs")}</p>
+            ) : null}
+            <div className="c7x-admin-log">
+              {logEntries.length
+                ? logEntries.map((entry) => (
+                    <div key={entry.sequence}>
+                      <small>
+                        {entry.timestamp} · {entry.category}
+                      </small>
+                      <span>{entry.message}</span>
+                    </div>
+                  ))
+                : !logLoading && !logError
+                  ? t("botAgents.noLogs")
+                  : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
       {renameAgent ? (
-        <div className="c7x-modal-backdrop" role="presentation" onClick={() => setRenameAgent(null)}>
+        <div
+          className="c7x-modal-backdrop"
+          role="presentation"
+          onClick={() => setRenameAgent(null)}
+        >
           <form
             className="c7x-modal-dialog"
             role="dialog"
@@ -1577,14 +1596,18 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
               <button type="button" onClick={() => setRenameAgent(null)}>
                 {t("botAgents.close")}
               </button>
-              <button type="submit" className="c7x-admin-primary" disabled={busy || !renameValue.trim()}>
+              <button
+                type="submit"
+                className="c7x-admin-primary"
+                disabled={busy || !renameValue.trim()}
+              >
                 {t("botAgents.save")}
               </button>
             </div>
           </form>
         </div>
       ) : null}
-            {notice ? (
+      {notice ? (
         <p className="c7x-admin-message" role="status">
           {notice}
         </p>

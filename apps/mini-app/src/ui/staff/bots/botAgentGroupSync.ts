@@ -11,10 +11,7 @@ function stateData(data: RemoteGroupState["state"]) {
   return { groups: data.groups, assignments: data.assignments }
 }
 
-function sameGroupData(
-  a: RemoteGroupState["state"],
-  b: RemoteGroupState["state"],
-): boolean {
+function sameGroupData(a: RemoteGroupState["state"], b: RemoteGroupState["state"]): boolean {
   return JSON.stringify(stateData(a)) === JSON.stringify(stateData(b))
 }
 
@@ -40,7 +37,8 @@ export async function synchronizeBotGroups(agentId: string): Promise<RemoteGroup
   const hasUntrackedState = lastWorkerRevision === undefined || lastDbRevision === undefined
 
   if (hasUntrackedState) {
-    const hasDesktop = worker.initialized &&
+    const hasDesktop =
+      worker.initialized &&
       (worker.state.groups.length > 0 || Object.keys(worker.state.assignments).length > 0)
     const dbIds = new Set(database.state.groups.map((item) => item.id))
     const merged = {

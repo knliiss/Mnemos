@@ -37,18 +37,16 @@ function fetchHead(agentId: string, accountId: string): Promise<string | null> {
   if (previous) {
     return previous
   }
-  const request = limitedHeadRequest(() => workerRequest<{ pngBase64: string }>(
-    agentId,
-    "GET",
-    `/api/account/${accountId}/head`,
+  const request = limitedHeadRequest(() =>
+    workerRequest<{ pngBase64: string }>(agentId, "GET", `/api/account/${accountId}/head`)
+      .then((result) => {
+        if (!/^[a-zA-Z0-9+/]+=*$/.test(result.pngBase64) || result.pngBase64.length > 125_000) {
+          return null
+        }
+        return `data:image/png;base64,${result.pngBase64}`
+      })
+      .catch(() => null),
   )
-    .then((result) => {
-      if (!/^[a-zA-Z0-9+/]+=*$/.test(result.pngBase64) || result.pngBase64.length > 125_000) {
-        return null
-      }
-      return `data:image/png;base64,${result.pngBase64}`
-    })
-    .catch(() => null))
   headCache.set(key, request)
   return request
 }
