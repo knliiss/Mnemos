@@ -141,4 +141,20 @@ if grep -Eq '^  report:' "$WORKFLOW"; then
     fail "Cloudflare production deployment must not publish mutable commit status from the production runner"
 fi
 
+if grep -Eq 'actions/(upload|download)-artifact@' "$WORKFLOW"; then
+    fail "Cloudflare production workflow must not depend on exhausted GitHub artifact storage"
+fi
+
+printf '%s\n' "$build_job" | grep -Fq 'bundle_sha256:' ||
+    fail "Production build must expose its immutable bundle fingerprint"
+
+printf '%s\n' "$deploy_job" | grep -Fq 'needs.build.outputs.bundle_sha256' ||
+    fail "Production deploy must verify its independently rebuilt bundle against the isolated build"
+
+printf '%s\n' "$deploy_job" | grep -Fq 'Production bundle differs from the verified build; deployment stopped' ||
+    fail "Production deploy must refuse a non-reproducible bundle"
+
+printf '%s\n' "$deploy_job" | grep -Fq 'test "$(git rev-parse HEAD)" = "$SOURCE_SHA"' ||
+    fail "Production deploy must pin its checked out source SHA"
+
 echo "Cloudflare production deployment security verified"
