@@ -196,14 +196,18 @@ class BotAgentSessions(
         val idPath =
             Regex("/api/account/[0-9a-fA-F-]{36}/(logs|diagnostics|payloads|settings|network|proxy-test|chat|action)")
         if (method == "GET") {
+            val accountRead =
+                idPath.matches(noQuery) &&
+                    noQuery.substringAfterLast('/') in setOf("logs", "diagnostics", "payloads", "network")
             return noQuery in setOf("/api/overview", "/api/accounts", "/api/manager", "/api/proxy-pools") ||
-                (idPath.matches(noQuery) &&
-                    noQuery.substringAfterLast('/') in setOf("logs", "diagnostics", "payloads", "network"))
+                accountRead
         }
         if (method != "POST") return false
+        val accountWrite =
+            idPath.matches(noQuery) &&
+                noQuery.substringAfterLast('/') in setOf("settings", "network", "proxy-test", "chat", "action")
         return noQuery in setOf("/api/manager", "/api/accounts/manage", "/api/proxy-pools") ||
-            (idPath.matches(noQuery) &&
-                noQuery.substringAfterLast('/') in setOf("settings", "network", "proxy-test", "chat", "action"))
+            accountWrite
     }
 }
 
