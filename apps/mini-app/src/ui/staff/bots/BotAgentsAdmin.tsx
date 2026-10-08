@@ -77,9 +77,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     if (!authorized) { return }
-    void refreshAgents()
+    const initial = window.setTimeout(() => void refreshAgents(), 0)
     const timer = window.setInterval(() => void refreshAgents(), 10_000)
-    return () => window.clearInterval(timer)
+    return () => { window.clearTimeout(initial); window.clearInterval(timer) }
   }, [authorized, refreshAgents])
 
   useEffect(() => {
@@ -88,14 +88,16 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       void getBotGroups(selected).then((data) => { if (!cancelled) { setGroupState(data) } }).catch(handleError)
     }
     let timer: number | undefined
+    let initial: number | undefined
     if (selected && active?.online) {
       void getBotProxyPools(selected).then((value) => { if (!cancelled) { setProxyPools(value.pools) } }).catch(handleError)
-      void refreshAccounts(selected)
+      initial = window.setTimeout(() => void refreshAccounts(selected), 0)
       timer = window.setInterval(() => void refreshAccounts(selected), 10_000)
     }
     return () => {
       cancelled = true
-      if (timer !== undefined) window.clearInterval(timer)
+      if (initial !== undefined) { window.clearTimeout(initial) }
+      if (timer !== undefined) { window.clearInterval(timer) }
     }
   }, [selected, active?.online, refreshAccounts])
 
@@ -270,8 +272,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   async function assignGroup(accountId: string, id: string) {
     const assignments = { ...groupState.state.assignments }
-    if (id) assignments[accountId] = id
-    else delete assignments[accountId]
+    if (id) { assignments[accountId] = id }
+    else { delete assignments[accountId] }
     await updateGroups({ ...groupState.state, assignments })
   }
 
