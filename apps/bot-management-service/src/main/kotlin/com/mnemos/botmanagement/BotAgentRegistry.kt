@@ -67,8 +67,18 @@ class BotAgentRegistry(
         id: UUID,
         data: JsonNode,
     ) {
-        val username = data.path("username").asText("").take(100).trim()
-        val machine = data.path("machineName").asText("").take(100).trim()
+        val username =
+            data
+                .path("username")
+                .asText("")
+                .take(100)
+                .trim()
+        val machine =
+            data
+                .path("machineName")
+                .asText("")
+                .take(100)
+                .trim()
         val fingerprint = data.path("fingerprint").asText("")
         if (username.isBlank() || !fingerprint.matches(Regex("[0-9a-f]{64}"))) {
             throw IllegalArgumentException("Invalid machine identity")
