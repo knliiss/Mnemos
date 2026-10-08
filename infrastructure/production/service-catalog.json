@@ -233,6 +233,17 @@
       "build_args": {
         "MINIO_MC_VERSION": "MINIO_MC_VERSION"
       }
+    },
+    "bot-management-service": {
+      "kind": "application",
+      "image": "mnemos-bot-management-service",
+      "dockerfile": "apps/bot-management-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:bot-management-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_bot-management-service"
+      }
     }
   }
 }
