@@ -85,15 +85,23 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   const active = agents.find((agent) => agent.id === selected)
   const account = accounts.find((entry) => entry.id === accountId)
-  const visibleAccounts = useMemo(
-    () =>
-      accounts.filter(
-        (entry) =>
-          entry.username.toLowerCase().includes(query.toLowerCase()) &&
-          (!groupFilter || groupState.state.assignments[entry.id] === groupFilter),
-      ),
-    [accounts, query, groupFilter, groupState],
-  )
+  const visibleAccounts = useMemo(() => {
+    const groupsById = new Map(groupState.state.groups.map((group) => [group.id, group]))
+    const scope = new Set<string>()
+    const visit = (id: string) => {
+      if (scope.has(id)) return
+      scope.add(id)
+      for (const child of groupsById.get(id)?.childGroupIds ?? []) {
+        if (groupsById.has(child)) visit(child)
+      }
+    }
+    if (groupFilter) visit(groupFilter)
+    return accounts.filter(
+      (entry) =>
+        entry.username.toLowerCase().includes(query.toLowerCase()) &&
+        (!groupFilter || scope.has(groupState.state.assignments[entry.id] ?? "")),
+    )
+  }, [accounts, query, groupFilter, groupState])
   const formatDate = (date: string | null) =>
     date ? new Date(date).toLocaleString() : t("botAgents.never")
 
