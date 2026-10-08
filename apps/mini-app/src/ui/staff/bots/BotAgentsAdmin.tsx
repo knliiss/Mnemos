@@ -90,13 +90,17 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     const groupsById = new Map(groupState.state.groups.map((group) => [group.id, group]))
     const scope = new Set<string>()
     const visit = (id: string) => {
-      if (scope.has(id)) return
+      if (scope.has(id)) {
+        return
+      }
       scope.add(id)
       for (const child of groupsById.get(id)?.childGroupIds ?? []) {
         if (groupsById.has(child)) visit(child)
       }
     }
-    if (groupFilter) visit(groupFilter)
+    if (groupFilter) {
+      visit(groupFilter)
+    }
     return accounts.filter(
       (entry) =>
         entry.username.toLowerCase().includes(query.toLowerCase()) &&
@@ -145,7 +149,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       const sync = async () => {
         try {
           const data = active?.online ? await synchronizeBotGroups(agentId) : await getBotGroups(agentId)
-          if (!cancelled) setGroupState(data)
+          if (!cancelled) {
+        setGroupState(data)
+      }
         } catch (error) {
           if (!cancelled) {
             setNotice(error instanceof Error ? error.message : t("botAgents.groupSyncError"))
@@ -154,7 +160,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         }
       }
       void sync()
-      if (active?.online) groupsTimer = window.setInterval(() => void sync(), 20_000)
+      if (active?.online) {
+        groupsTimer = window.setInterval(() => void sync(), 20_000)
+      }
     }
     let timer: number | undefined
     let initial: number | undefined
@@ -171,7 +179,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     }
     return () => {
       cancelled = true
-      if (groupsTimer !== undefined) window.clearInterval(groupsTimer)
+      if (groupsTimer !== undefined) {
+        window.clearInterval(groupsTimer)
+      }
       if (initial !== undefined) {
         window.clearTimeout(initial)
       }
