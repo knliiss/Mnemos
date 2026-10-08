@@ -1,0 +1,58 @@
+name: C7x Interface Preview
+
+on:
+  push:
+    branches:
+      - feat/c7x-remote-agents
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/c7x-frontend-preview.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: c7x-frontend-preview
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-preview:
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    timeout-minutes: 20
+    environment: preview
+    env:
+      VITE_KEYCLOAK_URL: https://local.auth.knalis.rest
+      VITE_KEYCLOAK_REALM: mnemos
+      VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
+      VITE_API_URL: https://local.api.knalis.rest
+      VITE_TELEGRAM_INIT_DATA_MAX_AGE_SECONDS: "300"
+
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Build Mini App
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Deploy separate preview branch
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app-local --branch=c7x-preview
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
