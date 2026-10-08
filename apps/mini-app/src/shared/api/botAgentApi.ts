@@ -35,20 +35,20 @@ export type BotAccount = {
 export type AgentCreation = { id: string; name: string; accessKey: string }
 type AgentResult<T> = { status: number; body: T | { error?: string; message?: string } }
 
-export const getBotAgents = () => api<BotAgent[]>("/api/v1/realtime/admin/bot-agents")
+export const getBotAgents = () => api<BotAgent[]>("/api/v1/bot-management/admin/bot-agents")
 export const createBotAgent = () =>
-  api<AgentCreation>("/api/v1/realtime/admin/bot-agents", { method: "POST" })
+  api<AgentCreation>("/api/v1/bot-management/admin/bot-agents", { method: "POST" })
 export const renameBotAgent = (id: string, name: string) =>
-  api<{ ok: boolean }>(`/api/v1/realtime/admin/bot-agents/${id}/rename`, {
+  api<{ ok: boolean }>(`/api/v1/bot-management/admin/bot-agents/${id}/rename`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
   })
 export const revokeBotAgent = (id: string) =>
-  api<{ ok: boolean }>(`/api/v1/realtime/admin/bot-agents/${id}`, { method: "DELETE" })
+  api<{ ok: boolean }>(`/api/v1/bot-management/admin/bot-agents/${id}`, { method: "DELETE" })
 
 export async function workerRequest<T = unknown>(
   id: string, method: "GET" | "POST", path: string, body?: unknown,
 ): Promise<T> {
-  const result = await api<AgentResult<T>>(`/api/v1/realtime/admin/bot-agents/${id}/request`, {
+  const result = await api<AgentResult<T>>(`/api/v1/bot-management/admin/bot-agents/${id}/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ method, path, body }),
@@ -83,9 +83,9 @@ export type RemoteGroupState = {
   revision: number
 }
 export const getBotGroups = (workerId: string) =>
-  api<RemoteGroupState>(`/api/v1/realtime/admin/bot-agents/${workerId}/groups`)
+  api<RemoteGroupState>(`/api/v1/bot-management/admin/bot-agents/${workerId}/groups`)
 export const saveBotGroups = (workerId: string, content: RemoteGroupState) =>
-  api<RemoteGroupState>(`/api/v1/realtime/admin/bot-agents/${workerId}/groups`, {
+  api<RemoteGroupState>(`/api/v1/bot-management/admin/bot-agents/${workerId}/groups`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(content),
   })
