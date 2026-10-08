@@ -28,7 +28,7 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { persistBotGroupChange, synchronizeBotGroups } from "./botAgentGroupSync"
 import { PageHeader } from "../../shared/Primitives"
-import { LeaderboardPlayerHead } from "../../leaderboards/LeaderboardPlayerHead"
+import { BotAccountHead } from "./BotAccountHead"
 import "./bot-agents.css"
 
 const DUNGEONS = ["LIGHT", "MEDIUM", "HARD", "EXPERT"] as const
@@ -943,10 +943,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         )
                       }
                     />
-                    <LeaderboardPlayerHead
-                      entry={{ rank: 0, nickname: item.username, metric: "", detail: "" }}
+                    <BotAccountHead
+                      agentId={active.id}
+                      accountId={item.id}
+                      nickname={item.username}
                       size={46}
-                      className="c7x-agent-minecraft-head"
+                      online={active.online}
                     />
                     <button
                       type="button"
@@ -1084,10 +1086,12 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </nav>
                   <div className="c7x-admin-section-head">
                     <div className="c7x-agent-account-title">
-                      <LeaderboardPlayerHead
-                        entry={{ rank: 0, nickname: account.username, metric: "", detail: "" }}
+                      <BotAccountHead
+                        agentId={active.id}
+                        accountId={account.id}
+                        nickname={account.username}
                         size={76}
-                        className="c7x-agent-minecraft-head"
+                        online={active.online}
                       />
                       <div>
                         <span className="c7x-admin-eyebrow">{t("botAgents.accountDetails")}</span>
