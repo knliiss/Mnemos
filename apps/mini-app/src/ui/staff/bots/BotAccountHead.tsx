@@ -84,12 +84,26 @@ export function BotAccountHead({
     }
   }, [accountId, agentId, key, online])
 
+  if (online && head?.key !== key) {
+    return (
+      <img
+        className="c7x-agent-head-image"
+        style={{ width: size, height: size }}
+        src="/ui-illustrations/bot-agent-account.svg"
+        alt=""
+        width={size}
+        height={size}
+      />
+    )
+  }
+
   if (head?.key === key && head.url) {
     return (
       <img
         className="c7x-agent-head-image"
         style={{ width: size, height: size }}
         src={head.url}
+        onError={() => setHead({ key, url: null })}
         alt=""
         width={size}
         height={size}
