@@ -160,7 +160,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
               })
             }
           }
-          if (!cancelled) setGroupState(data)
+          if (!cancelled) {
+            setGroupState(data)
+          }
         } catch (error) {
           if (!cancelled) {
             setNotice(error instanceof Error ? error.message : t("botAgents.groupSyncError"))
@@ -195,15 +197,15 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
 
   useEffect(() => {
     logCursor.current = 0
-    setLogEntries([])
-    setLogError(null)
     if (!selected || !accountId || !active?.online) {
       return
     }
     let running = true
     let inFlight = false
     const poll = async () => {
-      if (inFlight || !running || document.visibilityState === "hidden") return
+      if (inFlight || !running || document.visibilityState === "hidden") {
+        return
+      }
       inFlight = true
       setLogLoading(true)
       try {
@@ -211,21 +213,29 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         if (logCursor.current === 0 && result.lastSequence > 80) {
           result = await botLogs(selected, accountId, Math.max(0, result.lastSequence - 80))
         }
-        if (!running) return
+        if (!running) {
+          return
+        }
         setLogError(null)
         if (result.entries.length) {
           logCursor.current = result.entries[result.entries.length - 1].sequence
           setLogEntries((previous) => {
             const merged = new Map(previous.map((entry) => [entry.sequence, entry]))
-            for (const entry of result.entries) merged.set(entry.sequence, entry)
+            for (const entry of result.entries) {
+              merged.set(entry.sequence, entry)
+            }
             return [...merged.values()].sort((a, b) => a.sequence - b.sequence).slice(-400)
           })
         }
       } catch (error) {
-        if (running) setLogError(error instanceof Error ? error.message : t("botAgents.logError"))
+        if (running) {
+          setLogError(error instanceof Error ? error.message : t("botAgents.logError"))
+        }
       } finally {
         inFlight = false
-        if (running) setLogLoading(false)
+        if (running) {
+          setLogLoading(false)
+        }
       }
     }
     void poll()
@@ -265,6 +275,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     setAccounts([])
     setAccountId(null)
     setLogEntries([])
+    setLogError(null)
     setChosen([])
     setProxyPools([])
     setGroupFilter("")
@@ -282,6 +293,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
     setAccountId(id)
     setNetwork(null)
     setLogEntries([])
+    setLogError(null)
     logCursor.current = 0
   }
 
@@ -483,9 +495,13 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
       <PageHeader
         title={account?.username ?? active?.name ?? t("botAgents.pageTitle")}
         back={() => {
-          if (account) chooseAccount("")
-          else if (active) chooseWorker("")
-          else back()
+          if (account) {
+            chooseAccount("")
+          } else if (active) {
+            chooseWorker("")
+          } else {
+            back()
+          }
         }}
         actions={
           active ? (
