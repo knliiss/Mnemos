@@ -28,6 +28,7 @@ import {
 } from "@/shared/api/botAgentApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { PageHeader } from "../../shared/Primitives"
+import { LeaderboardPlayerHead } from "../../leaderboards/LeaderboardPlayerHead"
 import "./bot-agents.css"
 
 const DUNGEONS = ["LIGHT", "MEDIUM", "HARD", "EXPERT"] as const
@@ -472,19 +473,26 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
   return (
     <div className="screen c7x-admin">
       <PageHeader
-        title={t("botAgents.pageTitle")}
-        back={back}
+        title={account?.username ?? active?.name ?? t("botAgents.pageTitle")}
+        back={() => {
+          if (account) chooseAccount("")
+          else if (active) chooseWorker("")
+          else back()
+        }}
         actions={
-          <button
-            type="button"
-            className="c7x-admin-primary"
-            onClick={() => void addWorker()}
-            disabled={busy}
-          >
-            {t("botAgents.addAgent")}
-          </button>
+          active ? (
+            <button type="button" onClick={() => renameWorker(active)} disabled={busy || active.revoked}>
+              {t("botAgents.name")}
+            </button>
+          ) : (
+            <button type="button" className="c7x-admin-primary" onClick={() => void addWorker()} disabled={busy}>
+              {t("botAgents.addAgent")}
+            </button>
+          )
         }
       />
+      {!active ? (
+        <div className="c7x-admin-list-page">
       <section className="c7x-admin-hero">
         <div className="c7x-admin-hero-copy">
           <span className="c7x-admin-eyebrow">C7X · REMOTE CONTROL</span>
@@ -580,7 +588,9 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
         ))}
       </div>
 
-      {active ? (
+        </div>
+      ) : null}
+      {active && !account ? (
         <section className="c7x-admin-workspace">
           <div className="c7x-admin-section-head">
             <h2>{active.name}</h2>
@@ -895,10 +905,10 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                         )
                       }
                     />
-                    <img
-                      className="c7x-admin-avatar"
-                      src="/ui-illustrations/bot-agent-account.svg"
-                      alt=""
+                    <LeaderboardPlayerHead
+                      entry={{ rank: 0, nickname: item.username, metric: "", detail: "" }}
+                      size={46}
+                      className="c7x-agent-minecraft-head"
                     />
                     <button
                       type="button"
@@ -1012,10 +1022,26 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   </form>
                 ) : null}
               </section>
-              {account ? (
+            </>
+          )}
+        </section>
+      ) : null}
+
+      {active && account ? (
                 <section className="c7x-admin-card c7x-admin-detail">
                   <div className="c7x-admin-section-head">
-                    <h2>{account.username}</h2>
+                    <div className="c7x-agent-account-title">
+                      <LeaderboardPlayerHead
+                        entry={{ rank: 0, nickname: account.username, metric: "", detail: "" }}
+                        size={76}
+                        className="c7x-agent-minecraft-head"
+                      />
+                      <div>
+                        <span className="c7x-admin-eyebrow">{t("botAgents.accountDetails")}</span>
+                        <h2>{account.username}</h2>
+                        <small>{account.state} · {account.realm ?? t("botAgents.noRealm")}</small>
+                      </div>
+                    </div>
                     <span>{account.location ?? "—"}</span>
                   </div>
                   {account.lastError ? (
@@ -1446,6 +1472,8 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                       {t("botAgents.copy")}
                     </button>
                   </div>
+                  {logError ? <p className="c7x-admin-error" role="alert">{t("botAgents.logFailed", { reason: logError })}</p> : null}
+                  {logLoading && logEntries.length === 0 ? <p className="c7x-admin-muted">{t("botAgents.loadingLogs")}</p> : null}
                   <div className="c7x-admin-log">
                     {logEntries.length
                       ? logEntries.map((entry) => (
@@ -1456,15 +1484,42 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                             <span>{entry.message}</span>
                           </div>
                         ))
-                      : t("botAgents.noLogs")}
+                      : !logLoading && !logError ? t("botAgents.noLogs") : null}
                   </div>
                 </section>
               ) : null}
-            </>
-          )}
-        </section>
+      {renameAgent ? (
+        <div className="c7x-modal-backdrop" role="presentation" onClick={() => setRenameAgent(null)}>
+          <form
+            className="c7x-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("botAgents.namePrompt")}
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault()
+              void submitRename()
+            }}
+          >
+            <h2>{t("botAgents.namePrompt")}</h2>
+            <input
+              autoFocus
+              value={renameValue}
+              maxLength={64}
+              onChange={(event) => setRenameValue(event.target.value)}
+            />
+            <div className="c7x-admin-actions">
+              <button type="button" onClick={() => setRenameAgent(null)}>
+                {t("botAgents.close")}
+              </button>
+              <button type="submit" className="c7x-admin-primary" disabled={busy || !renameValue.trim()}>
+                {t("botAgents.save")}
+              </button>
+            </div>
+          </form>
+        </div>
       ) : null}
-      {notice ? (
+            {notice ? (
         <p className="c7x-admin-message" role="status">
           {notice}
         </p>
