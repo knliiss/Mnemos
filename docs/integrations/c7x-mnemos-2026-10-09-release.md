@@ -38,5 +38,5 @@ Status: **candidate, NOT authorized for production until all gates pass**. The C
 ## Release blockers to resolve before pressing Deploy
 
 - GitHub Actions have **not produced passing CI for these branches**: Mnemos jobs are queued because their self-hosted runners are unavailable; the C7x hosted jobs fail before steps begin. Neither is a verified build.
-- Confirm no queued historical `C7x Interface Preview` workflow is able to deploy. The preview workflow and demo HTML have been removed from the feature branch; if an older queued run remains in GitHub Actions, cancel it manually from Actions before enabling runners.
+- **Resolved:** historical `C7x Interface Preview` run 37706528042 was cancelled, the superseding no-op run 37707210367 finished skipped, and the temporary preview workflow/demo HTML have been removed. No preview deployment is planned.
 - Format/check the new mini-app files and verify successful Kotlin/Java compilation and integration against live gateway/realtime-service before marking both PRs ready.
