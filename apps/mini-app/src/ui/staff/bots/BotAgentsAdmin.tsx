@@ -375,6 +375,7 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
               <div className="c7x-admin-actions">
                 <button type="button" onClick={() => void bulk("connectAll")} disabled={busy}>Запустити всіх</button>
                 <button type="button" onClick={() => void bulk("disconnectAll")} disabled={busy}>Зупинити всіх</button>
+                <button type="button" onClick={() => void bulk("cancelBulkConnect")} disabled={busy}>Скасувати чергу запуску</button>
                 {chosen.length > 0 ? <>
                   <button type="button" onClick={() => void bulk("bulkConnect")} disabled={busy}>Запустити вибраних ({chosen.length})</button>
                   <button type="button" onClick={() => void bulk("bulkReconnect")} disabled={busy}>Реконект</button>
@@ -394,6 +395,30 @@ export function BotAgentsAdmin({ back }: { back: () => void }) {
                   <div className="c7x-admin-actions">
                     {DUNGEONS.map((dungeon) => <button key={dungeon} type="button" disabled={busy}
                       onClick={() => void bulk("bulkDungeon", { dungeon })}>{dungeon}</button>)}
+                  </div>
+                  <div className="c7x-admin-form-inline">
+                    {(["x", "y", "z"] as const).map((axis) => (
+                      <label key={axis}>{axis.toUpperCase()}
+                        <input type="number" value={navigation[axis]} onChange={(event) =>
+                          setNavigation((old) => ({ ...old, [axis]: event.target.value }))} />
+                      </label>
+                    ))}
+                    <button type="button" disabled={busy} onClick={() => void bulk("bulkNavigate", {
+                      x: Number(navigation.x), y: Number(navigation.y), z: Number(navigation.z), reach: 1,
+                    })}>Навігація вибраних</button>
+                  </div>
+                  <div className="c7x-admin-form-inline">
+                    <label>Цільовий реалм<input type="number" min="1" value={realm}
+                      onChange={(event) => setRealm(event.target.value)} /></label>
+                    <button type="button" disabled={busy || Number(realm) < 1} onClick={() => void bulk(
+                      "bulkAutomation", { swapper: true, realm: Number(realm) },
+                    )}>Увімкнути свапер</button>
+                    <button type="button" disabled={busy} onClick={() => void bulk(
+                      "bulkAutomation", { swapper: false },
+                    )}>Вимкнути свапер</button>
+                    <button type="button" disabled={busy} onClick={() => void bulk(
+                      "bulkAutomation", { autoReconnect: true },
+                    )}>Автореконект ✓</button>
                   </div>
                   <form className="c7x-admin-form-inline" onSubmit={(event) => {
                     event.preventDefault()
