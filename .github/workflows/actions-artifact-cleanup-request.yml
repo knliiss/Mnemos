@@ -1,0 +1,20 @@
+name: Actions Artifact Cleanup Request
+
+on:
+  push:
+    branches:
+      - "ops/request-ci-artifact-cleanup"
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    if: github.repository == 'knliiss/Mnemos' && github.event.created == true
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 5
+    steps:
+      - name: Record read-only artifact cleanup request
+        run: |
+          echo "Audited stale CI artifact cleanup requested."
+          echo "No actions write permission granted to this workflow."
