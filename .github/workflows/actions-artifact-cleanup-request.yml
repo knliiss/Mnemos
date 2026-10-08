@@ -10,8 +10,8 @@ permissions:
 
 jobs:
   request:
-    if: github.repository == 'knliiss/Mnemos' && github.event.created == true
-    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    if: github.repository == 'knliiss/Mnemos'
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     timeout-minutes: 5
     steps:
       - name: Record read-only artifact cleanup request
