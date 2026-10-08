@@ -40,27 +40,34 @@ export const createBotAgent = () =>
   api<AgentCreation>("/api/v1/bot-management/admin/bot-agents", { method: "POST" })
 export const renameBotAgent = (id: string, name: string) =>
   api<{ ok: boolean }>(`/api/v1/bot-management/admin/bot-agents/${id}/rename`, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
   })
 export const revokeBotAgent = (id: string) =>
   api<{ ok: boolean }>(`/api/v1/bot-management/admin/bot-agents/${id}`, { method: "DELETE" })
 
 export async function workerRequest<T = unknown>(
-  id: string, method: "GET" | "POST", path: string, body?: unknown,
+  id: string,
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
 ): Promise<T> {
-  const result = await api<AgentResult<T>>(`/api/v1/bot-management/admin/bot-agents/${id}/request`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ method, path, body }),
-  })
+  const result = await api<AgentResult<T>>(
+    `/api/v1/bot-management/admin/bot-agents/${id}/request`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ method, path, body }),
+    },
+  )
   if (result.status < 200 || result.status >= 300) {
     const error = result.body as { error?: string; message?: string }
     throw new Error(error.message ?? error.error ?? `C7x worker returned HTTP ${result.status}`)
   }
   return result.body as T
 }
-export const botAccounts = (id: string) =>
-  workerRequest<BotAccount[]>(id, "GET", "/api/accounts")
+export const botAccounts = (id: string) => workerRequest<BotAccount[]>(id, "GET", "/api/accounts")
 export const botOverview = (id: string) =>
   workerRequest<Record<string, number | string | boolean>>(id, "GET", "/api/overview")
 export const botAction = (id: string, accountId: string, action: string, extra = {}) =>
@@ -86,14 +93,23 @@ export const getBotGroups = (workerId: string) =>
   api<RemoteGroupState>(`/api/v1/bot-management/admin/bot-agents/${workerId}/groups`)
 export const saveBotGroups = (workerId: string, content: RemoteGroupState) =>
   api<RemoteGroupState>(`/api/v1/bot-management/admin/bot-agents/${workerId}/groups`, {
-    method: "PUT", headers: { "Content-Type": "application/json" },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(content),
   })
 export type ProxyPool = {
   name: string
   strategy: "STICKY" | "ROUND_ROBIN" | "LEAST_USED"
   count: number
-  entries: Array<{ id: string; host: string; port: number; type: string; healthy: boolean; latencyMs: number; failures: number }>
+  entries: Array<{
+    id: string
+    host: string
+    port: number
+    type: string
+    healthy: boolean
+    latencyMs: number
+    failures: number
+  }>
 }
 export const getBotProxyPools = (workerId: string) =>
   workerRequest<{ pools: ProxyPool[] }>(workerId, "GET", "/api/proxy-pools")
@@ -101,10 +117,29 @@ export const modifyBotProxyPool = (workerId: string, body: Record<string, unknow
   workerRequest<{ pools: ProxyPool[] }>(workerId, "POST", "/api/proxy-pools", body)
 
 export type AccountNetwork = {
-  proxy: { mode: string; type?: string; host?: string; port?: number; username?: string; poolName?: string; passwordSet?: boolean }
-  spoof: { mode: string; profileName?: string; os?: string; cpu?: string; gpu?: string; ramGb?: number; cores?: number }
+  proxy: {
+    mode: string
+    type?: string
+    host?: string
+    port?: number
+    username?: string
+    poolName?: string
+    passwordSet?: boolean
+  }
+  spoof: {
+    mode: string
+    profileName?: string
+    os?: string
+    cpu?: string
+    gpu?: string
+    ramGb?: number
+    cores?: number
+  }
 }
 export const getBotNetwork = (workerId: string, accountId: string) =>
   workerRequest<AccountNetwork>(workerId, "GET", `/api/account/${accountId}/network`)
-export const updateBotNetwork = (workerId: string, accountId: string, body: Record<string, unknown>) =>
-  workerRequest<AccountNetwork>(workerId, "POST", `/api/account/${accountId}/network`, body)
+export const updateBotNetwork = (
+  workerId: string,
+  accountId: string,
+  body: Record<string, unknown>,
+) => workerRequest<AccountNetwork>(workerId, "POST", `/api/account/${accountId}/network`, body)
