@@ -16,6 +16,9 @@ class BotAgentSessionsTest {
         assertTrue(sessions.allowed("GET", "/api/account/$account/logs?after=12&limit=50"))
         assertTrue(sessions.allowed("POST", "/api/account/$account/settings"))
         assertTrue(sessions.allowed("POST", "/api/proxy-pools"))
+        assertTrue(sessions.allowed("GET", "/api/groups"))
+        assertTrue(sessions.allowed("POST", "/api/groups"))
+        assertFalse(sessions.allowed("GET", "/api/groups?secret=true"))
     }
 
     @Test
