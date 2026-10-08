@@ -9,7 +9,9 @@ let activeHeadRequests = 0
 function drainHeadQueue() {
   while (activeHeadRequests < 3) {
     const next = headQueue.shift()
-    if (!next) break
+    if (!next) {
+      break
+    }
     activeHeadRequests += 1
     next()
   }
@@ -32,7 +34,9 @@ function limitedHeadRequest(factory: () => Promise<string | null>): Promise<stri
 function fetchHead(agentId: string, accountId: string): Promise<string | null> {
   const key = agentId + "/" + accountId
   const previous = headCache.get(key)
-  if (previous) return previous
+  if (previous) {
+    return previous
+  }
   const request = limitedHeadRequest(() => workerRequest<{ pngBase64: string }>(
     agentId,
     "GET",
@@ -66,10 +70,14 @@ export function BotAccountHead({
   const key = agentId + "/" + accountId
 
   useEffect(() => {
-    if (!online) return
+    if (!online) {
+      return
+    }
     let live = true
     void fetchHead(agentId, accountId).then((url) => {
-      if (live) setHead({ key, url })
+      if (live) {
+        setHead({ key, url })
+      }
     })
     return () => {
       live = false
