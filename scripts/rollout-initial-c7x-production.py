@@ -133,6 +133,40 @@ def rollback(touched, old_images, old_env, new_created):
                 ok = False
     return ok
 
+def initialize_bot_database(values):
+    """Only provision the bot role/schema: never rotate or touch other service roles."""
+    user = values.get("APP_POSTGRES_USER", "")
+    database = values.get("APP_POSTGRES_DB", "")
+    admin_password = values.get("APP_POSTGRES_PASSWORD", "")
+    require(bool(re.fullmatch(r"[a-z_][a-z0-9_]*", user)), "Invalid PostgreSQL admin role")
+    require(bool(re.fullmatch(r"[a-z_][a-z0-9_]*", database)), "Invalid PostgreSQL DB name")
+    require(bool(admin_password), "Missing PostgreSQL admin password")
+    # All dynamic SQL content is a validated 64-character hexadecimal secret.
+    password = values["BOT_MANAGEMENT_POSTGRES_PASSWORD"]
+    sql = f"""
+DO $bootstrap$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'mnemos_bot_management') THEN
+    CREATE ROLE mnemos_bot_management LOGIN PASSWORD '{password}'
+      NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+  END IF;
+END $bootstrap$;
+ALTER ROLE mnemos_bot_management LOGIN PASSWORD '{password}'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+CREATE SCHEMA IF NOT EXISTS bot_management AUTHORIZATION mnemos_bot_management;
+ALTER SCHEMA bot_management OWNER TO mnemos_bot_management;
+REVOKE ALL ON SCHEMA bot_management FROM PUBLIC;
+"""
+    result = subprocess.run(
+        ["docker", "exec", "-i", "-e", "PGPASSWORD=" + admin_password,
+         "mnemos-app-postgres", "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1",
+         "-U", user, "-d", database],
+        input=sql, cwd=ROOT, text=True, capture_output=True,
+    )
+    if result.returncode:
+        raise Blocked(f"Isolated bot PostgreSQL provisioning failed (exit {result.returncode})")
+    print("Isolated bot_management role and schema initialized without other role changes")
+
 def initial_manifest(catalog, old):
     services = dict(old)
     for name in TARGETS:
@@ -227,8 +261,7 @@ def main():
         installed_runtime = False
         backup = STATE.with_name("before-c7x-" + str(int(time.time())) + ".json")
         try:
-            call(["sh", "scripts/production-infra.sh", "run", "--rm", "--no-deps",
-                  "app-postgres-security-init"], "Initialize bot_management PostgreSQL schema")
+            initialize_bot_database(secrets)
             created = True  # Docker may create the service before returning a failed exit code.
             docker("stack", "deploy", "--compose-file", str(bot_file),
                    "--with-registry-auth", "--resolve-image", "always", "mnemos")
