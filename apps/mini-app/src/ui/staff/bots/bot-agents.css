@@ -684,3 +684,33 @@
   .c7x-admin-accounts { grid-template-columns: 1fr; }
   .c7x-agent-account-title .cristalix-head { flex: 0 0 auto; }
 }
+
+.c7x-admin [hidden] { display: none !important; }
+.c7x-program-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 5px;
+  border: 1px solid rgba(203,255,45,.11);
+  border-radius: 15px;
+  background: rgba(255,255,255,.025);
+}
+.c7x-program-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #adb9a4;
+  font-size: 12px;
+  font-weight: 700;
+}
+.c7x-program-tabs button.is-current {
+  color: #e7ffb0;
+  border-color: rgba(203,255,45,.27);
+  background: rgba(203,255,45,.10);
+}
+@media (max-width: 440px) {
+  .c7x-program-tabs { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
