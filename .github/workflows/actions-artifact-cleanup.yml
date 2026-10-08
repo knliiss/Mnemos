@@ -23,7 +23,7 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'ops/request-ci-artifact-cleanup' &&
       github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     timeout-minutes: 10
     steps:
       - name: Check out pinned trusted master coordinator
