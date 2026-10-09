@@ -192,8 +192,30 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'environment: production' ||
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"authorization_mechanism": "service-deploy-branch-workflow-run"' ||
     fail "Backend deploy audit must record the trusted workflow_run authorization chain"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'retention-days: 90' ||
-    fail "Backend deploy execution audit must use extended retention"
+# The scoped backend deploy uses the hardened production runner's durable
+# root-only spool; Actions artifact storage quotas must not halt production.
+for required in \
+    'name: Securely persist approved plan on production runner' \
+    'name: Restore immutable approved plan from production runner' \
+    'name: Archive execution audit on production runner' \
+    'approval_runner: ${{ steps.plan.outputs.approval_runner }}' \
+    '[ "$RUNNER_NAME" != "$APPROVAL_RUNNER" ]' \
+    '/var/lib/mnemos-deploy/approved-backend-plans' \
+    '/var/lib/mnemos-deploy/backend-execution-audits' \
+    'sudo -n chown -R root:root "$spool"' \
+    'sudo -n chown -R root:root "$audit_archive"' \
+    'sudo -n chmod -R go-rwx "$spool"' \
+    'sudo -n chmod -R go-rwx "$audit_archive"' \
+    '--kind release-plan' \
+    '--kind execution-attempt' \
+    'Approved plan is bound to a different production runner'; do
+    printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- "$required" ||
+        fail "Production backend deploy lacks root-only verified local handoff: $required"
+done
+
+if printf '%s\n' "$DEPLOY_CONTENT" | grep -Eq 'actions/(upload|download)-artifact@'; then
+    fail "Scoped backend deploy must not require quota-limited Actions artifacts"
+fi
 
 workspace_hygiene_count="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -Fc 'name: Prepare persistent production runner workspace' || true)"
 [ "$workspace_hygiene_count" -eq 2 ] ||
