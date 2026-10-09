@@ -349,24 +349,27 @@ class BotAgentSocket(
                 "mnemos:bot-agent-ingress:$agentId:$messageId".toByteArray(StandardCharsets.UTF_8),
             )
 
-        telemetryPublisher
-            .publishReport(
-                ingressId = ingressId,
-                collectorId = CollectorCredentialId(collectorId),
-                rawMessage = report.toString(),
-                activeCollectors = 1,
-                receivedAt = Instant.now(),
-            ).whenComplete { _, error ->
-                if (error == null && sessions.isReady(agentId, session)) {
-                    runCatching {
-                        sessions.send(
-                            session,
-                            mapOf("type" to "telemetry_ack", "messageId" to messageId.toString()),
-                        )
+        runCatching {
+            telemetryPublisher
+                .publishReport(
+                    ingressId = ingressId,
+                    collectorId = CollectorCredentialId(collectorId),
+                    rawMessage = report.toString(),
+                    activeCollectors = 1,
+                    receivedAt = Instant.now(),
+                ).whenComplete { _, error ->
+                    if (error == null && sessions.isReady(agentId, session)) {
+                        runCatching {
+                            sessions.send(
+                                session,
+                                mapOf("type" to "telemetry_ack", "messageId" to messageId.toString()),
+                            )
+                        }
                     }
+                    // No ack on publisher failure: C7x retries with the same messageId.
                 }
-                // No ack on publisher failure: C7x retries with the same messageId.
-            }
+        }
+        // Synchronous publisher failure also leaves the report unacknowledged.
     }
 
     internal fun validTelemetryEvent(
