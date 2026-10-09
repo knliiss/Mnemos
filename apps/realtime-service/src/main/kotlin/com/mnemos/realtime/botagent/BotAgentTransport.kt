@@ -357,8 +357,7 @@ class BotAgentSocket(
                     rawMessage = report.toString(),
                     activeCollectors = 1,
                     receivedAt = Instant.now(),
-                )
-                .whenComplete { _, error ->
+                ).whenComplete { _, error ->
                     if (error == null && sessions.isReady(agentId, session)) {
                         runCatching {
                             sessions.send(
@@ -394,7 +393,8 @@ class BotAgentSocket(
             }
             "BOOSTER" ->
                 event.path("boosterType").asText() in
-                    setOf("LUCK", "MONEY", "DAMAGE", "POWER") && validName("activatedBy")
+                    setOf("LUCK", "MONEY", "DAMAGE", "POWER") &&
+                    validName("activatedBy")
             "GLOBAL" ->
                 event.path("eventType").asText() in
                     setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", "COMET_CHAOS")
