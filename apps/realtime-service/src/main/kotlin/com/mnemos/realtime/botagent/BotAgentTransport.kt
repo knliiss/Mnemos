@@ -347,7 +347,7 @@ class BotAgentSocket(
         }
     }
 
-    private fun validTelemetryEvent(event: JsonNode, kind: String): Boolean {
+    internal fun validTelemetryEvent(event: JsonNode, kind: String): Boolean {
         fun validName(key: String): Boolean {
             val value = event.path(key).asText("")
             return value.length in 4..20 && value.all { it.isLetterOrDigit() || it == '_' }
