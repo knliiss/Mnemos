@@ -274,7 +274,7 @@ class BotAgentSocket(
                 try {
                     identity.hello(id, node)
                     sessions.ready(id, session)
-                    sessions.send(session, mapOf("type" to "ready"))
+                    sessions.send(session, mapOf("type" to "ready", "features" to listOf("telemetry.v1")))
                 } catch (_: Exception) {
                     session.close(CloseStatus.BAD_DATA)
                 }
