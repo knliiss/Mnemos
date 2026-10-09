@@ -39,7 +39,7 @@ jobs:
       tooling_revision: ${{ steps.state.outputs.tooling_revision }}
       has_action: ${{ steps.state.outputs.has_action }}
       transition_id: ${{ steps.plan.outputs.transition_id }}
-      artifact_name: ${{ steps.plan.outputs.artifact_name }}
+      approval_runner: ${{ steps.plan.outputs.approval_runner }}
 
     steps:
       - name: Prepare persistent production runner workspace
@@ -421,7 +421,6 @@ jobs:
           set -euo pipefail
 
           output_dir="$RUNNER_TEMP/mnemos-production-backend-plan"
-          artifact_name="production-backend-plan-${GITHUB_RUN_ID}"
 
           rm -rf "$output_dir"
           install --directory --mode=0700 "$output_dir"
@@ -526,7 +525,7 @@ jobs:
 
           echo "PLAN_DIR=$output_dir" >> "$GITHUB_ENV"
           echo "transition_id=$transition_id" >> "$GITHUB_OUTPUT"
-          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "approval_runner=$RUNNER_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Summarize authorized deployment
         shell: bash
@@ -558,14 +557,33 @@ jobs:
             echo "The target SHA was independently verified as reachable from trusted master history."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload approved backend plan
+      - name: Securely persist approved plan on production runner
         if: steps.state.outputs.has_action == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ steps.plan.outputs.artifact_name }}
-          path: ${{ env.PLAN_DIR }}
-          if-no-files-found: error
-          retention-days: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # All production mutation jobs use the same hardened runner host.
+          # Refuse collisions/replays, and restrict access to root.
+          spool_root=/var/lib/mnemos-deploy/approved-backend-plans
+          spool="$spool_root/run-$GITHUB_RUN_ID"
+          sudo -n install -d -o root -g root -m 0700 "$spool_root"
+
+          if sudo -n test -e "$spool"; then
+            echo "Approved plan spool already exists for this workflow run" >&2
+            exit 1
+          fi
+
+          sudo -n install -d -o root -g root -m 0700 "$spool"
+          sudo -n cp -a "$PLAN_DIR/." "$spool/"
+          sudo -n chown -R root:root "$spool"
+          sudo -n chmod -R go-rwx "$spool"
+
+          sudo -n env PYTHONDONTWRITEBYTECODE=1 python3 \
+            scripts/production_audit_bundle.py \
+              verify \
+              --directory "$spool" \
+              --kind release-plan
 
   publish:
     needs:
@@ -737,11 +755,30 @@ jobs:
             exit 1
           fi
 
-      - name: Download approved one-service plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: ${{ needs.plan.outputs.artifact_name }}
-          path: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+      - name: Restore immutable approved plan from production runner
+        shell: bash
+        env:
+          APPROVAL_RUNNER: ${{ needs.plan.outputs.approval_runner }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$APPROVAL_RUNNER" ] || [ "$RUNNER_NAME" != "$APPROVAL_RUNNER" ]; then
+            echo "Approved plan is bound to a different production runner" >&2
+            exit 1
+          fi
+
+          spool="/var/lib/mnemos-deploy/approved-backend-plans/run-$GITHUB_RUN_ID"
+          plan_dir="$RUNNER_TEMP/mnemos-production-backend-approved-plan"
+
+          sudo -n test -d "$spool"
+          sudo -n test -f "$spool/audit-manifest.json"
+          install -d -m 0700 "$plan_dir"
+          sudo -n cp -a "$spool/." "$plan_dir/"
+          sudo -n chown -R "$(id -u):$(id -g)" "$plan_dir"
+          chmod -R go-rwx "$plan_dir"
+
+          # The next step independently verifies the complete audit manifest,
+          # expected transition id, service, target revision and tooling pin.
 
       - name: Verify plan integrity and immutable authorization
         shell: bash
@@ -1014,14 +1051,34 @@ jobs:
 
           echo "EXECUTION_AUDIT_DIR=$audit_dir" >> "$GITHUB_ENV"
 
-      - name: Upload execution audit artifact
+      - name: Archive execution audit on production runner
         if: always() && env.EXECUTION_AUDIT_DIR != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: production-backend-execution-audit-${{ github.run_id }}
-          path: ${{ env.EXECUTION_AUDIT_DIR }}
-          if-no-files-found: error
-          retention-days: 90
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Root-only durable audit archive: keep at least 90 days.
+          # This is separate from GitHub Actions artifact storage limits.
+          audit_root=/var/lib/mnemos-deploy/backend-execution-audits
+          audit_archive="$audit_root/run-$GITHUB_RUN_ID"
+          sudo -n install -d -o root -g root -m 0700 "$audit_root"
+
+          if sudo -n test -e "$audit_archive"; then
+            echo "Execution audit already archived for this workflow run" >&2
+            exit 1
+          fi
+
+          sudo -n install -d -o root -g root -m 0700 "$audit_archive"
+          sudo -n cp -a "$EXECUTION_AUDIT_DIR/." "$audit_archive/"
+          sudo -n chown -R root:root "$audit_archive"
+          sudo -n chmod -R go-rwx "$audit_archive"
+          sudo -n env PYTHONDONTWRITEBYTECODE=1 python3 \
+            scripts/production_audit_bundle.py \
+              verify \
+              --directory "$audit_archive" \
+              --kind execution-attempt
+
+          echo "Execution audit retained in root-only production runner archive." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove production registry credentials
         if: always()
