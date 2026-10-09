@@ -357,7 +357,8 @@ class BotAgentSocket(
                     rawMessage = report.toString(),
                     activeCollectors = 1,
                     receivedAt = Instant.now(),
-                ).whenComplete { _, error ->
+                )
+                .whenComplete { _, error ->
                     if (error == null && sessions.isReady(agentId, session)) {
                         runCatching {
                             sessions.send(
