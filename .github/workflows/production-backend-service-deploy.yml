@@ -566,7 +566,7 @@ jobs:
           # All production mutation jobs use the same hardened runner host.
           # Refuse collisions/replays, and restrict access to root.
           spool_root=/var/lib/mnemos-deploy/approved-backend-plans
-          spool="$spool_root/run-$GITHUB_RUN_ID"
+          spool="$spool_root/run-$GITHUB_RUN_ID-attempt-$GITHUB_RUN_ATTEMPT"
           sudo -n install -d -o root -g root -m 0700 "$spool_root"
 
           if sudo -n test -e "$spool"; then
@@ -767,7 +767,7 @@ jobs:
             exit 1
           fi
 
-          spool="/var/lib/mnemos-deploy/approved-backend-plans/run-$GITHUB_RUN_ID"
+          spool="/var/lib/mnemos-deploy/approved-backend-plans/run-$GITHUB_RUN_ID-attempt-$GITHUB_RUN_ATTEMPT"
           plan_dir="$RUNNER_TEMP/mnemos-production-backend-approved-plan"
 
           sudo -n test -d "$spool"
@@ -1060,7 +1060,7 @@ jobs:
           # Root-only durable audit archive: keep at least 90 days.
           # This is separate from GitHub Actions artifact storage limits.
           audit_root=/var/lib/mnemos-deploy/backend-execution-audits
-          audit_archive="$audit_root/run-$GITHUB_RUN_ID"
+          audit_archive="$audit_root/run-$GITHUB_RUN_ID-attempt-$GITHUB_RUN_ATTEMPT"
           sudo -n install -d -o root -g root -m 0700 "$audit_root"
 
           if sudo -n test -e "$audit_archive"; then
