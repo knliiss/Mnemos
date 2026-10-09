@@ -2,7 +2,6 @@ package com.mnemos.realtime.botagent
 
 import com.mnemos.realtime.application.collector.port.out.CollectorIngressPublisher
 import com.mnemos.realtime.domain.collector.model.CollectorCredentialId
-import java.nio.charset.StandardCharsets
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -27,6 +26,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
+import java.nio.charset.StandardCharsets
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -305,53 +306,78 @@ class BotAgentSocket(
         }
     }
 
-    private fun handleTelemetry(agentId: UUID, session: WebSocketSession, node: JsonNode) {
+    private fun handleTelemetry(
+        agentId: UUID,
+        session: WebSocketSession,
+        node: JsonNode,
+    ) {
         val report = node.path("report")
         val messageId = runCatching { UUID.fromString(report.path("messageId").asText()) }.getOrNull()
         val observedAt = runCatching { Instant.parse(report.path("observedAt").asText()) }.getOrNull()
         val kind = report.path("event").path("kind").asText()
-        val age = observedAt?.let { java.time.Duration.between(it, Instant.now()).abs() }
-        val valid = report.path("type").asText() == "EVENT_REPORT" &&
-            messageId != null && observedAt != null &&
-            age != null && age <= java.time.Duration.ofMinutes(30) &&
-            kind in setOf("ITEM_DROP", "BOOSTER", "GLOBAL", "RAID") &&
-            report.toString().length <= 4096 && validTelemetryEvent(report.path("event"), kind)
+        val age = observedAt?.let { Duration.between(it, Instant.now()).abs() }
+        val valid =
+            report.path("type").asText() == "EVENT_REPORT" &&
+                messageId != null &&
+                observedAt != null &&
+                age != null &&
+                age <= Duration.ofMinutes(30) &&
+                kind in setOf("ITEM_DROP", "BOOSTER", "GLOBAL", "RAID") &&
+                report.toString().length <= 4096 &&
+                validTelemetryEvent(report.path("event"), kind)
 
         if (!valid) {
-            sessions.send(session, mapOf("type" to "telemetry_rejected", "messageId" to
-                (messageId?.toString() ?: ""), "reason" to "invalid_event"))
+            sessions.send(
+                session,
+                mapOf(
+                    "type" to "telemetry_rejected",
+                    "messageId" to (messageId?.toString() ?: ""),
+                    "reason" to "invalid_event",
+                ),
+            )
             return
         }
 
         // The authorized bot agent is one independent observer, regardless of
         // how many SAO bots on this machine received the same global broadcast.
-        val collectorId = UUID.nameUUIDFromBytes(
-            "mnemos:bot-agent-collector:$agentId".toByteArray(StandardCharsets.UTF_8),
-        )
-        val ingressId = UUID.nameUUIDFromBytes(
-            "mnemos:bot-agent-ingress:$agentId:$messageId".toByteArray(StandardCharsets.UTF_8),
-        )
-        telemetryPublisher.publishReport(
-            ingressId = ingressId,
-            collectorId = CollectorCredentialId(collectorId),
-            rawMessage = report.toString(),
-            activeCollectors = 1,
-            receivedAt = Instant.now(),
-        ).whenComplete { _, error ->
-            if (error == null && sessions.isReady(agentId, session)) {
-                runCatching {
-                    sessions.send(session, mapOf("type" to "telemetry_ack", "messageId" to messageId.toString()))
+        val collectorId =
+            UUID.nameUUIDFromBytes(
+                "mnemos:bot-agent-collector:$agentId".toByteArray(StandardCharsets.UTF_8),
+            )
+        val ingressId =
+            UUID.nameUUIDFromBytes(
+                "mnemos:bot-agent-ingress:$agentId:$messageId".toByteArray(StandardCharsets.UTF_8),
+            )
+
+        telemetryPublisher
+            .publishReport(
+                ingressId = ingressId,
+                collectorId = CollectorCredentialId(collectorId),
+                rawMessage = report.toString(),
+                activeCollectors = 1,
+                receivedAt = Instant.now(),
+            ).whenComplete { _, error ->
+                if (error == null && sessions.isReady(agentId, session)) {
+                    runCatching {
+                        sessions.send(
+                            session,
+                            mapOf("type" to "telemetry_ack", "messageId" to messageId.toString()),
+                        )
+                    }
                 }
+                // No ack on publisher failure: C7x retries with the same messageId.
             }
-            // No ack on publisher failure: C7x will retry the same messageId.
-        }
     }
 
-    internal fun validTelemetryEvent(event: JsonNode, kind: String): Boolean {
+    internal fun validTelemetryEvent(
+        event: JsonNode,
+        kind: String,
+    ): Boolean {
         fun validName(key: String): Boolean {
             val value = event.path(key).asText("")
             return value.length in 4..20 && value.all { it.isLetterOrDigit() || it == '_' }
         }
+
         return when (kind) {
             "ITEM_DROP" -> {
                 val key = event.path("itemKey").asText("")
@@ -362,13 +388,16 @@ class BotAgentSocket(
                     event.path("itemRarity").asText() in setOf("MYTHICAL", "SECRET") &&
                     validName("droppedFor")
             }
-            "BOOSTER" -> event.path("boosterType").asText() in
-                setOf("LUCK", "MONEY", "DAMAGE", "POWER") && validName("activatedBy")
-            "GLOBAL" -> event.path("eventType").asText() in
-                setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", "COMET_CHAOS")
+            "BOOSTER" ->
+                event.path("boosterType").asText() in
+                    setOf("LUCK", "MONEY", "DAMAGE", "POWER") && validName("activatedBy")
+            "GLOBAL" ->
+                event.path("eventType").asText() in
+                    setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", "COMET_CHAOS")
             "RAID" -> {
                 val locations = event.path("locations")
-                locations.isArray && locations.size() in 1..32 &&
+                locations.isArray &&
+                    locations.size() in 1..32 &&
                     locations.all { it.isIntegralNumber && it.asInt() in 1..1000 }
             }
             else -> false
