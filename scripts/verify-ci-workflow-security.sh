@@ -159,14 +159,30 @@ printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
     fail "Integration Verify must preserve its nightly safety-net schedule"
 
 printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
-    grep -Fq 'scripts/resolve_integration_test_tasks.py --format tasks' ||
-    fail "Integration Verify must resolve only explicitly tagged integration tasks"
+    grep -Fq 'scripts/resolve_integration_test_tasks.py' ||
+    fail "Integration Verify must resolve explicitly tagged integration tasks"
+
+printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
+    grep -Fq -- '--paths-file "$changed_paths"' ||
+    fail "Integration Verify must scope integration tasks to the exact changed-path set"
+
+printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
+    grep -Fq -- '--all --format tasks' ||
+    fail "Integration Verify nightly and fallback paths must preserve the full integration safety net"
 
 printf '%s\n' "$INTEGRATION_WORKFLOW_CONTENT" |
     grep -Fq './gradlew "${tasks[@]}"' ||
     fail "Integration Verify must run only the resolved integration task set"
 
 STACK_WORKFLOW_CONTENT="$(cat "$STACK_WORKFLOW")"
+
+if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '      - "scripts/**"'; then
+    fail "Stack Smoke must not run for arbitrary CI/helper script changes"
+fi
+
+printf '%s\n' "$STACK_WORKFLOW_CONTENT" |
+    grep -Fq '      - "scripts/verify-kafka-message-auth-runtime.sh"' ||
+    fail "Stack Smoke must still cover runtime scripts it executes"
 
 if printf '%s\n' "$STACK_WORKFLOW_CONTENT" | grep -Fq '      - "apps/**"'; then
     fail "Stack Smoke must not run for every application source change"

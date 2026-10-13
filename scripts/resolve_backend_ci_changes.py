@@ -42,6 +42,23 @@ STACK_SMOKE_EXACT_PATHS = {
     "settings.gradle.kts",
     ".github/ci/compose-isolation.override.yml",
     ".github/workflows/stack-smoke.yml",
+    "scripts/docker-compose-env.sh",
+    "scripts/ensure-kafka-tls-secret.sh",
+    "scripts/validate-compose-secrets.sh",
+    "scripts/generate-kafka-message-keys.sh",
+    "scripts/verify-compose-env-isolation.sh",
+    "scripts/verify-compose-secret-validation.sh",
+    "scripts/verify-internal-api-authorization.sh",
+    "scripts/verify-kafka-acl-reconciliation-runtime.sh",
+    "scripts/verify-kafka-message-auth.sh",
+    "scripts/verify-kafka-message-auth-runtime.sh",
+    "scripts/verify-kafka-service-config.sh",
+    "scripts/verify-kafka-transport-security.sh",
+    "scripts/verify-minio-policy-reconciliation-runtime.sh",
+    "scripts/verify-postgres-legacy-ownership-migration.sh",
+    "scripts/verify-redis-service-config.sh",
+    "scripts/verify-redis-service-isolation-runtime.sh",
+    "scripts/verify-resource-server-audience.sh",
 }
 STACK_SMOKE_PREFIXES = (
     "build-logic/",
@@ -51,7 +68,6 @@ STACK_SMOKE_PREFIXES = (
     "keycloak-extensions/",
     "libraries/",
     "make/",
-    "scripts/",
 )
 BACKEND_POLICY_EXACT_PATHS = {
     ".env.example",
