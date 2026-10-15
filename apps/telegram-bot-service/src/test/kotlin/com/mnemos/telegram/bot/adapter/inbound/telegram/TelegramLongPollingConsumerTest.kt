@@ -222,6 +222,34 @@ class TelegramLongPollingConsumerTest {
     }
 
     @Test
+    fun `handler exception does not escape the polling callback or confirm its update`() {
+        val update = update(id = 23, message = message(text = "/menu"))
+        whenever(commandRouter.route(any())).thenThrow(IllegalStateException("downstream failure"))
+
+        val confirmedUpdateId = consumer.processUpdates(listOf(update))
+
+        assertEquals(UpdatesListener.CONFIRMED_UPDATES_NONE, confirmedUpdateId)
+    }
+
+    @Test
+    fun `handler exception preserves confirmations before the failed update`() {
+        val first = update(id = 24)
+        val failed = update(id = 25, message = message(text = "/start"))
+        val later = update(id = 26, message = message(text = "/help"))
+        whenever(commandRouter.route(any())).thenThrow(IllegalStateException("downstream failure"))
+
+        val confirmedUpdateId = consumer.processUpdates(listOf(first, failed, later))
+
+        assertEquals(24, confirmedUpdateId)
+        verify(commandRouter).route(
+            eq(TelegramCommandContext(telegramId = 100L, text = "/start", firstName = null, username = null)),
+        )
+        verify(commandRouter, never()).route(
+            eq(TelegramCommandContext(telegramId = 100L, text = "/help", firstName = null, username = null)),
+        )
+    }
+
+    @Test
     fun `permanent failure is confirmed to avoid poison update loop`() {
         val update = update(id = 22, message = message(text = "/start"))
         whenever(commandRouter.route(any())).thenReturn(
