@@ -1,0 +1,38 @@
+name: Production Telegram Poller Diagnostic (one-time)
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/production-telegram-poller-diagnostic.yml
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mnemos-production-telegram-readonly-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    if: github.repository == 'knliiss/Mnemos' && github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout trusted merged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Observe Telegram bot without touching production state
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          python3 scripts/diagnose-production-telegram-poller.py
