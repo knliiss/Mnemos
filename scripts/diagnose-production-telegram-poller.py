@@ -116,7 +116,7 @@ if related:
         add("Threads with Telegram/OkHttp frames", len(relevant))
         for state, frames in relevant[:12]:
             add("Thread state", state)
-            add("Top JVM frames", ", ".join(frames[:8])[:900])
+            add("Top JVM frames", ", ".join(frames[:45])[:4800])
 else:
     add("jcmd thread dump available", False)
 
@@ -130,6 +130,16 @@ if history is not None:
     for category, pattern in patterns.items():
         matched = [row for row in history_rows if re.search(pattern, row, re.IGNORECASE)]
         add(category, len(matched))
+        if category == "Polling failures":
+            # Only numeric response codes, never copy Telegram error descriptions.
+            counts = {}
+            for row in matched:
+                found = re.search(r"code=(\d{3})", row)
+                if found:
+                    code = found.group(1)
+                    counts[code] = counts.get(code, 0) + 1
+            for response_code, count in sorted(counts.items()):
+                add(f"Polling response code {response_code}", count)
         if matched:
             last = re.match(r"^\d{4}-\d\d-\d\dT[^ ]+", matched[-1])
             if last:
