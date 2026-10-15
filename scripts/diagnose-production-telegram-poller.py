@@ -74,7 +74,7 @@ patterns = {
     "Polling failures": r"Telegram long polling failed",
     "Network/dependency errors": r"RedisConnectionFailure|ConnectException|FeignException|Read timed out|Connection refused",
     "Startup events": r"Started TelegramBotServiceApplication|Starting TelegramBotServiceApplication",
-    "ERROR-level or exceptions": r"\\bERROR\\b|\\bException\\b|OutOfMemoryError",
+    "ERROR-level or exceptions": r"\bERROR\b|\bException\b|OutOfMemoryError",
 }
 for category, pattern in patterns.items():
     matched = [row for row in log_lines if re.search(pattern, row, re.IGNORECASE)]
@@ -82,7 +82,7 @@ for category, pattern in patterns.items():
     if matched:
         timestamps = [m.group(0)[:35]
                       for row in matched[-3:]
-                      if (m := re.match(r"^\\d{4}-\\d\\d-\\d\\dT[^ ]+", row))]
+                      if (m := re.match(r"^\d{4}-\d\d-\d\dT[^ ]+", row))]
         if timestamps:
             add("Last occurrence UTC", ", ".join(timestamps))
 containers = docker("ps", "--format", "{{.Names}}")
