@@ -1,4 +1,4 @@
-name: One-time Telegram Service Recovery
+name: One-time Telegram Service Verification
 on:
   push:
     branches: [master]
@@ -7,37 +7,16 @@ permissions:
   contents: read
   issues: write
 jobs:
-  restart:
+  verify:
     if: github.repository == 'knliiss/Mnemos'
     runs-on: [self-hosted, mnemos-production]
     timeout-minutes: 8
     steps:
-      - name: Restart only Telegram bot and verify
+      - name: Checkout diagnostics script
+        uses: actions/checkout@v4
+      - name: Inspect Telegram bot without restarting
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          SERVICE=mnemos_telegram-bot-service
-          before="$(sudo -n docker service ls --filter "name=$SERVICE" --format '{{.Name}}|{{.Replicas}}')"
-          test "$before" = "$SERVICE|1/1"
-          old="$(sudo -n docker service ps "$SERVICE" --filter desired-state=running --format '{{.ID}}' | head -n 1)"
-          test -n "$old"
-          sudo -n docker service update --force --detach=true "$SERVICE"
-          healthy=false
-          new=""
-          for i in $(seq 1 60); do
-            sleep 4
-            state="$(sudo -n docker service ls --filter "name=$SERVICE" --format '{{.Name}}|{{.Replicas}}')"
-            new="$(sudo -n docker service ps "$SERVICE" --filter desired-state=running --format '{{.ID}}' | head -n 1)"
-            if [ "$state" = "$SERVICE|1/1" ] && [ -n "$new" ] && [ "$new" != "$old" ]; then healthy=true; break; fi
-          done
-          {
-            echo "# Telegram bot recovery"
-            echo "Service: `$SERVICE`"
-            echo "Before: `$before`"
-            echo "After: `$state`"
-            echo "Replacement task observed: `$([ "$new" != "$old" ] && echo yes || echo no)`"
-            echo "Healthy replacement: `$healthy`"
-          } | tee -a "$GITHUB_STEP_SUMMARY"
-          test "$healthy" = true
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/diagnose-production-telegram-poller.py
