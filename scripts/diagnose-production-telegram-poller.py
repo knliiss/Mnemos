@@ -101,17 +101,17 @@ if related:
     dump = docker("exec", related[0], "jcmd", "1", "Thread.print")
     add("jcmd thread dump available", dump is not None)
     if dump:
-        sections = re.split(r'(?=^"[^"\\n]+"\\s+#\\d+)', dump, flags=re.MULTILINE)
+        sections = re.split(r'(?=^"[^"\n]+"\s+#\d+)', dump, flags=re.MULTILINE)
         add("JVM threads seen", sum(1 for section in sections
-                                     if re.match(r'^"[^"\\n]+"\\s+#\\d+', section)))
+                                     if re.match(r'^"[^"\n]+"\s+#\d+', section)))
         relevant = []
         for section in sections:
-            if not re.search(r"com\\.pengrad\\.telegrambot|okhttp3", section, re.IGNORECASE):
+            if not re.search(r"com\.pengrad\.telegrambot|okhttp3", section, re.IGNORECASE):
                 continue
-            state_match = re.search(r"java\\.lang\\.Thread\\.State:\\s*(\\w+)", section)
+            state_match = re.search(r"java\.lang\.Thread\.State:\s*(\w+)", section)
             state = state_match.group(1) if state_match else "unknown"
             # Java class/method symbols only. NEVER emit raw thread titles or stack dump.
-            frames = re.findall(r"^\\s+at\\s+([A-Za-z0-9_.$]+)\\(", section, re.MULTILINE)
+            frames = re.findall(r"^\s+at\s+([A-Za-z0-9_.$]+)\(", section, re.MULTILINE)
             relevant.append((state, frames))
         add("Threads with Telegram/OkHttp frames", len(relevant))
         for state, frames in relevant[:12]:
@@ -131,7 +131,7 @@ if history is not None:
         matched = [row for row in history_rows if re.search(pattern, row, re.IGNORECASE)]
         add(category, len(matched))
         if matched:
-            last = re.match(r"^\\d{4}-\\d\\d-\\d\\dT[^ ]+", matched[-1])
+            last = re.match(r"^\d{4}-\d\d-\d\dT[^ ]+", matched[-1])
             if last:
                 add("Last occurrence timestamp", last.group(0)[:35])
 
