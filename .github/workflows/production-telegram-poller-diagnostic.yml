@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - .github/workflows/production-telegram-poller-diagnostic.yml
+      - scripts/diagnose-production-telegram-poller.py
 
 permissions:
   contents: read

@@ -94,6 +94,47 @@ add("Matching running containers on Docker host", len(related))
 for name in related[:8]:
     add("Container", re.sub(r"[^A-Za-z0-9_.-]", "", name)[:80])
 
+# Inspect live JVM thread stacks without logging thread names, arguments, or payloads.
+# Attach is read-only and does not restart or reconfigure the bot.
+lines += ["", "## JVM long-polling thread inspection"]
+if related:
+    dump = docker("exec", related[0], "jcmd", "1", "Thread.print")
+    add("jcmd thread dump available", dump is not None)
+    if dump:
+        sections = re.split(r'(?=^"[^"\n]+"\s+#\d+)', dump, flags=re.MULTILINE)
+        add("JVM threads seen", sum(1 for section in sections
+                                     if re.match(r'^"[^"\n]+"\s+#\d+', section)))
+        relevant = []
+        for section in sections:
+            if not re.search(r"com\.pengrad\.telegrambot|okhttp3", section, re.IGNORECASE):
+                continue
+            state_match = re.search(r"java\.lang\.Thread\.State:\s*(\w+)", section)
+            state = state_match.group(1) if state_match else "unknown"
+            # Java class/method symbols only. NEVER emit raw thread titles or stack dump.
+            frames = re.findall(r"^\s+at\s+([A-Za-z0-9_.$]+)\(", section, re.MULTILINE)
+            relevant.append((state, frames))
+        add("Threads with Telegram/OkHttp frames", len(relevant))
+        for state, frames in relevant[:12]:
+            add("Thread state", state)
+            add("Top JVM frames", ", ".join(frames[:8])[:900])
+else:
+    add("jcmd thread dump available", False)
+
+history = docker("service", "logs", "--raw", "--timestamps", "--since",
+                 "96h", "--tail", "5000", SERVICE)
+lines += ["", "## Older service logs (last 96 hours, max 5000 lines)"]
+add("History query succeeded", history is not None)
+if history is not None:
+    history_rows = history.splitlines()
+    add("History log lines", len(history_rows))
+    for category, pattern in patterns.items():
+        matched = [row for row in history_rows if re.search(pattern, row, re.IGNORECASE)]
+        add(category, len(matched))
+        if matched:
+            last = re.match(r"^\d{4}-\d\d-\d\dT[^ ]+", matched[-1])
+            if last:
+                add("Last occurrence timestamp", last.group(0)[:35])
+
 def telegram(method):
     if not token:
         return None, "token missing"
