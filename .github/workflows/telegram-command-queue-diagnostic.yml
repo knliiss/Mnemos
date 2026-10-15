@@ -1,0 +1,32 @@
+name: Telegram Command Queue Diagnostic (one-time)
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/telegram-command-queue-diagnostic.yml
+permissions:
+  contents: read
+  issues: write
+jobs:
+  inspect:
+    if: github.repository == 'knliiss/Mnemos'
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Snapshot A (read-only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/diagnose-production-telegram-poller.py
+      - name: Snapshot B (read-only, 20 seconds later)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sleep 20
+          python3 scripts/diagnose-production-telegram-poller.py
