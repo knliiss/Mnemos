@@ -46,20 +46,60 @@ class TelegramLongPollingConsumer(
         bot.removeGetUpdatesListener()
     }
 
+    private var retryUpdateId: Int? = null
+    private var lastRetryLogNanos: Long = 0L
+
     internal fun processUpdates(updates: List<Update>): Int {
         var lastConfirmed = UpdatesListener.CONFIRMED_UPDATES_NONE
 
         for (update in updates) {
-            when (handle(update)) {
+            val (result, failureType) =
+                try {
+                    handle(update) to null
+                } catch (exception: Exception) {
+                    // Unhandled listener exceptions terminate pengrad's polling callback.
+                    // Do not acknowledge the update; retry after a bounded pause.
+                    TelegramDeliveryResult.Retryable to exception.javaClass.simpleName
+                }
+
+            when (result) {
                 TelegramDeliveryResult.Delivered,
                 is TelegramDeliveryResult.PermanentFailure,
-                -> lastConfirmed = update.updateId()
+                -> {
+                    lastConfirmed = update.updateId()
+                    retryUpdateId = null
+                }
 
-                TelegramDeliveryResult.Retryable -> return lastConfirmed
+                TelegramDeliveryResult.Retryable -> {
+                    pauseAndReportRetry(update.updateId(), failureType)
+                    return lastConfirmed
+                }
             }
         }
 
         return lastConfirmed
+    }
+
+    private fun pauseAndReportRetry(
+        updateId: Int,
+        failureType: String?,
+    ) {
+        val now = System.nanoTime()
+        if (retryUpdateId != updateId || now - lastRetryLogNanos >= RETRY_LOG_INTERVAL_NANOS) {
+            log.warn(
+                "Telegram update processing retry: updateId={}, failureType={}",
+                updateId,
+                failureType ?: "retryable-result",
+            )
+            retryUpdateId = updateId
+            lastRetryLogNanos = now
+        }
+
+        try {
+            Thread.sleep(RETRY_BACKOFF_MILLIS)
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
     }
 
     internal fun handle(update: Update): TelegramDeliveryResult {
@@ -159,6 +199,8 @@ class TelegramLongPollingConsumer(
     }
 
     private companion object {
+        const val RETRY_BACKOFF_MILLIS = 500L
+        const val RETRY_LOG_INTERVAL_NANOS = 60_000_000_000L
         val log = LoggerFactory.getLogger(TelegramLongPollingConsumer::class.java)
     }
 }
