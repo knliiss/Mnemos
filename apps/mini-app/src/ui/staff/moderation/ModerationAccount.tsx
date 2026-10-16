@@ -47,7 +47,9 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   const [statusBusy, setStatusBusy] = useState(false)
   const [nicknameCheckBusy, setNicknameCheckBusy] = useState(false)
   const [nicknameCheckFailed, setNicknameCheckFailed] = useState(false)
-  const [nicknameCheck, setNicknameCheck] = useState<LinkedPlayerNicknameRefreshResponse | null>(null)
+  const [nicknameCheck, setNicknameCheck] = useState<LinkedPlayerNicknameRefreshResponse | null>(
+    null,
+  )
   const [statusConfirmationVisible, setStatusConfirmationVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<AccountTab>("overview")
 
@@ -274,7 +276,9 @@ export function ModerationAccount({ params, navigate, back }: Props) {
               </section>
             ) : null}
             {nicknameCheckFailed ? (
-              <p className="inline-hint" role="alert">{copy.nicknameCheckFailed}</p>
+              <p className="inline-hint" role="alert">
+                {copy.nicknameCheckFailed}
+              </p>
             ) : null}
             <section className="moderation-detail-settings__status">
               <span>
