@@ -20,7 +20,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     item.name AS item_name,
                     item.rarity AS item_rarity,
                     item.type AS item_type,
-                    drop_event.dropped_for AS dropped_for,
+                    COALESCE(drop_identity.nickname, drop_event.dropped_for) AS dropped_for,
                     NULL::text AS booster_type,
                     NULL::text AS activated_by,
                     NULL::text AS global_type,
@@ -28,6 +28,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                 FROM item_drop_events drop_event
                 JOIN items item ON item.id = drop_event.item_id
                 LEFT JOIN item_canonical_identities identity ON identity.item_id = item.id
+                LEFT JOIN player_identity_projection drop_identity ON drop_identity.player_id = drop_event.player_id
 
                 UNION ALL
 
@@ -42,10 +43,11 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     NULL::text,
                     NULL::text,
                     booster.type,
-                    booster.activated_by,
+                    COALESCE(booster_identity.nickname, booster.activated_by),
                     NULL::text,
                     NULL::text
                 FROM booster_events booster
+                LEFT JOIN player_identity_projection booster_identity ON booster_identity.player_id = booster.player_id
 
                 UNION ALL
 
