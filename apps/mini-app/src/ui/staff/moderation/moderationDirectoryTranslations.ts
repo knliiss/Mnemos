@@ -47,6 +47,15 @@ type ModerationDirectoryCopy = {
   confirmDelete: string
   cancel: string
   loadingAccount: string
+  nicknameCheckTitle: string
+  nicknameCheckHint: string
+  nicknameCheckAction: string
+  nicknameChecking: string
+  nicknameFromApi: string
+  nicknameStored: string
+  nicknameSyncPending: string
+  nicknameAlreadyCurrent: string
+  nicknameCheckFailed: string
 }
 
 const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
@@ -100,6 +109,15 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     confirmDelete: "Confirm permanent deletion",
     cancel: "Cancel",
     loadingAccount: "Loading account…",
+    nicknameCheckTitle: "Cristalix nickname verification",
+    nicknameCheckHint: "Check the live Cristalix profile by UUID and reconcile the account name.",
+    nicknameCheckAction: "Check nickname now",
+    nicknameChecking: "Checking…",
+    nicknameFromApi: "Cristalix API",
+    nicknameStored: "Stored in Mnemos",
+    nicknameSyncPending: "A different nickname was found. The update is being propagated across Mnemos services; refresh this page to confirm.",
+    nicknameAlreadyCurrent: "The stored nickname matches the verified Cristalix nickname.",
+    nicknameCheckFailed: "The check failed; the stored nickname was not changed.",
   },
   ru: {
     searchMode: "Режим каталога",
@@ -151,6 +169,15 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     confirmDelete: "Подтвердить удаление навсегда",
     cancel: "Отмена",
     loadingAccount: "Загружаем аккаунт…",
+    nicknameCheckTitle: "Проверка ника Cristalix",
+    nicknameCheckHint: "Запросить актуальный ник по UUID и синхронизировать аккаунт.",
+    nicknameCheckAction: "Проверить ник сейчас",
+    nicknameChecking: "Проверяем…",
+    nicknameFromApi: "Cristalix API",
+    nicknameStored: "Сохранён в Mnemos",
+    nicknameSyncPending: "Обнаружено отличие. Обновление распространяется между сервисами Mnemos; обновите страницу для подтверждения.",
+    nicknameAlreadyCurrent: "Сохранённый ник совпадает с актуальным ником Cristalix.",
+    nicknameCheckFailed: "Не удалось проверить ник; сохранённые данные не изменены.",
   },
   uk: {
     searchMode: "Режим каталогу",
@@ -202,6 +229,15 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     confirmDelete: "Підтвердити остаточне видалення",
     cancel: "Скасувати",
     loadingAccount: "Завантажуємо аккаунт…",
+    nicknameCheckTitle: "Перевірка ніка Cristalix",
+    nicknameCheckHint: "Запитати актуальний нік за UUID і синхронізувати акаунт.",
+    nicknameCheckAction: "Перевірити нік зараз",
+    nicknameChecking: "Перевіряємо…",
+    nicknameFromApi: "Cristalix API",
+    nicknameStored: "Збережений у Mnemos",
+    nicknameSyncPending: "Виявлено відмінність. Оновлення поширюється між сервісами Mnemos; оновіть сторінку для підтвердження.",
+    nicknameAlreadyCurrent: "Збережений нік збігається з актуальним ніком Cristalix.",
+    nicknameCheckFailed: "Не вдалося перевірити нік; збережені дані не змінено.",
   },
 }
 
