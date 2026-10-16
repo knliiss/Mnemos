@@ -5,8 +5,8 @@ import com.mnemos.playerdirectory.application.accountlink.port.out.PlayerAccount
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
-import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
+import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
