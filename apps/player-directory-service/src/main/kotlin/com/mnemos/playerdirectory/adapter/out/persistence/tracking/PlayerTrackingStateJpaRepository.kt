@@ -81,6 +81,11 @@ interface PlayerTrackingStateJpaRepository : JpaRepository<PlayerTrackingStateEn
                       FROM presence_subscriptions subscription
                       WHERE subscription.player_id = tracking.player_id
                   )
+                  OR EXISTS (
+                      SELECT 1
+                      FROM player_account_links linked_account
+                      WHERE linked_account.player_id = tracking.player_id
+                  )
               )
             ORDER BY tracking.next_poll_at, tracking.player_id
             FOR UPDATE SKIP LOCKED
