@@ -24,11 +24,22 @@ interface PlayerDirectoryOperationalSnapshotJpaRepository : Repository<PlayerEnt
                    )
             ),
             due_tracking AS (
-                SELECT tracked.player_id,
-                       tracked.next_poll_at
-                FROM tracked_players tracked
-                WHERE tracked.next_poll_at <= :now
-                  AND (tracked.lease_until IS NULL OR tracked.lease_until <= :now)
+                SELECT tracking.player_id,
+                       tracking.next_poll_at
+                FROM player_tracking_state tracking
+                WHERE tracking.next_poll_at <= :now
+                  AND (tracking.lease_until IS NULL OR tracking.lease_until <= :now)
+                  AND (
+                      tracking.active_until > :now
+                      OR EXISTS (
+                          SELECT 1 FROM presence_subscriptions sub
+                          WHERE sub.player_id = tracking.player_id
+                      )
+                      OR EXISTS (
+                          SELECT 1 FROM player_account_links linked
+                          WHERE linked.player_id = tracking.player_id
+                      )
+                  )
             )
             SELECT
                 (SELECT COUNT(*) FROM due_tracking) AS "trackingDueCount",
