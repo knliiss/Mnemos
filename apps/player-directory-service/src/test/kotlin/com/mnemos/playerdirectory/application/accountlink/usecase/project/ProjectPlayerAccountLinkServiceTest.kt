@@ -1,8 +1,9 @@
 package com.mnemos.playerdirectory.application.accountlink.usecase.project
 
+import com.mnemos.playerdirectory.application.accountlink.model.PlayerAccountLink
 import com.mnemos.playerdirectory.application.accountlink.port.out.PlayerAccountLinkRepository
-import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
+import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.Player
@@ -49,7 +50,7 @@ class ProjectPlayerAccountLinkServiceTest {
 
         service.execute(command)
 
-        val link = argumentCaptor<com.mnemos.playerdirectory.application.accountlink.model.PlayerAccountLink>()
+        val link = argumentCaptor<PlayerAccountLink>()
         val tracking = argumentCaptor<PlayerTrackingState>()
         verify(linkedRepository).save(link.capture())
         verify(trackingRepository).ensureState(tracking.capture())
@@ -58,7 +59,8 @@ class ProjectPlayerAccountLinkServiceTest {
         assertEquals(playerId, tracking.firstValue.playerId.id)
         assertEquals(now, tracking.firstValue.nextPollAt)
     }
-}    @Test
+
+    @Test
     fun `account bootstrap republishes an existing player identity to heal old nickname snapshots`() {
         val links = mock<PlayerAccountLinkRepository>()
         val tracking = mock<PlayerTrackingRepository>()
@@ -72,22 +74,35 @@ class ProjectPlayerAccountLinkServiceTest {
                 nickname = PlayerNickname.of("CurrentName"),
                 externalVersion = 14,
                 externalUpdatedAt = now,
-                presence = PlayerPresence(
-                    status = PlayerPresenceStatus.OFFLINE,
-                    realm = null,
-                    realmType = null,
-                    privacyHidden = false,
-                    lastSeenOnline = null,
-                    observedAt = now,
-                ),
+                presence =
+                    PlayerPresence(
+                        status = PlayerPresenceStatus.OFFLINE,
+                        realm = null,
+                        realmType = null,
+                        privacyHidden = false,
+                        lastSeenOnline = null,
+                        observedAt = now,
+                    ),
             )
         val player = Player.fromObservation(observation)
         whenever(players.findById(id)).thenReturn(player)
 
-        val service = ProjectPlayerAccountLinkService(links, tracking, players, events, Clock.fixed(now, ZoneOffset.UTC))
-        service.execute(ProjectPlayerAccountLinkCommand(id.id, UUID.fromString("22222222-2222-2222-2222-222222222222"), now))
+        val service =
+            ProjectPlayerAccountLinkService(
+                repository = links,
+                trackingRepository = tracking,
+                playerRepository = players,
+                eventPublisher = events,
+                clock = Clock.fixed(now, ZoneOffset.UTC),
+            )
+        service.execute(
+            ProjectPlayerAccountLinkCommand(
+                playerId = id.id,
+                accountId = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                recordedAt = now,
+            ),
+        )
 
         verify(events).publishInitial(player, now)
     }
-
-
+}
