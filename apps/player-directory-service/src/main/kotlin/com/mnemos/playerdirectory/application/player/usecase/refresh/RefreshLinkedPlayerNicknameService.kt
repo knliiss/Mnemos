@@ -8,6 +8,7 @@ import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
@@ -33,6 +34,7 @@ class RefreshLinkedPlayerNicknameService(
      * does not rely on the cached name or the 6h scheduled polling interval.
      * The existing interactive credential quota also applies to this request.
      */
+    @Transactional
     fun execute(playerId: CristalixPlayerId): LinkedPlayerNicknameRefreshResult {
         if (!accountLinks.existsByPlayerId(playerId)) {
             throw PlayerNotFoundException(playerId)
