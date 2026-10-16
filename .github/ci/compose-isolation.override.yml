@@ -1,4 +1,10 @@
 services:
+  # CI-only replacement for the withdrawn public Quay MinIO image.
+  # This source/tag/digest is from the SILO 2026-10-15 published release.
+  # Production infrastructure keeps its existing MinIO image and data.
+  minio:
+    image: "docker.io/pgsty/silo:RELEASE.2026-10-15T00-00-00Z@sha256:aaac6bce13eb99316b3c88bd20143fc3c38ab607585256a411a095c44ee57f62"
+
   account-service:
     container_name: "${COMPOSE_PROJECT_NAME}-account-service"
     image: "${COMPOSE_PROJECT_NAME}/account-service:${ACCOUNT_SERVICE_VERSION:-local}"
