@@ -115,7 +115,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     nicknameChecking: "Checking…",
     nicknameFromApi: "Cristalix API",
     nicknameStored: "Stored in Mnemos",
-    nicknameSyncPending: "A different nickname was found. The update is being propagated across Mnemos services; refresh this page to confirm.",
+    nicknameSyncPending:
+      "A different nickname was found. The update is being propagated across Mnemos services; refresh this page to confirm.",
     nicknameAlreadyCurrent: "The stored nickname matches the verified Cristalix nickname.",
     nicknameCheckFailed: "The check failed; the stored nickname was not changed.",
   },
@@ -175,7 +176,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     nicknameChecking: "Проверяем…",
     nicknameFromApi: "Cristalix API",
     nicknameStored: "Сохранён в Mnemos",
-    nicknameSyncPending: "Обнаружено отличие. Обновление распространяется между сервисами Mnemos; обновите страницу для подтверждения.",
+    nicknameSyncPending:
+      "Обнаружено отличие. Обновление распространяется между сервисами Mnemos; обновите страницу для подтверждения.",
     nicknameAlreadyCurrent: "Сохранённый ник совпадает с актуальным ником Cristalix.",
     nicknameCheckFailed: "Не удалось проверить ник; сохранённые данные не изменены.",
   },
@@ -235,7 +237,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     nicknameChecking: "Перевіряємо…",
     nicknameFromApi: "Cristalix API",
     nicknameStored: "Збережений у Mnemos",
-    nicknameSyncPending: "Виявлено відмінність. Оновлення поширюється між сервісами Mnemos; оновіть сторінку для підтвердження.",
+    nicknameSyncPending:
+      "Виявлено відмінність. Оновлення поширюється між сервісами Mnemos; оновіть сторінку для підтвердження.",
     nicknameAlreadyCurrent: "Збережений нік збігається з актуальним ніком Cristalix.",
     nicknameCheckFailed: "Не вдалося перевірити нік; збережені дані не змінено.",
   },
