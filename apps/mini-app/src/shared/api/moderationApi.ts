@@ -174,6 +174,24 @@ export async function getAdminAccount(accountId: string): Promise<AdminAccountDe
   return api<AdminAccountDetailsResponse>(`/api/v1/admin/accounts/${accountId}`)
 }
 
+export type LinkedPlayerNicknameRefreshResponse = {
+  playerId: string
+  previousKnownNickname: string | null
+  currentNickname: string
+  externalVersion: number
+  observedAt: string
+  nicknameChangedInDirectory: boolean
+}
+
+export async function refreshLinkedPlayerNickname(
+  cristalixUuid: string,
+): Promise<LinkedPlayerNicknameRefreshResponse> {
+  return api<LinkedPlayerNicknameRefreshResponse>(
+    `/api/v1/players/${encodeURIComponent(cristalixUuid)}/refresh-nickname`,
+    { method: "POST" },
+  )
+}
+
 export async function getAdminAccountRoles(accountId: string): Promise<AdminAccountRoleResponse[]> {
   return api<AdminAccountRoleResponse[]>(`/api/v1/admin/accounts/${accountId}/roles`)
 }
