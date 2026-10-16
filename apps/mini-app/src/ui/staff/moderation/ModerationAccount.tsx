@@ -4,7 +4,9 @@ import {
   deactivateAccount,
   getAdminAccount,
   reactivateAccount,
+  refreshLinkedPlayerNickname,
   type AdminAccountDetailsResponse,
+  type LinkedPlayerNicknameRefreshResponse,
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Route } from "../../model"
@@ -43,6 +45,9 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
+  const [nicknameCheckBusy, setNicknameCheckBusy] = useState(false)
+  const [nicknameCheckFailed, setNicknameCheckFailed] = useState(false)
+  const [nicknameCheck, setNicknameCheck] = useState<LinkedPlayerNicknameRefreshResponse | null>(null)
   const [statusConfirmationVisible, setStatusConfirmationVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<AccountTab>("overview")
 
@@ -107,6 +112,28 @@ export function ModerationAccount({ params, navigate, back }: Props) {
       active = false
     }
   }, [accountId])
+
+  const checkNickname = async () => {
+    if (!details || nicknameCheckBusy) {
+      return
+    }
+    setNicknameCheckBusy(true)
+    setNicknameCheckFailed(false)
+    setNicknameCheck(null)
+
+    try {
+      const verified = await refreshLinkedPlayerNickname(details.cristalixUuid)
+      setNicknameCheck(verified)
+      // Account-service consumes the identity event asynchronously, so the
+      // displayed stored nickname may converge slightly after this request.
+      await refresh()
+    } catch (error) {
+      setNicknameCheckFailed(true)
+      handleError(error)
+    } finally {
+      setNicknameCheckBusy(false)
+    }
+  }
 
   const changeStatus = async () => {
     if (!details || details.status === "DELETED" || statusBusy) {
@@ -213,6 +240,42 @@ export function ModerationAccount({ params, navigate, back }: Props) {
 
         {activeTab === "settings" ? (
           <div className="moderation-detail-settings">
+            <section className="moderation-detail-settings__status">
+              <span>
+                <strong>{copy.nicknameCheckTitle}</strong>
+                <small>{copy.nicknameCheckHint}</small>
+              </span>
+              <button
+                type="button"
+                className="moderation-control-button moderation-control-button--primary"
+                disabled={nicknameCheckBusy}
+                onClick={() => void checkNickname()}
+              >
+                {nicknameCheckBusy ? copy.nicknameChecking : copy.nicknameCheckAction}
+              </button>
+            </section>
+            {nicknameCheck ? (
+              <section className="moderation-detail-section" aria-live="polite">
+                <div className="moderation-detail-stat-grid">
+                  <article className="moderation-detail-stat">
+                    <small>{copy.nicknameFromApi}</small>
+                    <strong>{nicknameCheck.currentNickname}</strong>
+                  </article>
+                  <article className="moderation-detail-stat">
+                    <small>{copy.nicknameStored}</small>
+                    <strong>{details.cristalixNickname}</strong>
+                  </article>
+                </div>
+                <p className="inline-hint">
+                  {details.cristalixNickname === nicknameCheck.currentNickname
+                    ? copy.nicknameAlreadyCurrent
+                    : copy.nicknameSyncPending}
+                </p>
+              </section>
+            ) : null}
+            {nicknameCheckFailed ? (
+              <p className="inline-hint" role="alert">{copy.nicknameCheckFailed}</p>
+            ) : null}
             <section className="moderation-detail-settings__status">
               <span>
                 <strong>{copy.accountSettings}</strong>
