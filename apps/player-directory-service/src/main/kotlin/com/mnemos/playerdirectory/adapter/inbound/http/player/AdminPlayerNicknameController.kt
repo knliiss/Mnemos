@@ -17,6 +17,7 @@ class AdminPlayerNicknameController(
 ) {
     @PostMapping("/{playerId}/refresh-nickname")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    fun refreshNickname(@PathVariable playerId: UUID): LinkedPlayerNicknameRefreshResult =
-        refresh.execute(CristalixPlayerId(playerId))
+    fun refreshNickname(
+        @PathVariable playerId: UUID,
+    ): LinkedPlayerNicknameRefreshResult = refresh.execute(CristalixPlayerId(playerId))
 }
