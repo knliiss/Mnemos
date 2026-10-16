@@ -9,6 +9,23 @@ import java.time.Instant
 import java.util.UUID
 
 interface JpaPlayerIdentityRevisionRepository : JpaRepository<PlayerIdentityRevisionEntity, UUID> {
+    @Query(
+        value = """
+            SELECT EXISTS (
+                SELECT 1 FROM player_identity_revisions
+                WHERE player_id = :playerId
+                  AND nickname = :nickname
+                  AND external_version = :externalVersion
+            )
+        """,
+        nativeQuery = true,
+    )
+    fun matchesCurrent(
+        @Param("playerId") playerId: UUID,
+        @Param("nickname") nickname: String,
+        @Param("externalVersion") externalVersion: Long,
+    ): Boolean
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         value =
