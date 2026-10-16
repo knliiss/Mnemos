@@ -60,6 +60,25 @@ fi
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'group: mnemos-production-deploy' ||
     fail "Backend deploy workflow must share the global production deployment concurrency lock"
 
+# The production lock must preserve every service request. GitHub's default
+# single pending slot cancels earlier pending workflows when multiple service
+# deployments arrive while another deployment is running.
+for queued_workflow in \
+    production-backend-service-deploy.yml \
+    production-runtime-policy.yml \
+    production-targeted-execution.yml \
+    production-c7x-secrets-preparation.yml; do
+    queued_path="$REPOSITORY_ROOT/.github/workflows/$queued_workflow"
+    [ -f "$queued_path" ] || fail "Production concurrency workflow missing: $queued_workflow"
+    queued_concurrency="$(sed -n '/^concurrency:$/,/^permissions:$/p' "$queued_path")"
+    printf '%s\n' "$queued_concurrency" | grep -Fxq '  group: mnemos-production-deploy' ||
+        fail "Production concurrency group changed: $queued_workflow"
+    printf '%s\n' "$queued_concurrency" | grep -Fxq '  queue: max' ||
+        fail "Production concurrency must retain all pending runs: $queued_workflow"
+    printf '%s\n' "$queued_concurrency" | grep -Fxq '  cancel-in-progress: false' ||
+        fail "Production concurrency must not cancel running deployments: $queued_workflow"
+done
+
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'actions: read' ||
     fail "Backend deploy workflow must have read access for request provenance verification"
 
