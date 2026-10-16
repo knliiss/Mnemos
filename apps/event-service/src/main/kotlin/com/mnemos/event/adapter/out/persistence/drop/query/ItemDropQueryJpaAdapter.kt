@@ -9,6 +9,7 @@ import com.mnemos.event.application.itemdrop.port.out.ItemDropReader
 import com.mnemos.event.application.itemdrop.usecase.list.ListItemDropsQuery
 import com.mnemos.event.application.playeridentity.port.out.PlayerIdentityProjectionRepository
 import com.mnemos.event.domain.EventId
+import com.mnemos.event.domain.player.model.CristalixPlayerId
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 
@@ -32,10 +33,19 @@ class ItemDropQueryJpaAdapter(
                 pageable = PageRequest.of(query.page.page, query.page.size),
             )
 
-        return page.toPageResult { it.toView() }
+        return page.toPageResult { projection ->
+            projection.toView().withCurrentNickname()
+        }
     }
 
-    override fun findById(id: EventId): ItemDropView? = itemDropEventJpaRepository.findViewById(id.id)?.toView()
+    override fun findById(id: EventId): ItemDropView? =
+        itemDropEventJpaRepository.findViewById(id.id)?.toView()?.withCurrentNickname()
+
+    private fun ItemDropView.withCurrentNickname(): ItemDropView {
+        val id: CristalixPlayerId = playerId ?: return this
+        val current = playerIdentityRepository.findCurrentNickname(id) ?: return this
+        return copy(droppedFor = current)
+    }
 
     private fun emptyPage(query: ListItemDropsQuery): PageResult<ItemDropView> =
         PageResult(
