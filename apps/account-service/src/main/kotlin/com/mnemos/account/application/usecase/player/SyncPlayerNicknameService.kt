@@ -33,7 +33,10 @@ class SyncPlayerNicknameService(
                 recordedAt = now,
             )
 
-        if (!advanced || account == null) {
+        if (account == null) {
+            return
+        }
+        if (!advanced && !revisionStore.matchesCurrent(playerId, nickname, command.externalVersion)) {
             return
         }
 

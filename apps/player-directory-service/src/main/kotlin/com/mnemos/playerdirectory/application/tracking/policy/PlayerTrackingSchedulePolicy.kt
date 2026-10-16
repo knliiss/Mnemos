@@ -13,6 +13,7 @@ class PlayerTrackingSchedulePolicy(
     private val unverifiablePollInterval: Duration,
     private val failureBackoff: Duration,
     private val maximumFailureBackoff: Duration,
+    private val linkedAccountPollInterval: Duration = Duration.ofHours(6),
 ) {
     fun nextAfterVerifiedSubscription(observedAt: Instant): Instant = observedAt.plus(subscriptionPollInterval)
 
@@ -22,9 +23,11 @@ class PlayerTrackingSchedulePolicy(
         hasSubscription: Boolean,
         highActivity: Boolean,
         completedAt: Instant,
+        idleLinkedAccount: Boolean = false,
     ): Instant {
         val interval =
             when {
+                idleLinkedAccount -> linkedAccountPollInterval
                 status == PlayerPresenceStatus.UNKNOWN || status == PlayerPresenceStatus.HIDDEN -> unverifiablePollInterval
                 hasSubscription -> subscriptionPollInterval
                 saoOnline -> saoOnlinePollInterval

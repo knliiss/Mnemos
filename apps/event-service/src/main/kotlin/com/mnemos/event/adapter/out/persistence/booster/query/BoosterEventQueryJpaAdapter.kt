@@ -34,7 +34,12 @@ class BoosterEventQueryJpaAdapter(
                     ),
             )
 
-        return page.toPageResult { it.toView() }
+        return page.toPageResult { projection ->
+            val view = projection.toView()
+            val playerId = view.playerId
+            val current = playerId?.let(playerIdentityRepository::findCurrentNickname)
+            if (current != null) view.copy(activatedBy = current) else view
+        }
     }
 
     private fun emptyPage(query: ListBoosterEventQuery): PageResult<BoosterEventView> =

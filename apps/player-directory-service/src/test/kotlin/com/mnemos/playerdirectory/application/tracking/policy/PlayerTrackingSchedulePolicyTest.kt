@@ -114,6 +114,32 @@ class PlayerTrackingSchedulePolicyTest {
     }
 
     @Test
+    fun `idle linked account is checked by UUID on a low frequency schedule`() {
+        assertEquals(
+            now.plus(Duration.ofHours(6)),
+            policy.nextAfterObservation(
+                status = PlayerPresenceStatus.OFFLINE,
+                saoOnline = false,
+                hasSubscription = false,
+                highActivity = true,
+                completedAt = now,
+                idleLinkedAccount = true,
+            ),
+        )
+        assertEquals(
+            now.plus(Duration.ofHours(6)),
+            policy.nextAfterObservation(
+                status = PlayerPresenceStatus.HIDDEN,
+                saoOnline = false,
+                hasSubscription = false,
+                highActivity = false,
+                completedAt = now,
+                idleLinkedAccount = true,
+            ),
+        )
+    }
+
+    @Test
     fun `verified subscription helper uses subscription interval`() {
         assertEquals(
             now.plusSeconds(20),

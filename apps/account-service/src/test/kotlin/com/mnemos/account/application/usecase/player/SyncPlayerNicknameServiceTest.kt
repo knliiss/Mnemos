@@ -56,6 +56,25 @@ class SyncPlayerNicknameServiceTest {
     }
 
     @Test
+    fun `repeated latest observation repairs an account with an outdated nickname`() {
+        val account = createAccount()
+        val accountRepository = mock<AccountRepository>()
+        val revisionStore = mock<PlayerIdentityRevisionStore>()
+        val service = createService(accountRepository, revisionStore)
+        val command = command(externalVersion = 9, nickname = "ActuallyRenamed")
+
+        whenever(accountRepository.findByCristalixUuidForUpdate(PLAYER_ID)).thenReturn(account)
+        whenever(revisionStore.matchesCurrent(PLAYER_ID, CristalixNickname("ActuallyRenamed"), 9))
+            .thenReturn(true)
+        whenever(accountRepository.update(account)).thenReturn(account)
+
+        service.execute(command)
+
+        assertEquals(CristalixNickname("ActuallyRenamed"), account.cristalixNickname)
+        verify(accountRepository).update(account)
+    }
+
+    @Test
     fun `newer nickname revision updates inactive account`() {
         val account = createAccount()
         account.deactivate(Instant.parse("2026-08-27T09:00:00Z"))

@@ -10,6 +10,17 @@ import java.time.Instant
 class PlayerIdentityRevisionStoreAdapter(
     private val repository: JpaPlayerIdentityRevisionRepository,
 ) : PlayerIdentityRevisionStore {
+    override fun matchesCurrent(
+        playerId: CristalixUuid,
+        nickname: CristalixNickname,
+        externalVersion: Long,
+    ): Boolean =
+        repository.matchesCurrent(
+            playerId = playerId.id,
+            nickname = nickname.value,
+            externalVersion = externalVersion,
+        )
+
     override fun advanceIfNewer(
         playerId: CristalixUuid,
         nickname: CristalixNickname,

@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.application.tracking.support
 
+import com.mnemos.playerdirectory.application.accountlink.port.out.PlayerAccountLinkRepository
 import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionRepository
 import com.mnemos.playerdirectory.application.tracking.model.PlayerTrackingLease
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingActivityPolicy
@@ -16,6 +17,7 @@ import java.time.Instant
 class PlayerTrackingCompletionCoordinator(
     private val repository: PlayerTrackingRepository,
     private val subscriptionRepository: PresenceSubscriptionRepository,
+    private val linkedAccountRepository: PlayerAccountLinkRepository,
     private val activityPolicy: PlayerTrackingActivityPolicy,
     private val schedulePolicy: PlayerTrackingSchedulePolicy,
     private val clock: Clock,
@@ -42,13 +44,19 @@ class PlayerTrackingCompletionCoordinator(
             } else {
                 current
             }
+        val hasSubscription = subscriptionRepository.existsByPlayerId(lease.playerId)
+        val idleLinkedAccount =
+            !hasSubscription &&
+                (state.activeUntil == null || !state.activeUntil.isAfter(completedAt)) &&
+                linkedAccountRepository.existsByPlayerId(lease.playerId)
         val nextPollAt =
             schedulePolicy.nextAfterObservation(
                 status = observation.presence.status,
                 saoOnline = saoOnline,
-                hasSubscription = subscriptionRepository.existsByPlayerId(lease.playerId),
+                hasSubscription = hasSubscription,
                 highActivity = activityPolicy.isHighActivity(state.observedDropCount),
                 completedAt = completedAt,
+                idleLinkedAccount = idleLinkedAccount,
             )
         val completed =
             state.completeSuccess(

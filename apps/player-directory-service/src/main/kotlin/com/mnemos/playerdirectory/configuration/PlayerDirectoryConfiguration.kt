@@ -61,5 +61,6 @@ class PlayerDirectoryConfiguration {
             unverifiablePollInterval = properties.unverifiablePollInterval,
             failureBackoff = properties.failureBackoff,
             maximumFailureBackoff = properties.maximumFailureBackoff,
+            linkedAccountPollInterval = properties.linkedAccountPollInterval,
         )
 }

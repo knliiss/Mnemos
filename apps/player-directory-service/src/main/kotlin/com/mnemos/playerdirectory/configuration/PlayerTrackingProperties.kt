@@ -17,6 +17,7 @@ data class PlayerTrackingProperties(
     val highActivityRetention: Duration,
     val failureBackoff: Duration,
     val maximumFailureBackoff: Duration,
+    val linkedAccountPollInterval: Duration = Duration.ofHours(6),
 ) {
     init {
         require(batchSize in 1..200) {
@@ -35,6 +36,7 @@ data class PlayerTrackingProperties(
         require(highActivityRetention >= lowActivityRetention) {
             "High-activity retention cannot be shorter than low-activity retention"
         }
+        requirePositive(linkedAccountPollInterval, "Linked account nickname refresh interval")
         requirePositive(failureBackoff, "Tracking failure backoff")
         require(maximumFailureBackoff >= failureBackoff) {
             "Maximum tracking failure backoff cannot be smaller than the base backoff"

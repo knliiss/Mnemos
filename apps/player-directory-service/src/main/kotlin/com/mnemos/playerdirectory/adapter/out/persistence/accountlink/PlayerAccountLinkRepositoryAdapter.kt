@@ -2,6 +2,7 @@ package com.mnemos.playerdirectory.adapter.out.persistence.accountlink
 
 import com.mnemos.playerdirectory.application.accountlink.model.PlayerAccountLink
 import com.mnemos.playerdirectory.application.accountlink.port.out.PlayerAccountLinkRepository
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
@@ -9,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional
 class PlayerAccountLinkRepositoryAdapter(
     private val repository: PlayerAccountLinkJpaRepository,
 ) : PlayerAccountLinkRepository {
+    override fun existsByPlayerId(playerId: CristalixPlayerId): Boolean = repository.existsById(playerId.id)
+
     @Transactional
     override fun save(link: PlayerAccountLink) {
         val updatedRows =
