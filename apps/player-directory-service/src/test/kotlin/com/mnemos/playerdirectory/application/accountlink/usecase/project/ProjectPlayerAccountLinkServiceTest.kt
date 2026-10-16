@@ -5,11 +5,18 @@ import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
 import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
+import com.mnemos.playerdirectory.domain.player.model.Player
+import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
+import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
+import com.mnemos.playerdirectory.domain.player.model.PlayerPresence
+import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -51,4 +58,36 @@ class ProjectPlayerAccountLinkServiceTest {
         assertEquals(playerId, tracking.firstValue.playerId.id)
         assertEquals(now, tracking.firstValue.nextPollAt)
     }
-}
+}    @Test
+    fun `account bootstrap republishes an existing player identity to heal old nickname snapshots`() {
+        val links = mock<PlayerAccountLinkRepository>()
+        val tracking = mock<PlayerTrackingRepository>()
+        val players = mock<PlayerRepository>()
+        val events = mock<PlayerIntegrationEventPublisher>()
+        val now = Instant.parse("2026-10-16T00:00:00Z")
+        val id = CristalixPlayerId(UUID.fromString("11111111-1111-1111-1111-111111111111"))
+        val observation =
+            PlayerObservation(
+                playerId = id,
+                nickname = PlayerNickname.of("CurrentName"),
+                externalVersion = 14,
+                externalUpdatedAt = now,
+                presence = PlayerPresence(
+                    status = PlayerPresenceStatus.OFFLINE,
+                    realm = null,
+                    realmType = null,
+                    privacyHidden = false,
+                    lastSeenOnline = null,
+                    observedAt = now,
+                ),
+            )
+        val player = Player.fromObservation(observation)
+        whenever(players.findById(id)).thenReturn(player)
+
+        val service = ProjectPlayerAccountLinkService(links, tracking, players, events, Clock.fixed(now, ZoneOffset.UTC))
+        service.execute(ProjectPlayerAccountLinkCommand(id.id, UUID.fromString("22222222-2222-2222-2222-222222222222"), now))
+
+        verify(events).publishInitial(player, now)
+    }
+
+
