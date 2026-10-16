@@ -38,9 +38,7 @@ class ItemDropQueryJpaAdapter(
         }
     }
 
-    override fun findById(id: EventId): ItemDropView? {
-        return itemDropEventJpaRepository.findViewById(id.id)?.toView()?.withCurrentNickname()
-    }
+    override fun findById(id: EventId): ItemDropView? = itemDropEventJpaRepository.findViewById(id.id)?.toView()?.withCurrentNickname()
 
     private fun ItemDropView.withCurrentNickname(): ItemDropView {
         val id: CristalixPlayerId = playerId ?: return this
