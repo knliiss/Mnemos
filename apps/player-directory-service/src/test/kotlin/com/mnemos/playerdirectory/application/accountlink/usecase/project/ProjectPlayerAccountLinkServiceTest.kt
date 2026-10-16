@@ -1,6 +1,8 @@
 package com.mnemos.playerdirectory.application.accountlink.usecase.project
 
 import com.mnemos.playerdirectory.application.accountlink.port.out.PlayerAccountLinkRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
 import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,11 +20,15 @@ class ProjectPlayerAccountLinkServiceTest {
     fun `linking an account seeds a durable identity poll for its immutable player id`() {
         val linkedRepository = mock<PlayerAccountLinkRepository>()
         val trackingRepository = mock<PlayerTrackingRepository>()
+        val playerRepository = mock<PlayerRepository>()
+        val eventPublisher = mock<PlayerIntegrationEventPublisher>()
         val now = Instant.parse("2026-10-16T00:00:00Z")
         val service =
             ProjectPlayerAccountLinkService(
                 repository = linkedRepository,
                 trackingRepository = trackingRepository,
+                playerRepository = playerRepository,
+                eventPublisher = eventPublisher,
                 clock = Clock.fixed(now, ZoneOffset.UTC),
             )
         val playerId = UUID.fromString("11111111-1111-1111-1111-111111111111")
