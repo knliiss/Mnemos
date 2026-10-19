@@ -31,7 +31,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation(libs.uuid.creator)
 
-    implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.10.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
