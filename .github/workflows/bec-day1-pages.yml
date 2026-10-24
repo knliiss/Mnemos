@@ -1,0 +1,76 @@
+name: BEC Day 1 Cloudflare Pages deployment
+on:
+  push:
+    branches:
+      - deploy/bec-day1
+    paths:
+      - .github/workflows/bec-day1-pages.yml
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      PAGES_PROJECT: bec-day1
+      PRODUCTION_BRANCH: feature/house-configurator
+      COMMIT_SHA: 038f0748253cf5dca1863ee60e30d3f61d6e90f3
+      ARTIFACT_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-6c0c-81f4-936f-be7b406616dd/raw?se=2026-10-24T15%3A07%3A29Z&sp=r&sv=2026-02-06&sr=b&scid=9cb0cbfc-9f88-5d0c-aca8-d25964cfddde&skoid=061609b8-1cdb-4a5b-9e68-c7ab9a523a8f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-24T02%3A44%3A48Z&ske=2026-10-25T02%3A44%3A48Z&sks=b&skv=2026-02-06&sig=5rpVayYJU5ozPYPsbok3mayX7439J5MqVMOdOrGh/Hs%3D"
+    steps:
+      - name: Validate credentials and verified build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_ACCOUNT_ID:-}"
+          test -n "${CLOUDFLARE_API_TOKEN:-}"
+          curl --fail --silent --show-error --location --retry 3 --connect-timeout 20 --max-time 120 "$ARTIFACT_URL" --output /tmp/bec-day1.zip
+          printf '%s  %s\n' '57806bf34cc404247675b3701e223f338f88c475e8ee5e8572ae8c67a21c66a1' /tmp/bec-day1.zip | sha256sum --check
+          mkdir -p /tmp/bec-day1-dist
+          unzip -q /tmp/bec-day1.zip -d /tmp/bec-day1-dist
+          test -s /tmp/bec-day1-dist/index.html
+          test -d /tmp/bec-day1-dist/assets
+          echo "Verified BEC frontend build for commit $COMMIT_SHA"
+      - name: Ensure separate Cloudflare Pages project
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects"
+          http="$(curl --silent --show-error --output /tmp/pages-get.json --write-out '%{http_code}' --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$api/$PAGES_PROJECT")"
+          case "$http" in
+            200)
+              if ! jq -e --arg b "$PRODUCTION_BRANCH" '.success == true and .result.production_branch == $b' /tmp/pages-get.json >/dev/null; then
+                echo "Existing Pages project differs; refusing to overwrite."
+                jq '{success,errors,project_name:.result.name,production_branch:.result.production_branch}' /tmp/pages-get.json
+                exit 1
+              fi
+              ;;
+            404)
+              payload="$(jq -n --arg name "$PAGES_PROJECT" --arg branch "$PRODUCTION_BRANCH" '{name:$name,production_branch:$branch}')"
+              http="$(curl --silent --show-error --output /tmp/pages-create.json --write-out '%{http_code}' -X POST --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" --header 'Content-Type: application/json' --data "$payload" "$api")"
+              if [ "$http" != "200" ] && [ "$http" != "201" ]; then
+                echo "Cloudflare Pages creation returned HTTP $http"; jq '{success,errors}' /tmp/pages-create.json; exit 1
+              fi
+              jq -e '.success == true and .result != null' /tmp/pages-create.json >/dev/null
+              cp /tmp/pages-create.json /tmp/pages-get.json
+              ;;
+            *)
+              echo "Cloudflare Pages lookup returned HTTP $http"; jq '{success,errors}' /tmp/pages-get.json; exit 1
+              ;;
+          esac
+          jq -r '"Pages hostname: " + (.result.subdomain // "unknown")' /tmp/pages-get.json
+      - name: Deploy to BEC Pages only
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy /tmp/bec-day1-dist --project-name=bec-day1 --branch=feature/house-configurator --commit-hash=038f0748253cf5dca1863ee60e30d3f61d6e90f3
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Show Pages release status
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PAGES_PROJECT")"
+          jq -e '.success == true' <<< "$response" >/dev/null
+          jq '{project:.result.name,production_branch:.result.production_branch,subdomain:.result.subdomain}' <<< "$response"
