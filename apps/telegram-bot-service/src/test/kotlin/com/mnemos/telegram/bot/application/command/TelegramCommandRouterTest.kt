@@ -12,6 +12,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -28,6 +29,7 @@ class TelegramCommandRouterTest {
     private val menuService = mock<TelegramMenuService>()
     private val widgetDashboard = mock<OpenDashboardWidgetUseCase>()
     private val notificationWidget = mock<OpenNotificationWidgetUseCase>()
+    private val eventWidget = mock<OpenEventWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -35,6 +37,7 @@ class TelegramCommandRouterTest {
             menuService = menuService,
             widgetDashboard = widgetDashboard,
             notificationWidget = notificationWidget,
+            eventWidget = eventWidget,
         )
 
     @Test
@@ -211,7 +214,22 @@ class TelegramCommandRouterTest {
     }
 
     @Test
-    fun `notifications command opens widget when enabled`() {
+    fun `events command uses event widget without search query`() {
+        whenever(eventWidget.enabled).thenReturn(true)
+        whenever(eventWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL, null))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/events")))
+        verify(eventWidget).execute(
+            TELEGRAM_ID,
+            com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL,
+            null,
+        )
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `notifications command opens widget when enabled` {
         whenever(notificationWidget.enabled).thenReturn(true)
         whenever(notificationWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
 

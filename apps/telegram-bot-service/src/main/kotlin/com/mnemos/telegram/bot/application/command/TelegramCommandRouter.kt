@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -24,6 +25,7 @@ class TelegramCommandRouter(
     private val menuService: TelegramMenuService,
     private val widgetDashboard: OpenDashboardWidgetUseCase,
     private val notificationWidget: OpenNotificationWidgetUseCase,
+    private val eventWidget: OpenEventWidgetUseCase,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
         val text = context.text.trim()
@@ -65,7 +67,15 @@ class TelegramCommandRouter(
                 }
             "/packs" -> menuService.open(context.telegramId, TelegramMenuScreen.PACKS)
             "/online" -> openOnline(context.telegramId, argument)
-            "/events" -> openEvents(context.telegramId, argument)
+            "/events" ->
+                if (argument.isBlank() && eventWidget.enabled) {
+                    when (val result = eventWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> openEvents(context.telegramId, argument)
+                        else -> result
+                    }
+                } else {
+                    openEvents(context.telegramId, argument)
+                }
             "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
             "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
             "/bets" -> menuService.open(context.telegramId, TelegramMenuScreen.BETS)

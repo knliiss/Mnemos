@@ -5,6 +5,7 @@ import java.util.UUID
 enum class TelegramWidgetScreen {
     DASHBOARD,
     NOTIFICATIONS,
+    EVENTS,
 }
 
 data class TelegramWidgetSession(
@@ -13,6 +14,7 @@ data class TelegramWidgetSession(
     val screen: TelegramWidgetScreen,
     val accountId: UUID?,
     val page: Int = 0,
+    val cursor: UUID? = null,
 ) {
     init {
         require(telegramId > 0)

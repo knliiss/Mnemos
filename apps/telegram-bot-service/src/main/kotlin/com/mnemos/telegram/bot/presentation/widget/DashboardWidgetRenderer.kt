@@ -54,7 +54,7 @@ class DashboardWidgetRenderer(
               <button id="claim">Отримати</button>
               <button id="refresh" class="secondary">Оновити</button>
             </div>
-            <div class="actions"><button id="subscriptions" class="secondary">Мої підписки</button></div>
+            <div class="actions"><button id="subscriptions" class="secondary">Мої підписки</button><button id="events" class="secondary">Події</button></div>
             <div id="feedback" aria-live="polite"></div>
             <script>
             (function(){
@@ -89,6 +89,7 @@ class DashboardWidgetRenderer(
               document.getElementById('refresh').addEventListener('click',function(){request('w1:refresh');});
               document.getElementById('claim').addEventListener('click',function(){request('w1:claim');});
               document.getElementById('subscriptions').addEventListener('click',function(){request('w1:sub:open');});
+              document.getElementById('events').addEventListener('click',function(){request('w1:evt:open');});
               if(window.TelegramWidget){
                 TelegramWidget.onEvent('chatDataChanged',hydrate);
                 hydrate();

@@ -1,0 +1,20 @@
+package com.mnemos.telegram.bot.application.widget.events
+
+import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import java.util.UUID
+
+interface EventWidgetSnapshotQuery {
+    fun load(
+        telegramId: Long,
+        filter: EventHistoryFilter,
+        after: UUID?,
+    ): EventWidgetSnapshotResult
+}
+
+sealed interface EventWidgetSnapshotResult {
+    data class Available(
+        val view: EventWidgetView,
+    ) : EventWidgetSnapshotResult
+
+    data object Unavailable : EventWidgetSnapshotResult
+}
