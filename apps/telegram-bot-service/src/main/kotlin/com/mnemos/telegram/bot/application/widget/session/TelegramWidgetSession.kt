@@ -2,14 +2,6 @@ package com.mnemos.telegram.bot.application.widget.session
 
 import java.util.UUID
 
-enum class TelegramWidgetScreen {
-    DASHBOARD,
-    NOTIFICATIONS,
-    EVENTS,
-    ACCOUNTS,
-    DAILY,
-}
-
 data class TelegramWidgetSession(
     val telegramId: Long,
     val messageId: Int,

@@ -7,10 +7,11 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.port.out.EventHistoryGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
+import java.util.UUID
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 @Service
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
@@ -57,7 +58,7 @@ class OpenEventWidgetService(
                                 is EventHistoryItem.Global -> "Глобальна" to item.globalType
                                 is EventHistoryItem.Raid -> "Рейд" to item.locations.joinToString(", ")
                             }
-                        EventWidgetItem(kind, title.take(20), item.occurredAt.toString().substring(11, 16) + " UTC")
+                        EventWidgetItem(kind, WidgetTextLimiter.truncateUtf8(title, 36), item.occurredAt.toString().substring(11, 16) + " UTC")
                     },
             ),
         )

@@ -6,11 +6,3 @@ interface NotificationWidgetSnapshotQuery {
         page: Int,
     ): NotificationWidgetSnapshotResult
 }
-
-sealed interface NotificationWidgetSnapshotResult {
-    data class Available(
-        val view: NotificationWidgetView,
-    ) : NotificationWidgetSnapshotResult
-
-    data object Unavailable : NotificationWidgetSnapshotResult
-}

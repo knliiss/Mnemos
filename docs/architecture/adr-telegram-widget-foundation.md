@@ -77,3 +77,10 @@ A production rollout requires successful backend CI, independent inspection of t
 - CI and device compatibility tests are outstanding by choice; do not enable the flag in production yet.
 - Polling handover is mutually exclusive per application instance; multi-instance ownership/leader election remains necessary before scaling the bot service horizontally.
 - The code currently supports dashboard, notification, events, account selection and daily-rewards widgets; other screens remain in the existing Telegram text bot and Mini App.
+
+## Payload and maintainability safeguards
+
+- All user-supplied widget feed labels and account display names are truncated by **UTF-8 byte length** before being put into `chat_data`, not by UTF-16 character count. The truncation preserves complete Unicode code points and is covered by tests.
+- `answerWidgetQuery` has an independent 1024-byte UTF-8 response budget. If combining the state and acknowledgement would exceed this limit, the answer contains only status and message; the separate `editMessageWidgetData` update carries the refreshed state.
+- Every new widget feature has separate snapshot/query, action handler, publisher port, adapter and presentation renderer. Kotlin declarations are kept in their own files rather than growing one central router or large model file.
+- The desktop/browser Mini App and the legacy Telegram menu stay available for unsupported Telegram clients and complex input workflows.

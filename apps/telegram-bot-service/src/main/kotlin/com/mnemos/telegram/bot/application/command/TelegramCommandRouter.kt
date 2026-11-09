@@ -162,9 +162,3 @@ class TelegramCommandRouter(
     }
 }
 
-data class TelegramCommandContext(
-    val telegramId: Long,
-    val text: String,
-    val firstName: String?,
-    val username: String?,
-)

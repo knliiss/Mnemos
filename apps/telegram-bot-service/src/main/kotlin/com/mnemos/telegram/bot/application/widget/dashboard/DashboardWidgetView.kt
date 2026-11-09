@@ -1,5 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.dashboard
 
+import java.util.UUID
+
 data class DashboardWidgetView(
     val accountName: String?,
     val accountCount: Int,
@@ -7,5 +9,5 @@ data class DashboardWidgetView(
     val prime: Long?,
     val dailyStreak: Int?,
     val dailyClaimed: Boolean?,
-    val accountId: java.util.UUID? = null,
+    val accountId: UUID? = null,
 )

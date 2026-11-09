@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
+import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
 import com.mnemos.telegram.bot.application.widget.notifications.port.out.NotificationWidgetPublisher
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -64,7 +65,7 @@ class OpenNotificationWidgetService(
                                 .filter(String::isNotBlank)
                                 .joinToString(" · ")
                                 .ifBlank { "Усі дропи" }
-                                .take(50)
+                                .let { WidgetTextLimiter.truncateUtf8(it, 48) }
                         NotificationWidgetDrop(id = entry.id, label = label)
                     },
                 boosters = result.boosterSubscriptions.size,

@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.account.port.out.AccountBalanceGatewa
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.accounts.port.out.AccountWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -66,7 +67,7 @@ class OpenAccountWidgetService(
                     all.drop(actualPage * PAGE_SIZE).take(PAGE_SIZE).map { account ->
                         AccountWidgetEntry(
                             accountId = account.accountId,
-                            nickname = account.cristalixNickname.take(MAX_NICKNAME_LENGTH),
+                            nickname = WidgetTextLimiter.truncateUtf8(account.cristalixNickname, MAX_NICKNAME_BYTES),
                             owner = account.owner,
                             memberCount = account.memberCount,
                             maxMembers = account.maxMembers,
@@ -85,6 +86,6 @@ class OpenAccountWidgetService(
 
     private companion object {
         const val PAGE_SIZE = 4
-        const val MAX_NICKNAME_LENGTH = 24
+        const val MAX_NICKNAME_BYTES = 40
     }
 }

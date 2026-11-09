@@ -70,7 +70,7 @@ class OpenEventWidgetServiceTest {
         assertEquals(after, view.firstValue.after)
         assertEquals(next, view.firstValue.nextCursor)
         assertEquals(listOf("Дроп", "Бустер", "Глобальна", "Рейд"), view.firstValue.items.map { it.type })
-        assertTrue(view.firstValue.items.all { it.label.length <= 20 })
+        assertTrue(view.firstValue.items.all { it.label.toByteArray(Charsets.UTF_8).size <= 36 })
     }
 
     @Test
