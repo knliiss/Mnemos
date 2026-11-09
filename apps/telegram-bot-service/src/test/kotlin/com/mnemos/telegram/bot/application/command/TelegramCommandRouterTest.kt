@@ -191,7 +191,24 @@ class TelegramCommandRouterTest {
     }
 
     @Test
-    fun `unknown command is confirmed without side effects`() {
+    fun `rejected widget falls back to legacy menu`() {
+        whenever(widgetDashboard.enabled).thenReturn(true)
+        whenever(widgetDashboard.execute(TELEGRAM_ID)).thenReturn(
+            TelegramDeliveryResult.PermanentFailure("telegram-widget-rejected"),
+        )
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(menuService).open(
+            telegramId = TELEGRAM_ID,
+            screen = TelegramMenuScreen.HOME,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
+    fun `unknown command is confirmed without side effects` {
         val result = router.route(commandContext("/unknown"))
 
         assertEquals(TelegramDeliveryResult.Delivered, result)

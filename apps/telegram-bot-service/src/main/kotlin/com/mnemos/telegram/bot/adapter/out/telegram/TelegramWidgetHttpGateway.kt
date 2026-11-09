@@ -32,25 +32,7 @@ class TelegramWidgetHttpGateway(
         telegramId: Long,
         widget: TelegramWidgetMessage,
     ): TelegramDeliveryResult {
-        val body =
-            mapOf(
-                "chat_id" to telegramId,
-                "html" to widget.html,
-                "caption" to widget.caption,
-                "allow_queries" to false,
-                "reply_markup" to
-                    mapOf(
-                        "inline_keyboard" to
-                            widget.actionRows.map { row ->
-                                row.map { button ->
-                                    mapOf(
-                                        "text" to button.label,
-                                        "callback_data" to button.callbackData,
-                                    )
-                                }
-                            },
-                    ),
-            )
+        val body = TelegramWidgetRequestMapper.toSendBody(telegramId, widget)
 
         return try {
             val result =

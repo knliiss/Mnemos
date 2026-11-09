@@ -43,10 +43,13 @@ class TelegramCommandRouter(
             "/help", "/commands" -> helpService.send(context.telegramId)
             "/menu" -> menuService.open(context.telegramId)
             "/widget" ->
-                if (widgetDashboard.enabled) {
-                    widgetDashboard.execute(context.telegramId)
-                } else {
+                if (!widgetDashboard.enabled) {
                     menuService.open(context.telegramId)
+                } else {
+                    when (val result = widgetDashboard.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> menuService.open(context.telegramId)
+                        else -> result
+                    }
                 }
             "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
             "/packs" -> menuService.open(context.telegramId, TelegramMenuScreen.PACKS)
