@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -26,12 +27,14 @@ class TelegramCommandRouterTest {
     private val helpService = mock<HandleTelegramHelpService>()
     private val menuService = mock<TelegramMenuService>()
     private val widgetDashboard = mock<OpenDashboardWidgetUseCase>()
+    private val notificationWidget = mock<OpenNotificationWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
             helpService = helpService,
             menuService = menuService,
             widgetDashboard = widgetDashboard,
+            notificationWidget = notificationWidget,
         )
 
     @Test
@@ -208,7 +211,17 @@ class TelegramCommandRouterTest {
     }
 
     @Test
-    fun `unknown command is confirmed without side effects` {
+    fun `notifications command opens widget when enabled`() {
+        whenever(notificationWidget.enabled).thenReturn(true)
+        whenever(notificationWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/notifications")))
+        verify(notificationWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `unknown command is confirmed without side effects`() {
         val result = router.route(commandContext("/unknown"))
 
         assertEquals(TelegramDeliveryResult.Delivered, result)

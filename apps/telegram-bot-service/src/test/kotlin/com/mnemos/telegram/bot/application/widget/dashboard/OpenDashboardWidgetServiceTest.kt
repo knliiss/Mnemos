@@ -103,6 +103,7 @@ class OpenDashboardWidgetServiceTest {
         val view = argumentCaptor<DashboardWidgetView>()
         verify(publisher).publish(eq(42L), view.capture())
         assertEquals("Kirito", view.firstValue.accountName)
+        assertEquals(accountId, view.firstValue.accountId)
         assertEquals(250L, view.firstValue.coin)
         assertEquals(8, view.firstValue.dailyStreak)
         assertEquals(true, view.firstValue.dailyClaimed)

@@ -67,6 +67,7 @@ class OpenDashboardWidgetService(
                 prime = balance?.prime,
                 dailyStreak = reward?.currentStreak,
                 dailyClaimed = reward?.claimedToday,
+                accountId = activeAccount?.accountId,
             )
 
         return DashboardWidgetSnapshotResult.Available(view)

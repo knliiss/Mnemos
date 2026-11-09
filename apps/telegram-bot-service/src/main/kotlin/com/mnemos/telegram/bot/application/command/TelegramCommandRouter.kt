@@ -12,6 +12,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -22,6 +23,7 @@ class TelegramCommandRouter(
     private val helpService: HandleTelegramHelpService,
     private val menuService: TelegramMenuService,
     private val widgetDashboard: OpenDashboardWidgetUseCase,
+    private val notificationWidget: OpenNotificationWidgetUseCase,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
         val text = context.text.trim()
@@ -51,7 +53,16 @@ class TelegramCommandRouter(
                         else -> result
                     }
                 }
-            "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+            "/notifications" ->
+                if (!notificationWidget.enabled) {
+                    menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+                } else {
+                    when (val result = notificationWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+                        else -> result
+                    }
+                }
             "/packs" -> menuService.open(context.telegramId, TelegramMenuScreen.PACKS)
             "/online" -> openOnline(context.telegramId, argument)
             "/events" -> openEvents(context.telegramId, argument)

@@ -23,16 +23,17 @@ class RedisTelegramWidgetSessionRepository(
     ): TelegramWidgetSession? {
         val content = redis.opsForValue().get(key(telegramId, messageId)) ?: return null
         val parts = content.split('|')
-        if (parts.size != 4 || parts[0] != "v1") return null
+        if (parts.size != 5 || parts[0] != "v2") return null
         val owner = parts[1].toLongOrNull() ?: return null
         val screen = runCatching { TelegramWidgetScreen.valueOf(parts[2]) }.getOrNull() ?: return null
         val accountId = if (parts[3] == "-") null else runCatching { UUID.fromString(parts[3]) }.getOrNull()
         if (owner != telegramId || (parts[3] != "-" && accountId == null)) return null
-        return TelegramWidgetSession(telegramId, messageId, screen, accountId)
+        val page = parts[4].toIntOrNull()?.takeIf { it in 0..1_000 } ?: return null
+        return TelegramWidgetSession(telegramId, messageId, screen, accountId, page)
     }
 
     override fun save(session: TelegramWidgetSession) {
-        val state = listOf("v1", session.telegramId, session.screen.name, session.accountId ?: "-").joinToString("|")
+        val state = listOf("v2", session.telegramId, session.screen.name, session.accountId ?: "-", session.page).joinToString("|")
         redis.opsForValue().set(key(session.telegramId, session.messageId), state, widgetProperties.sessionTtl)
     }
 
