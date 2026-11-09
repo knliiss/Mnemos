@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.application.input.TelegramTextInputContext
 import com.mnemos.telegram.bot.application.input.TelegramTextInputRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.payment.HandleTelegramStarPaymentUpdateService
+import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import com.pengrad.telegrambot.ExceptionHandler
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.TelegramException
@@ -33,9 +34,11 @@ class TelegramLongPollingConsumer(
     private val textInputRouter: TelegramTextInputRouter,
     private val callbackRouter: TelegramCallbackRouter,
     private val starPaymentService: HandleTelegramStarPaymentUpdateService,
+    private val widgetProperties: TelegramWidgetProperties = TelegramWidgetProperties(),
 ) : ApplicationRunner,
     DisposableBean {
     override fun run(args: ApplicationArguments) {
+        if (widgetProperties.enabled) return
         bot.setUpdatesListener(
             UpdatesListener(::processUpdates),
             ExceptionHandler(::handlePollingException),
@@ -43,7 +46,7 @@ class TelegramLongPollingConsumer(
     }
 
     override fun destroy() {
-        bot.removeGetUpdatesListener()
+        if (!widgetProperties.enabled) bot.removeGetUpdatesListener()
     }
 
     private var retryUpdateId: Int? = null

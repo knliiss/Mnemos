@@ -1,15 +1,17 @@
 package com.mnemos.telegram.bot.presentation.widget
 
 import com.mnemos.telegram.bot.application.widget.dashboard.DashboardWidgetView
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.ObjectMapper
 
 class DashboardWidgetRendererTest {
-    private val renderer = DashboardWidgetRenderer()
+    private val renderer = DashboardWidgetRenderer(ObjectMapper())
+    private val json = ObjectMapper()
 
     @Test
-    fun escapesExternallySuppliedAccountNameAndShowsSnapshot() {
+    fun widgetIsInteractiveAndEscapesAccountNameInState() {
         val document =
             renderer.render(
                 DashboardWidgetView(
@@ -22,17 +24,19 @@ class DashboardWidgetRendererTest {
                 ),
             )
 
-        assertFalse(document.html.contains("<script>alert"))
-        assertTrue(document.html.contains("&lt;script&gt;"))
-        assertTrue(document.html.contains("Доступних акаунтів: 3"))
-        assertTrue(document.html.contains(">120<"))
-        assertTrue(document.html.contains(">20<"))
-        assertTrue(document.html.contains("Нагорода доступна"))
+        val state = json.readTree(document.chatData)
+        assertEquals("<script>alert('x')</script>&", state.path("name").asText())
+        assertEquals(120, state.path("coin").asInt())
+        assertEquals(20, state.path("prime").asInt())
+        assertTrue(document.html.contains("TelegramWidget.request"))
+        assertTrue(document.html.contains("chatDataChanged"))
+        assertTrue(!document.html.contains("<script>alert('x')</script>&"))
+        assertTrue(document.allowQueries)
         assertTrue(document.actionRows.flatten().any { it.callbackData == "w:open:events" })
     }
 
     @Test
-    fun showsRegistrationGuidanceWithoutActiveAccount() {
+    fun registrationGuidanceIsAvailableWithoutAccount() {
         val document =
             renderer.render(
                 DashboardWidgetView(
@@ -45,8 +49,9 @@ class DashboardWidgetRendererTest {
                 ),
             )
 
+        val state = json.readTree(document.chatData)
+        assertTrue(state.path("name").isNull)
+        assertTrue(state.path("claimed").isNull)
         assertTrue(document.html.contains("Акаунт не вибрано"))
-        assertTrue(document.html.contains("Створіть акаунт"))
-        assertTrue(document.html.contains("Відкрийте меню нагород"))
     }
 }

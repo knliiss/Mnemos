@@ -8,4 +8,12 @@ interface DashboardWidgetPublisher {
         telegramId: Long,
         view: DashboardWidgetView,
     ): TelegramDeliveryResult
+
+    fun update(
+        telegramId: Long,
+        messageId: Int,
+        view: DashboardWidgetView,
+    ): TelegramDeliveryResult
+
+    fun state(view: DashboardWidgetView): String
 }

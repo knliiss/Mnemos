@@ -7,4 +7,5 @@ data class DashboardWidgetView(
     val prime: Long?,
     val dailyStreak: Int?,
     val dailyClaimed: Boolean?,
+    val accountId: java.util.UUID? = null,
 )

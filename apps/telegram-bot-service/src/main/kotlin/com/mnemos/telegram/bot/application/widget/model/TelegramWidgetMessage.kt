@@ -9,6 +9,8 @@ data class TelegramWidgetMessage(
     val html: String,
     val caption: String,
     val actionRows: List<List<TelegramWidgetButton>> = emptyList(),
+    val chatData: String? = null,
+    val allowQueries: Boolean = false,
 ) {
     init {
         val htmlBytes = html.toByteArray(StandardCharsets.UTF_8)
@@ -16,6 +18,7 @@ data class TelegramWidgetMessage(
         require(compressedSize(htmlBytes) <= MAX_COMPRESSED_HTML_BYTES)
         require(caption.isNotBlank() && caption.length <= MAX_CAPTION_LENGTH)
         require(actionRows.none(List<TelegramWidgetButton>::isEmpty))
+        require(chatData == null || chatData.toByteArray(StandardCharsets.UTF_8).size <= 1_024)
     }
 
     private companion object {

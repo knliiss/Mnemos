@@ -20,7 +20,8 @@ class OpenDashboardWidgetService(
     private val balances: AccountBalanceGateway,
     private val rewards: DailyRewardGateway,
     private val publisher: DashboardWidgetPublisher,
-) : OpenDashboardWidgetUseCase {
+) : OpenDashboardWidgetUseCase,
+    DashboardWidgetSnapshotQuery {
     override val enabled: Boolean
         get() = properties.enabled
 
@@ -29,9 +30,16 @@ class OpenDashboardWidgetService(
             return TelegramDeliveryResult.PermanentFailure("widgets-disabled")
         }
 
+        return when (val result = load(telegramId)) {
+            is DashboardWidgetSnapshotResult.Available -> publisher.publish(telegramId, result.view)
+            DashboardWidgetSnapshotResult.Unavailable -> TelegramDeliveryResult.Retryable
+        }
+    }
+
+    override fun load(telegramId: Long): DashboardWidgetSnapshotResult {
         val accountResult = accounts.getContext(telegramId)
         if (accountResult == TelegramAccountContextResult.Unavailable) {
-            return TelegramDeliveryResult.Retryable
+            return DashboardWidgetSnapshotResult.Unavailable
         }
 
         val context = (accountResult as? TelegramAccountContextResult.Available)?.context
@@ -61,6 +69,6 @@ class OpenDashboardWidgetService(
                 dailyClaimed = reward?.claimedToday,
             )
 
-        return publisher.publish(telegramId, view)
+        return DashboardWidgetSnapshotResult.Available(view)
     }
 }
