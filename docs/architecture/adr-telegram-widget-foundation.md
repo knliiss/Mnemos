@@ -1,6 +1,6 @@
 # ADR — Telegram Widget UI foundation
 
-Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets, wallet and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
+Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets, wallet, SAO Online and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
 
 ## Decision
 
@@ -17,6 +17,7 @@ A widget is a versioned, self-contained HTML document rendered by Telegram, not 
 - /daily sends a reward widget with claim and streak restore actions backed by the existing DailyRewardGateway; account eligibility is checked again for each request.
 - /bets sends a read-only betting widget with round odds, item races and bet history. Monetary actions remain in the established text bot flow with typed idempotency keys and amount input.
 - /wallet sends a balance and transaction-history widget with paging and refresh. PRIME purchase continues through the existing Telegram Stars flow.
+- /online with no arguments opens a realm and player overview widget using the existing SaoOnlineSnapshotGateway; realm navigation and refresh work in-place. Searches and full lists continue through the existing text menu.
 - Data comes from existing AccountGateway, AccountBalanceGateway and DailyRewardGateway implementations.
 - Widget HTML is self-contained, bounded by 32,768 UTF-8 bytes and 4,096 zlib-compressed bytes, and sends user data only via JSON chat_data and textContent.
 - Widget buttons use widget queries; inline keyboard shortcuts still open the existing text menus for complex inputs.
@@ -69,7 +70,8 @@ A production rollout requires successful backend CI, independent inspection of t
 - Accounts: `w1:acct:refresh`, `w1:acct:next:<expected-page>`, `w1:acct:prev:<expected-page>`, `w1:acct:select:<account-uuid>`. An account selection must be on the current visible page, active and permitted by account-service. A change of active account invalidates prior widgets with an older account context.
 - Daily: `w1:daily:refresh`, `w1:daily:claim`, `w1:daily:restore`.
 - Bets (read-only): `w1:bet:refresh`, `w1:bet:mode:ROUNDS`, `w1:bet:mode:RACES`, `w1:bet:mode:HISTORY`.
-- Wallet (read-only): `w1:wallet:refresh`, `w1:wallet:prev:<expected-page>`, `w1:wallet:next:<expected-page>`. Repeated claims and unavailable restores avoid duplicate mutations.
+- Wallet (read-only): `w1:wallet:refresh`, `w1:wallet:prev:<expected-page>`, `w1:wallet:next:<expected-page>`.
+- SAO Online (read-only): `w1:on:refresh`, `w1:on:list`, `w1:on:realm:<realm-number>`. Realm numbers are validated against the live realm list and stored per widget message. Repeated claims and unavailable restores avoid duplicate mutations.
 - Events: `w1:evt:refresh`, `w1:evt:filter:<event-type>`, `w1:evt:next:<cursor-uuid>`. A next-page command opens a new widget message, leaving the old page intact. Text-based search uses the existing bot workflow.
 - Every widget_query must come from the widget owner in a private chat, match a stored message session, and preserve its original active account. Shared and inline query types are rejected.
 - Ping mutations express the desired end state rather than an imperative toggle, so a redelivered update cannot flip the setting twice.
@@ -104,3 +106,9 @@ The wallet module now exposes a dedicated *read-only* internal route, restricted
 The internal wallet response includes `accountId`. The bot compares that value against the active account context, and rereads the account after loading balances and history; mismatches are rejected instead of showing another account's data. A 403 response shows balances without revealing transaction entries. Wallet data is read-only: no amount or money-mutation action is accepted through the widget.
 
 The query UI limits each transaction page to four rows. The internal API constrains page size to a maximum of four and validates page numbers. Both the financial state and account binding must be revalidated for each WidgetQuery.
+
+## SAO Online read-only navigation
+
+The online widget consumes the existing typed `SaoOnlineSnapshotGateway` and does not introduce a separate data collector. The widget shows at most eight realms in its overview and six players in the selected realm so it remains comfortably inside the 1024-byte state budget. It presents UTC snapshot time as supplied by the gateway and makes no claim that results are instantaneous.
+
+The widget route is only used for the argument-free `/online` command. Realm-number and nickname search commands continue through the existing text menu. The text fallback also remains available through the widget's `Пошук гравця` callback.

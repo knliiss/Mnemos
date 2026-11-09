@@ -46,6 +46,19 @@ class WidgetMenuShortcutHandlerTest {
     }
 
     @Test
+    fun onlineSearchShortcutUsesExistingMenu() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:online")))
+        verify(menuService).open(
+            telegramId = 101L,
+            screen = TelegramMenuScreen.ONLINE,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
     fun unknownWidgetShortcutIsIgnored() {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:delete")))
         verifyNoInteractions(menuService)

@@ -57,6 +57,7 @@ class DashboardWidgetRenderer(
             <div class="actions"><button id="subscriptions" class="secondary">Мої підписки</button><button id="events" class="secondary">Події</button></div>
             <div class="actions"><button id="accounts" class="secondary">Акаунти</button><button id="daily" class="secondary">Нагороди</button></div>
             <div class="actions"><button id="bets" class="secondary">Ставки</button><button id="wallet" class="secondary">Гаманець</button></div>
+            <div class="actions"><button id="online" class="secondary">SAO Online</button></div>
             <div id="feedback" aria-live="polite"></div>
             <script>
             (function(){
@@ -96,6 +97,7 @@ class DashboardWidgetRenderer(
               document.getElementById('daily').addEventListener('click',function(){request('w1:daily:open');});
               document.getElementById('bets').addEventListener('click',function(){request('w1:bet:open');});
               document.getElementById('wallet').addEventListener('click',function(){request('w1:wallet:open');});
+              document.getElementById('online').addEventListener('click',function(){request('w1:on:open');});
               if(window.TelegramWidget){
                 TelegramWidget.onEvent('chatDataChanged',hydrate);
                 hydrate();

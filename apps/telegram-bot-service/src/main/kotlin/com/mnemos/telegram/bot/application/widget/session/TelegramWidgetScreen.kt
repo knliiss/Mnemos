@@ -8,5 +8,6 @@ enum class TelegramWidgetScreen {
     DAILY,
     BETS,
     WALLET,
+    ONLINE,
 }
 
