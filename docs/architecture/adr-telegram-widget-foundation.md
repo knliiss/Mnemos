@@ -1,6 +1,6 @@
 # ADR — Telegram Widget UI foundation
 
-Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
+Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
 
 ## Decision
 
@@ -15,6 +15,7 @@ A widget is a versioned, self-contained HTML document rendered by Telegram, not 
 - /events (without a text search query) sends a compact event feed widget with filter tabs, refresh, and cursor-paginated next-page messages. /events with a search query still uses the text bot.
 - /account sends an account selector widget with active account, account balances, enabled-account selection and pagination. Creation, joining and advanced administration remain in the existing text menu.
 - /daily sends a reward widget with claim and streak restore actions backed by the existing DailyRewardGateway; account eligibility is checked again for each request.
+- /bets sends a read-only betting widget with round odds, item races and bet history. Monetary actions remain in the established text bot flow with typed idempotency keys and amount input.
 - Data comes from existing AccountGateway, AccountBalanceGateway and DailyRewardGateway implementations.
 - Widget HTML is self-contained, bounded by 32,768 UTF-8 bytes and 4,096 zlib-compressed bytes, and sends user data only via JSON chat_data and textContent.
 - Widget buttons use widget queries; inline keyboard shortcuts still open the existing text menus for complex inputs.
@@ -65,7 +66,8 @@ A production rollout requires successful backend CI, independent inspection of t
 - Dashboard actions: `w1:refresh`, `w1:claim`, `w1:sub:open`, `w1:evt:open`, `w1:acct:open`, `w1:daily:open`.
 - Subscriptions: `w1:sub:refresh`, `w1:ping:on`, `w1:ping:off`, `w1:next:<expected-page>`, `w1:prev:<expected-page>`, `w1:del:<subscription-uuid>`.
 - Accounts: `w1:acct:refresh`, `w1:acct:next:<expected-page>`, `w1:acct:prev:<expected-page>`, `w1:acct:select:<account-uuid>`. An account selection must be on the current visible page, active and permitted by account-service. A change of active account invalidates prior widgets with an older account context.
-- Daily: `w1:daily:refresh`, `w1:daily:claim`, `w1:daily:restore`. Repeated claims and unavailable restores avoid duplicate mutations.
+- Daily: `w1:daily:refresh`, `w1:daily:claim`, `w1:daily:restore`.
+- Bets (read-only): `w1:bet:refresh`, `w1:bet:mode:ROUNDS`, `w1:bet:mode:RACES`, `w1:bet:mode:HISTORY`. Repeated claims and unavailable restores avoid duplicate mutations.
 - Events: `w1:evt:refresh`, `w1:evt:filter:<event-type>`, `w1:evt:next:<cursor-uuid>`. A next-page command opens a new widget message, leaving the old page intact. Text-based search uses the existing bot workflow.
 - Every widget_query must come from the widget owner in a private chat, match a stored message session, and preserve its original active account. Shared and inline query types are rejected.
 - Ping mutations express the desired end state rather than an imperative toggle, so a redelivered update cannot flip the setting twice.
@@ -76,7 +78,7 @@ A production rollout requires successful backend CI, independent inspection of t
 
 - CI and device compatibility tests are outstanding by choice; do not enable the flag in production yet.
 - Polling handover is mutually exclusive per application instance; multi-instance ownership/leader election remains necessary before scaling the bot service horizontally.
-- The code currently supports dashboard, notification, events, account selection and daily-rewards widgets; other screens remain in the existing Telegram text bot and Mini App.
+- The code currently supports dashboard, notification, events, account selection, daily rewards and read-only bets widgets; other screens remain in the existing Telegram text bot and Mini App.
 
 ## Payload and maintainability safeguards
 
@@ -84,3 +86,9 @@ A production rollout requires successful backend CI, independent inspection of t
 - `answerWidgetQuery` has an independent 1024-byte UTF-8 response budget. If combining the state and acknowledgement would exceed this limit, the answer contains only status and message; the separate `editMessageWidgetData` update carries the refreshed state.
 - Every new widget feature has separate snapshot/query, action handler, publisher port, adapter and presentation renderer. Kotlin declarations are kept in their own files rather than growing one central router or large model file.
 - The desktop/browser Mini App and the legacy Telegram menu stay available for unsupported Telegram clients and complex input workflows.
+
+## Betting safety boundary
+
+- Widget requests never accept arbitrary monetary amounts, raw REST paths or direct wallet operations.
+- Betting data comes from the existing typed `BetGateway` and active account context. A widget from an older account cannot refresh an account-scoped bet screen after an account switch.
+- The button for initiating a bet opens the existing Telegram chat flow, which already requests the amount and derives a stable idempotency key. A dedicated widget-originated input workflow will require separate reply correlation and operation-state handling.

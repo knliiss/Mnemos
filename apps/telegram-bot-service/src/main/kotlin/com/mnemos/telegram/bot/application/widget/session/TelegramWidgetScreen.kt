@@ -6,5 +6,6 @@ enum class TelegramWidgetScreen {
     EVENTS,
     ACCOUNTS,
     DAILY,
+    BETS,
 }
 

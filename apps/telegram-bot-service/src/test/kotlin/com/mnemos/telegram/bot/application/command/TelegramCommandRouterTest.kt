@@ -15,6 +15,7 @@ import com.mnemos.telegram.bot.application.widget.notifications.OpenNotification
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -34,6 +35,7 @@ class TelegramCommandRouterTest {
     private val eventWidget = mock<OpenEventWidgetUseCase>()
     private val accountWidget = mock<OpenAccountWidgetUseCase>()
     private val dailyWidget = mock<OpenDailyWidgetUseCase>()
+    private val betWidget = mock<OpenBetWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -44,6 +46,7 @@ class TelegramCommandRouterTest {
             eventWidget = eventWidget,
             accountWidget = accountWidget,
             dailyWidget = dailyWidget,
+            betWidget = betWidget,
         )
 
     @Test
@@ -261,6 +264,17 @@ class TelegramCommandRouterTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/daily")))
         verify(dailyWidget).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `bet command opens read only betting widget when enabled`() {
+        whenever(betWidget.enabled).thenReturn(true)
+        whenever(betWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.bet.model.BetMenuMode.ROUNDS))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/bets")))
+        verify(betWidget).execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.bet.model.BetMenuMode.ROUNDS)
         verifyNoInteractions(menuService)
     }
 
