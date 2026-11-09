@@ -7,9 +7,8 @@ import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
 import com.mnemos.telegram.bot.application.daily.port.out.DailyRewardGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
-import com.mnemos.telegram.bot.application.widget.port.out.TelegramWidgetGateway
+import com.mnemos.telegram.bot.application.widget.dashboard.port.out.DashboardWidgetPublisher
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
-import com.mnemos.telegram.bot.presentation.widget.DashboardWidgetRenderer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -20,8 +19,7 @@ class OpenDashboardWidgetService(
     private val accounts: AccountGateway,
     private val balances: AccountBalanceGateway,
     private val rewards: DailyRewardGateway,
-    private val renderer: DashboardWidgetRenderer,
-    private val gateway: TelegramWidgetGateway,
+    private val publisher: DashboardWidgetPublisher,
 ) : OpenDashboardWidgetUseCase {
     override val enabled: Boolean
         get() = properties.enabled
@@ -63,6 +61,6 @@ class OpenDashboardWidgetService(
                 dailyClaimed = reward?.claimedToday,
             )
 
-        return gateway.send(telegramId, renderer.render(view))
+        return publisher.publish(telegramId, view)
     }
 }

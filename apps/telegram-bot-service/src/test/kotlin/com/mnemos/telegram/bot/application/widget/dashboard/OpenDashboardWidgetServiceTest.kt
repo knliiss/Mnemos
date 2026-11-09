@@ -12,12 +12,9 @@ import com.mnemos.telegram.bot.application.daily.model.DailyRewardState
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
 import com.mnemos.telegram.bot.application.daily.port.out.DailyRewardGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
-import com.mnemos.telegram.bot.application.widget.model.TelegramWidgetMessage
-import com.mnemos.telegram.bot.application.widget.port.out.TelegramWidgetGateway
+import com.mnemos.telegram.bot.application.widget.dashboard.port.out.DashboardWidgetPublisher
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
-import com.mnemos.telegram.bot.presentation.widget.DashboardWidgetRenderer
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -33,7 +30,7 @@ class OpenDashboardWidgetServiceTest {
     private val accounts = mock<AccountGateway>()
     private val balances = mock<AccountBalanceGateway>()
     private val rewards = mock<DailyRewardGateway>()
-    private val gateway = mock<TelegramWidgetGateway>()
+    private val publisher = mock<DashboardWidgetPublisher>()
 
     @Test
     fun disabledWidgetsNeverCallExternalServices() {
@@ -42,20 +39,20 @@ class OpenDashboardWidgetServiceTest {
         val result = service.execute(42L)
 
         assertEquals(TelegramDeliveryResult.PermanentFailure("widgets-disabled"), result)
-        verifyNoInteractions(accounts, balances, rewards, gateway)
+        verifyNoInteractions(accounts, balances, rewards, publisher)
     }
 
     @Test
     fun registrationRequiredStillRendersHelpfulDashboard() {
         whenever(accounts.getContext(42L)).thenReturn(TelegramAccountContextResult.RegistrationRequired)
-        whenever(gateway.send(eq(42L), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(publisher.publish(eq(42L), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
         val result = createService().execute(42L)
 
         assertEquals(TelegramDeliveryResult.Delivered, result)
-        val widget = argumentCaptor<TelegramWidgetMessage>()
-        verify(gateway).send(eq(42L), widget.capture())
-        assertTrue(widget.firstValue.html.contains("Створіть акаунт"))
+        val view = argumentCaptor<DashboardWidgetView>()
+        verify(publisher).publish(eq(42L), view.capture())
+        assertEquals(null, view.firstValue.accountName)
         verifyNoInteractions(balances, rewards)
     }
 
@@ -99,15 +96,16 @@ class OpenDashboardWidgetServiceTest {
                 ),
             ),
         )
-        whenever(gateway.send(eq(42L), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(publisher.publish(eq(42L), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, createService().execute(42L))
 
-        val widget = argumentCaptor<TelegramWidgetMessage>()
-        verify(gateway).send(eq(42L), widget.capture())
-        assertTrue(widget.firstValue.html.contains("Kirito"))
-        assertTrue(widget.firstValue.html.contains(">250<"))
-        assertTrue(widget.firstValue.html.contains("Отримано сьогодні"))
+        val view = argumentCaptor<DashboardWidgetView>()
+        verify(publisher).publish(eq(42L), view.capture())
+        assertEquals("Kirito", view.firstValue.accountName)
+        assertEquals(250L, view.firstValue.coin)
+        assertEquals(8, view.firstValue.dailyStreak)
+        assertEquals(true, view.firstValue.dailyClaimed)
     }
 
     @Test
@@ -115,7 +113,7 @@ class OpenDashboardWidgetServiceTest {
         whenever(accounts.getContext(42L)).thenReturn(TelegramAccountContextResult.Unavailable)
 
         assertEquals(TelegramDeliveryResult.Retryable, createService().execute(42L))
-        verifyNoInteractions(balances, rewards, gateway)
+        verifyNoInteractions(balances, rewards, publisher)
     }
 
     private fun createService(enabled: Boolean = true): OpenDashboardWidgetService =
@@ -124,7 +122,6 @@ class OpenDashboardWidgetServiceTest {
             accounts = accounts,
             balances = balances,
             rewards = rewards,
-            renderer = DashboardWidgetRenderer(),
-            gateway = gateway,
+            publisher = publisher,
         )
 }

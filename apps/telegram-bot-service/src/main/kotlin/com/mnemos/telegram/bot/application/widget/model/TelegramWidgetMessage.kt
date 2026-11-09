@@ -5,16 +5,6 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
 
-data class TelegramWidgetButton(
-    val label: String,
-    val callbackData: String,
-) {
-    init {
-        require(label.isNotBlank())
-        require(callbackData.toByteArray(StandardCharsets.UTF_8).size in 1..64)
-    }
-}
-
 data class TelegramWidgetMessage(
     val html: String,
     val caption: String,
