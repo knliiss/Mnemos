@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
+import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -20,6 +21,7 @@ class TelegramCommandRouter(
     private val startService: HandleTelegramStartService,
     private val helpService: HandleTelegramHelpService,
     private val menuService: TelegramMenuService,
+    private val widgetDashboard: OpenDashboardWidgetUseCase,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
         val text = context.text.trim()
@@ -40,6 +42,12 @@ class TelegramCommandRouter(
 
             "/help", "/commands" -> helpService.send(context.telegramId)
             "/menu" -> menuService.open(context.telegramId)
+            "/widget" ->
+                if (widgetDashboard.enabled) {
+                    widgetDashboard.execute(context.telegramId)
+                } else {
+                    menuService.open(context.telegramId)
+                }
             "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
             "/packs" -> menuService.open(context.telegramId, TelegramMenuScreen.PACKS)
             "/online" -> openOnline(context.telegramId, argument)

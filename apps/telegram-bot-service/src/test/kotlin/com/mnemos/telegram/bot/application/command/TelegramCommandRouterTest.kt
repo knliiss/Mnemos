@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
+import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -24,11 +25,13 @@ class TelegramCommandRouterTest {
     private val startService = mock<HandleTelegramStartService>()
     private val helpService = mock<HandleTelegramHelpService>()
     private val menuService = mock<TelegramMenuService>()
+    private val widgetDashboard = mock<OpenDashboardWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
             helpService = helpService,
             menuService = menuService,
+            widgetDashboard = widgetDashboard,
         )
 
     @Test
@@ -161,6 +164,29 @@ class TelegramCommandRouterTest {
             screen = TelegramMenuScreen.EVENTS,
             screenContext = expectedContext,
             pendingInput = TelegramPendingInput.EVENT_SEARCH,
+        )
+    }
+
+    @Test
+    fun `widget shortcut opens dashboard when enabled`() {
+        whenever(widgetDashboard.enabled).thenReturn(true)
+        whenever(widgetDashboard.execute(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(widgetDashboard).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `widget shortcut falls back to legacy menu when disabled`() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(menuService).open(
+            telegramId = TELEGRAM_ID,
+            screen = TelegramMenuScreen.HOME,
+            screenContext = emptyMap(),
+            pendingInput = null,
         )
     }
 
