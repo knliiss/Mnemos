@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -34,8 +35,9 @@ class DashboardWidgetActionHandlerTest {
     private val accounts = mock<OpenAccountWidgetUseCase>()
     private val daily = mock<OpenDailyWidgetUseCase>()
     private val bets = mock<OpenBetWidgetUseCase>()
+    private val wallet = mock<OpenWalletWidgetUseCase>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = DashboardWidgetActionHandler(snapshots, publisher, rewards, notifications, events, accounts, daily, bets, responder)
+    private val handler = DashboardWidgetActionHandler(snapshots, publisher, rewards, notifications, events, accounts, daily, bets, wallet, responder)
 
     @Test
     fun staleAccountDoesNotClaimRewards() {

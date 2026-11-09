@@ -24,6 +24,7 @@ class WidgetMenuShortcutHandler(
                 "w:open:account-manage" -> TelegramMenuScreen.ACCOUNT_MANAGEMENT
                 "w:open:daily" -> TelegramMenuScreen.DAILY
                 "w:open:bets" -> TelegramMenuScreen.BETS
+                "w:open:prime" -> TelegramMenuScreen.PRIME
                 else -> return TelegramDeliveryResult.Delivered
             }
 

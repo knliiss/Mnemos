@@ -4,6 +4,7 @@ import com.mnemos.account.api.controller.internal.InternalTelegramActiveAccountA
 import com.mnemos.account.application.service.user.InternalTelegramUserQueryService
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.contracts.account.internal.v1.InternalTelegramActiveAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramWalletContextResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,4 +28,20 @@ class InternalTelegramWalletAccountController(
 
         return ResponseEntity.ok(context.toActiveAccountResponse())
     }
+    @GetMapping("/{telegramId}/wallet-context")
+    fun getWalletContext(
+        @PathVariable telegramId: Long,
+    ): ResponseEntity<InternalTelegramWalletContextResponse> {
+        val context =
+            service.findByTelegramId(TelegramId(telegramId))
+                ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(
+            InternalTelegramWalletContextResponse(
+                userId = context.userId.id,
+                activeAccountId = context.activeAccountId?.id,
+            ),
+        )
+    }
+
 }

@@ -16,6 +16,7 @@ import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,6 +37,7 @@ class TelegramCommandRouterTest {
     private val accountWidget = mock<OpenAccountWidgetUseCase>()
     private val dailyWidget = mock<OpenDailyWidgetUseCase>()
     private val betWidget = mock<OpenBetWidgetUseCase>()
+    private val walletWidget = mock<OpenWalletWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -47,6 +49,7 @@ class TelegramCommandRouterTest {
             accountWidget = accountWidget,
             dailyWidget = dailyWidget,
             betWidget = betWidget,
+            walletWidget = walletWidget,
         )
 
     @Test
@@ -275,6 +278,16 @@ class TelegramCommandRouterTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/bets")))
         verify(betWidget).execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.bet.model.BetMenuMode.ROUNDS)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `wallet command opens widget when enabled`() {
+        whenever(walletWidget.enabled).thenReturn(true)
+        whenever(walletWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/wallet")))
+        verify(walletWidget).execute(TELEGRAM_ID, 0)
         verifyNoInteractions(menuService)
     }
 

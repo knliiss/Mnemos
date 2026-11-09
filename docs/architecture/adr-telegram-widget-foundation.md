@@ -1,6 +1,6 @@
 # ADR — Telegram Widget UI foundation
 
-Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
+Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets, wallet and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
 
 ## Decision
 
@@ -16,6 +16,7 @@ A widget is a versioned, self-contained HTML document rendered by Telegram, not 
 - /account sends an account selector widget with active account, account balances, enabled-account selection and pagination. Creation, joining and advanced administration remain in the existing text menu.
 - /daily sends a reward widget with claim and streak restore actions backed by the existing DailyRewardGateway; account eligibility is checked again for each request.
 - /bets sends a read-only betting widget with round odds, item races and bet history. Monetary actions remain in the established text bot flow with typed idempotency keys and amount input.
+- /wallet sends a balance and transaction-history widget with paging and refresh. PRIME purchase continues through the existing Telegram Stars flow.
 - Data comes from existing AccountGateway, AccountBalanceGateway and DailyRewardGateway implementations.
 - Widget HTML is self-contained, bounded by 32,768 UTF-8 bytes and 4,096 zlib-compressed bytes, and sends user data only via JSON chat_data and textContent.
 - Widget buttons use widget queries; inline keyboard shortcuts still open the existing text menus for complex inputs.
@@ -67,7 +68,8 @@ A production rollout requires successful backend CI, independent inspection of t
 - Subscriptions: `w1:sub:refresh`, `w1:ping:on`, `w1:ping:off`, `w1:next:<expected-page>`, `w1:prev:<expected-page>`, `w1:del:<subscription-uuid>`.
 - Accounts: `w1:acct:refresh`, `w1:acct:next:<expected-page>`, `w1:acct:prev:<expected-page>`, `w1:acct:select:<account-uuid>`. An account selection must be on the current visible page, active and permitted by account-service. A change of active account invalidates prior widgets with an older account context.
 - Daily: `w1:daily:refresh`, `w1:daily:claim`, `w1:daily:restore`.
-- Bets (read-only): `w1:bet:refresh`, `w1:bet:mode:ROUNDS`, `w1:bet:mode:RACES`, `w1:bet:mode:HISTORY`. Repeated claims and unavailable restores avoid duplicate mutations.
+- Bets (read-only): `w1:bet:refresh`, `w1:bet:mode:ROUNDS`, `w1:bet:mode:RACES`, `w1:bet:mode:HISTORY`.
+- Wallet (read-only): `w1:wallet:refresh`, `w1:wallet:prev:<expected-page>`, `w1:wallet:next:<expected-page>`. Repeated claims and unavailable restores avoid duplicate mutations.
 - Events: `w1:evt:refresh`, `w1:evt:filter:<event-type>`, `w1:evt:next:<cursor-uuid>`. A next-page command opens a new widget message, leaving the old page intact. Text-based search uses the existing bot workflow.
 - Every widget_query must come from the widget owner in a private chat, match a stored message session, and preserve its original active account. Shared and inline query types are rejected.
 - Ping mutations express the desired end state rather than an imperative toggle, so a redelivered update cannot flip the setting twice.
@@ -78,7 +80,7 @@ A production rollout requires successful backend CI, independent inspection of t
 
 - CI and device compatibility tests are outstanding by choice; do not enable the flag in production yet.
 - Polling handover is mutually exclusive per application instance; multi-instance ownership/leader election remains necessary before scaling the bot service horizontally.
-- The code currently supports dashboard, notification, events, account selection, daily rewards and read-only bets widgets; other screens remain in the existing Telegram text bot and Mini App.
+- The code currently supports dashboard, notification, events, account selection, daily rewards, read-only bets and wallet widgets; other screens remain in the existing Telegram text bot and Mini App.
 
 ## Payload and maintainability safeguards
 
@@ -92,3 +94,13 @@ A production rollout requires successful backend CI, independent inspection of t
 - Widget requests never accept arbitrary monetary amounts, raw REST paths or direct wallet operations.
 - Betting data comes from the existing typed `BetGateway` and active account context. A widget from an older account cannot refresh an account-scoped bet screen after an account switch.
 - The button for initiating a bet opens the existing Telegram chat flow, which already requests the amount and derives a stable idempotency key. A dedicated widget-originated input workflow will require separate reply correlation and operation-state handling.
+
+## Wallet history security boundary
+
+A Telegram widget does not call the public wallet-service account transaction endpoint. That endpoint depends on the authenticated web user and cannot safely be reused with service-only credentials.
+
+The wallet module now exposes a dedicated *read-only* internal route, restricted to the `telegram-bot-service` principal. It resolves the real Telegram user's UUID and active account through a new `wallet-context` endpoint on account-service (restricted to `wallet-service`), checks the `VIEW_TRANSACTION_HISTORY` role permission and only then reads transactions for that resolved account.
+
+The internal wallet response includes `accountId`. The bot compares that value against the active account context, and rereads the account after loading balances and history; mismatches are rejected instead of showing another account's data. A 403 response shows balances without revealing transaction entries. Wallet data is read-only: no amount or money-mutation action is accepted through the widget.
+
+The query UI limits each transaction page to four rows. The internal API constrains page size to a maximum of four and validates page numbers. Both the financial state and account binding must be revalidated for each WidgetQuery.
