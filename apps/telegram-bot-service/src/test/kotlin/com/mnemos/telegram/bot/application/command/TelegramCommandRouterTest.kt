@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -30,6 +31,7 @@ class TelegramCommandRouterTest {
     private val widgetDashboard = mock<OpenDashboardWidgetUseCase>()
     private val notificationWidget = mock<OpenNotificationWidgetUseCase>()
     private val eventWidget = mock<OpenEventWidgetUseCase>()
+    private val accountWidget = mock<OpenAccountWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -38,6 +40,7 @@ class TelegramCommandRouterTest {
             widgetDashboard = widgetDashboard,
             notificationWidget = notificationWidget,
             eventWidget = eventWidget,
+            accountWidget = accountWidget,
         )
 
     @Test
@@ -229,12 +232,22 @@ class TelegramCommandRouterTest {
     }
 
     @Test
-    fun `notifications command opens widget when enabled` {
+    fun `notifications command opens widget when enabled`() {
         whenever(notificationWidget.enabled).thenReturn(true)
         whenever(notificationWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/notifications")))
         verify(notificationWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `account command opens account widget when enabled`() {
+        whenever(accountWidget.enabled).thenReturn(true)
+        whenever(accountWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/account")))
+        verify(accountWidget).execute(TELEGRAM_ID, 0)
         verifyNoInteractions(menuService)
     }
 

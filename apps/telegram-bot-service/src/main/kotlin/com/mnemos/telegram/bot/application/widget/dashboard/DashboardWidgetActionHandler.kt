@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.dashboard.port.out.DashboardWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -22,6 +23,7 @@ class DashboardWidgetActionHandler(
     private val rewards: DailyRewardGateway,
     private val notifications: OpenNotificationWidgetUseCase,
     private val events: OpenEventWidgetUseCase,
+    private val accounts: OpenAccountWidgetUseCase,
     private val responder: WidgetQueryResponder,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.DASHBOARD
@@ -38,6 +40,15 @@ class DashboardWidgetActionHandler(
 
         if (loaded.view.accountId != session.accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Акаунт змінився. Відкрийте /widget")
+        }
+
+        if (context.data == "w1:acct:open") {
+            val delivery = accounts.execute(telegramId)
+            return responder.reply(
+                context.queryId,
+                if (delivery == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (delivery == TelegramDeliveryResult.Delivered) "Керування акаунтами відкрито" else "Не вдалося відкрити акаунти",
+            )
         }
 
         if (context.data == "w1:evt:open") {

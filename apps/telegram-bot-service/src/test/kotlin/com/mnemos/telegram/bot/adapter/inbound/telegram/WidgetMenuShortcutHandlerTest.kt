@@ -33,6 +33,19 @@ class WidgetMenuShortcutHandlerTest {
     }
 
     @Test
+    fun widgetAccountManagementShortcutOpensExistingMenu() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:account-manage")))
+        verify(menuService).open(
+            telegramId = 101L,
+            screen = TelegramMenuScreen.ACCOUNT_MANAGEMENT,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
     fun unknownWidgetShortcutIsIgnored() {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:delete")))
         verifyNoInteractions(menuService)

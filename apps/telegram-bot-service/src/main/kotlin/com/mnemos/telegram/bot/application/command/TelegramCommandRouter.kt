@@ -14,6 +14,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -26,6 +27,7 @@ class TelegramCommandRouter(
     private val widgetDashboard: OpenDashboardWidgetUseCase,
     private val notificationWidget: OpenNotificationWidgetUseCase,
     private val eventWidget: OpenEventWidgetUseCase,
+    private val accountWidget: OpenAccountWidgetUseCase,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
         val text = context.text.trim()
@@ -77,7 +79,16 @@ class TelegramCommandRouter(
                     openEvents(context.telegramId, argument)
                 }
             "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
-            "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+            "/account" ->
+                if (accountWidget.enabled) {
+                    when (val result = accountWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                }
             "/bets" -> menuService.open(context.telegramId, TelegramMenuScreen.BETS)
             "/prime" -> menuService.open(context.telegramId, TelegramMenuScreen.PRIME)
             "/settings" -> menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)

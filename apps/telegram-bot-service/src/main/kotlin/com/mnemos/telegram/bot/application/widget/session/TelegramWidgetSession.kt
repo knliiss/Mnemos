@@ -6,6 +6,7 @@ enum class TelegramWidgetScreen {
     DASHBOARD,
     NOTIFICATIONS,
     EVENTS,
+    ACCOUNTS,
 }
 
 data class TelegramWidgetSession(

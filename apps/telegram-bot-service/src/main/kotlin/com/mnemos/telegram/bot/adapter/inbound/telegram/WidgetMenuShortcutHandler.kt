@@ -21,6 +21,7 @@ class WidgetMenuShortcutHandler(
                 "w:open:events" -> TelegramMenuScreen.EVENTS
                 "w:open:notifications" -> TelegramMenuScreen.NOTIFICATIONS
                 "w:open:account" -> TelegramMenuScreen.ACCOUNT
+                "w:open:account-manage" -> TelegramMenuScreen.ACCOUNT_MANAGEMENT
                 "w:open:daily" -> TelegramMenuScreen.DAILY
                 else -> return TelegramDeliveryResult.Delivered
             }
