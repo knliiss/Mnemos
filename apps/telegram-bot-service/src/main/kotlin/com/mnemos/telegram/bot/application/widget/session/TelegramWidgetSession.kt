@@ -7,6 +7,7 @@ enum class TelegramWidgetScreen {
     NOTIFICATIONS,
     EVENTS,
     ACCOUNTS,
+    DAILY,
 }
 
 data class TelegramWidgetSession(

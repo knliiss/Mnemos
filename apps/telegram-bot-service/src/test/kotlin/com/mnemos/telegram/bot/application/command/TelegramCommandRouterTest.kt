@@ -14,6 +14,7 @@ import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetU
 import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -32,6 +33,7 @@ class TelegramCommandRouterTest {
     private val notificationWidget = mock<OpenNotificationWidgetUseCase>()
     private val eventWidget = mock<OpenEventWidgetUseCase>()
     private val accountWidget = mock<OpenAccountWidgetUseCase>()
+    private val dailyWidget = mock<OpenDailyWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -41,6 +43,7 @@ class TelegramCommandRouterTest {
             notificationWidget = notificationWidget,
             eventWidget = eventWidget,
             accountWidget = accountWidget,
+            dailyWidget = dailyWidget,
         )
 
     @Test
@@ -248,6 +251,16 @@ class TelegramCommandRouterTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/account")))
         verify(accountWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `daily command opens daily widget when enabled`() {
+        whenever(dailyWidget.enabled).thenReturn(true)
+        whenever(dailyWidget.execute(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/daily")))
+        verify(dailyWidget).execute(TELEGRAM_ID)
         verifyNoInteractions(menuService)
     }
 
