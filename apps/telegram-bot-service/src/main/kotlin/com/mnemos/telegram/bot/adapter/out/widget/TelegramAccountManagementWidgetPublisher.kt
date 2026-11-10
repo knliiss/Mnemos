@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class TelegramAccountManagementWidgetPublisher(
     private val renderer: AccountManagementWidgetRenderer,
-    private val telegram: TelegramWidgetGateway,
+    private val gateway: TelegramWidgetGateway,
     private val sessions: TelegramWidgetSessionRepository,
 ) : AccountManagementWidgetPublisher {
     override fun publish(telegramId: Long, view: AccountManagementWidgetView): TelegramDeliveryResult =
-        when (val result = telegram.sendTracked(telegramId, renderer.render(view))) {
+        when (val result = gateway.sendTracked(telegramId, renderer.render(view))) {
             is TelegramWidgetSendResult.Sent -> {
                 sessions.save(
                     TelegramWidgetSession(
@@ -38,7 +38,7 @@ class TelegramAccountManagementWidgetPublisher(
         }
 
     override fun update(telegramId: Long, messageId: Int, view: AccountManagementWidgetView): TelegramDeliveryResult =
-        telegram.updateChatData(telegramId, messageId, state(view))
+        gateway.updateChatData(telegramId, messageId, state(view))
 
     override fun state(view: AccountManagementWidgetView): String = renderer.state(view)
 }
