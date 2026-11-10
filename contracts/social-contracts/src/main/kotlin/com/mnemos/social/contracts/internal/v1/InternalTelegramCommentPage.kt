@@ -18,4 +18,6 @@ data class InternalTelegramComment(
     val likes: Long,
     val replies: Long,
     val createdAt: Instant,
+    val canEdit: Boolean = false,
+    val canDelete: Boolean = false,
 )
