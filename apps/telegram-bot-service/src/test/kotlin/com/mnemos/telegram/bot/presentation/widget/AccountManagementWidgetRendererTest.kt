@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.presentation.widget
 import com.mnemos.telegram.bot.application.widget.management.AccountManagementWidgetMember
 import com.mnemos.telegram.bot.application.widget.management.AccountManagementWidgetRole
 import com.mnemos.telegram.bot.application.widget.management.AccountManagementWidgetView
+import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementPermission
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,6 +14,38 @@ import java.util.UUID
 class AccountManagementWidgetRendererTest {
     private val json = ObjectMapper()
     private val renderer = AccountManagementWidgetRenderer(json)
+
+    @Test
+    fun rolePermissionStateIsEncodedAsEnumOrdinalBitMask() {
+        val role = AccountManagementWidgetRole(
+            id = UUID.randomUUID(),
+            name = "Officer",
+            rank = 10,
+            permissionCount = 2,
+            color = "#AABBCC",
+            permissions = setOf(
+                TelegramAccountManagementPermission.MANAGE_ROLES,
+                TelegramAccountManagementPermission.MODERATE_COMMENTS,
+            ),
+        )
+        val view = AccountManagementWidgetView(
+            accountId = UUID.randomUUID(),
+            nickname = "Kirito",
+            page = 0, pages = 1,
+            totalMembers = 0, totalRoles = 1,
+            members = emptyList(),
+            roles = listOf(role),
+            canRemoveMembers = false,
+            canAssignRoles = false,
+            canManageRoles = true,
+            canManageHierarchy = true,
+        )
+        val state = json.readTree(renderer.render(view).chatData)
+
+        assertEquals((1 shl 2) or (1 shl 9), state.path("roles")[0].path("m").asInt())
+        assertEquals("#AABBCC", state.path("roles")[0].path("c").asText())
+        assertTrue(state.path("canHierarchy").asBoolean())
+    }
 
     @Test
     fun maximumManagementPageFitsTelegramLimitAndExposesOnlyVisibleRoleIndices() {

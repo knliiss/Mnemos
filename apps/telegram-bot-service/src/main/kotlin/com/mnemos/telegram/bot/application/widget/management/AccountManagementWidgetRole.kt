@@ -1,7 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.management
 
-import java.util.UUID
 import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementPermission
+import java.util.UUID
 
 data class AccountManagementWidgetRole(
     val id: UUID,

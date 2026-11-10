@@ -47,8 +47,12 @@ class OpenAccountManagementWidgetServiceTest {
             TelegramAccountManagementResult.Available(
                 TelegramAccountManagementSnapshot(
                     accountId, "Kirito", actorId,
-                    setOf(TelegramAccountManagementPermission.MANAGE_MEMBERS,
-                        TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES),
+                    setOf(
+                        TelegramAccountManagementPermission.MANAGE_MEMBERS,
+                        TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES,
+                        TelegramAccountManagementPermission.MANAGE_ROLES,
+                        TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY,
+                    ),
                     members, roles,
                 ),
             ),
@@ -61,6 +65,8 @@ class OpenAccountManagementWidgetServiceTest {
         assertEquals(roles.sortedBy { it.hierarchyRank }.drop(3).map { it.id }, result.view.roles.map { it.id })
         assertEquals(true, result.view.canRemoveMembers)
         assertEquals(true, result.view.canAssignRoles)
+        assertEquals(true, result.view.canManageHierarchy)
+        assertEquals(true, result.view.canManageRoles)
     }
 
     @Test
