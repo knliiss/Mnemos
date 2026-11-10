@@ -20,6 +20,29 @@ class ChangeAccountManagementWidgetServiceTest {
     private val accountId = UUID.randomUUID()
 
     @Test
+    fun roleDeletionRequiresManagePermissionAndVisibleServerRole() {
+        assertEquals(
+            AccountManagementWidgetMutationResult.FORBIDDEN,
+            service.deleteRole(11L, "q", view().copy(canManageRoles = false), 0),
+        )
+        assertEquals(
+            AccountManagementWidgetMutationResult.CONFLICT,
+            service.deleteRole(11L, "q", view().copy(canManageRoles = true), 3),
+        )
+        verifyNoInteractions(gateway, guard)
+    }
+
+    @Test
+    fun roleDeletionCanExecuteOnlyOncePerQueryAndUsesDomainRoleId() {
+        whenever(guard.claimQuery(11L, "q")).thenReturn(true, false)
+        whenever(gateway.deleteRole(11L, roleId)).thenReturn(TelegramAccountManagementMutationResult.UPDATED)
+        val current = view().copy(canManageRoles = true)
+        assertEquals(AccountManagementWidgetMutationResult.APPLIED, service.deleteRole(11L, "q", current, 0))
+        assertEquals(AccountManagementWidgetMutationResult.ALREADY, service.deleteRole(11L, "q", current, 0))
+        verify(gateway).deleteRole(11L, roleId)
+    }
+
+    @Test
     fun cannotRemoveOwnerOrSelfEvenWithPermission() {
         val owner = view(member = member(owner = true))
         val self = view(member = member(self = true))

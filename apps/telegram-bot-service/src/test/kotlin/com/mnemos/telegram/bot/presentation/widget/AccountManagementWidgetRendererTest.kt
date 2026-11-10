@@ -80,6 +80,7 @@ class AccountManagementWidgetRendererTest {
         assertFalse(rendered.html.contains(payload))
         assertTrue(rendered.html.contains("textContent"))
         assertTrue(rendered.html.contains("kick-confirm"))
+        assertTrue(rendered.html.contains("role-delete-confirm"))
         assertTrue(rendered.html.contains("w1:manage:"))
     }
 }

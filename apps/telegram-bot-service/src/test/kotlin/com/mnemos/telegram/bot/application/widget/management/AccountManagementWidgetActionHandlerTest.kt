@@ -69,6 +69,47 @@ class AccountManagementWidgetActionHandlerTest {
     }
 
     @Test
+    fun deletingRoleRequiresMatchingAccountRoleAndConfirmation() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),
+        )
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("CONFIRM"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(responder.reply(eq("q"), eq("CONFIRM_REQUIRED"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:role-delete:0:0"), session),
+        )
+        verify(guard).requestRoleDeletion(11L, 8, accountId, roleId)
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:role-delete-confirm:0:0"), session),
+        )
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun confirmedRoleDeletionCallsTypedUseCaseAndRefreshes() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),
+        )
+        whenever(guard.consumeRoleDeletion(11L, 8, accountId, roleId)).thenReturn(true)
+        whenever(mutations.deleteRole(11L, "q", view().copy(canManageRoles = true), 0))
+            .thenReturn(AccountManagementWidgetMutationResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:role-delete-confirm:0:0"), session),
+        )
+        verify(mutations).deleteRole(11L, "q", view().copy(canManageRoles = true), 0)
+        verify(publisher).update(eq(11L), eq(8), any())
+    }
+
+    @Test
     fun requestingKickStoresAccountAndMemberBoundConfirmation() {
         whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
         whenever(publisher.state(any())).thenReturn("{}")

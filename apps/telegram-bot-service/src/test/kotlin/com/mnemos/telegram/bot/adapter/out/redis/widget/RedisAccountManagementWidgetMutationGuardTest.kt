@@ -29,6 +29,20 @@ class RedisAccountManagementWidgetMutationGuardTest {
     }
 
     @Test
+    fun roleDeletionConfirmationUsesSeparateAccountRoleScopedKey() {
+        val accountId = UUID.randomUUID()
+        val roleId = UUID.randomUUID()
+        val key = "telegram-bot:widget-management-role-confirm:12345:11:8"
+        whenever(redis.opsForValue()).thenReturn(values)
+        whenever(values.getAndDelete(key)).thenReturn("$accountId:$roleId", null)
+
+        guard.requestRoleDeletion(11L, 8, accountId, roleId)
+        verify(values).set(eq(key), eq("$accountId:$roleId"), eq(Duration.ofMinutes(3)))
+        assertTrue(guard.consumeRoleDeletion(11L, 8, accountId, roleId))
+        assertFalse(guard.consumeRoleDeletion(11L, 8, accountId, roleId))
+    }
+
+    @Test
     fun kickConfirmationIsAccountMemberAndMessageBoundAndConsumedOnce() {
         val accountId = UUID.randomUUID()
         val memberId = UUID.randomUUID()
