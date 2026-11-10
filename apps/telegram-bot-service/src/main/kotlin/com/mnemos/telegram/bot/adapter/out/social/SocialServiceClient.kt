@@ -1,6 +1,9 @@
 package com.mnemos.telegram.bot.adapter.out.social
 
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCommentPage
+import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentRequest
+import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentResponse
+import org.springframework.web.bind.annotation.PostMapping
 import com.mnemos.social.contracts.internal.v1.InternalTelegramReactionRequest
 import com.mnemos.social.contracts.internal.v1.InternalTelegramReactionState
 import org.springframework.cloud.openfeign.FeignClient
@@ -18,6 +21,13 @@ import java.util.UUID
     configuration = [SocialServiceFeignConfiguration::class],
 )
 interface SocialServiceClient {
+    @PostMapping("/internal/v1/telegram/social/users/{telegramId}/profiles/{accountId}/comments")
+    fun createComment(
+        @PathVariable telegramId: Long,
+        @PathVariable accountId: UUID,
+        @RequestBody request: InternalTelegramCreateCommentRequest,
+    ): InternalTelegramCreateCommentResponse
+
     @GetMapping("/internal/v1/telegram/social/users/{telegramId}/profiles/{accountId}/reaction")
     fun getReaction(@PathVariable telegramId: Long, @PathVariable accountId: UUID): InternalTelegramReactionState
 
