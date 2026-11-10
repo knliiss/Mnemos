@@ -17,7 +17,7 @@ class ProfileActivityWidgetRenderer(
                 "after" to view.after?.toString(),
                 "next" to view.nextCursor?.toString(),
                 "drops" to view.items.map {
-                    mapOf("name" to it.name, "rarity" to it.rarity, "time" to it.occurredAt)
+                    mapOf("n" to it.name, "r" to it.rarity, "t" to it.occurredAt)
                 },
             ),
         )
@@ -64,9 +64,9 @@ class ProfileActivityWidgetRenderer(
                 }else s.drops.forEach(function(drop){
                   var r=document.createElement('div');r.className='item';
                   var title=document.createElement('div');title.className='itemText';
-                  title.textContent=drop.name;
+                  title.textContent=drop.n;
                   var meta=document.createElement('div');meta.className='meta';
-                  meta.textContent=drop.rarity+' · '+drop.time+' UTC';
+                  meta.textContent=drop.r+' · '+drop.t+' UTC';
                   r.appendChild(title);r.appendChild(meta);root.appendChild(r);
                 });
               }
