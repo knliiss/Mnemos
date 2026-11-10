@@ -181,3 +181,11 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 
 - The widget mirrors `RoleAccessGuard` behavior: owners can manage their own role assignments, while non-owners cannot change their own or the owner's assignments. All operations still go through the domain gateway.
 - Self-kick and owner removal remain prohibited. Changing permissions on roles assigned to the actor is additionally restricted by `RolePermissionMutationGuard`.
+
+## Authenticated public-profile comments and reaction migration (2026-11-10)
+
+- Public comment browsing has a dedicated read-only `social-service` internal contract for root comments and account-bound root replies. Service principal authentication restricts it to `telegram-bot-service`. Deleted bodies and private authorization flags are never exposed. Public profile names are resolved via the profile gateway, and widget strings are always rendered through `textContent`.
+- Account reactions are real domain writes. Authentication is performed **inside social-service** by resolving Telegram ID against account-service and verifying the user's current active account. The bot does not supply or forge a `CurrentMnemosUser`/JWT. New explicit-actor use-case interfaces share existing `SetAccountReactionService`, `RemoveAccountReactionService` and `GetAccountReactionService` domain logic with Mini App's JWT path.
+- The Bot API widget handler checks its message-scoped Telegram session and selected profile; reaction mutations use desired-state PUT/DELETE operations plus Redis query ID claims. This is sufficient to avoid the *same query* being processed twice, but not financial-grade exactly-once operation under arbitrary concurrency or network ambiguity.
+- The social-service internal API key is separate from the existing account-service key. Matching `TELEGRAM_BOT_SERVICE_SOCIAL_API_KEY`/`SOCIAL_SERVICE_TELEGRAM_BOT_API_KEY` values must be provisioned in deployment. No real secret is stored in the repo.
+- Comment create/reply/edit/delete remain unported because they need actor-specific write contracts, per-comment ownership checks, domain-scoped idempotency and moderation policy. This checkpoint does **not** claim full social parity. Widget flag remains disabled until Gradle, service-to-service auth, integration and Telegram-client tests pass.
