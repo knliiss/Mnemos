@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseC
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.profileactivity.OpenProfileActivityWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profilecomments.OpenProfileCommentsWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -29,7 +30,8 @@ class ProfileWidgetActionHandlerTest {
     private val responder = mock<WidgetQueryResponder>()
     private val input = mock<StartWidgetTextInputUseCase>()
     private val activity = mock<OpenProfileActivityWidgetUseCase>()
-    private val handler = ProfileWidgetActionHandler(snapshots, publisher, sessions, responder, input, activity)
+    private val comments = mock<OpenProfileCommentsWidgetUseCase>()
+    private val handler = ProfileWidgetActionHandler(snapshots, publisher, sessions, responder, input, activity, comments)
     private val accountId = UUID.randomUUID()
     private val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.PROFILES, null, search = "Kirito")
 
@@ -82,6 +84,31 @@ class ProfileWidgetActionHandlerTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:prof:activity"), chosen))
         verify(activity).execute(11L, accountId)
+    }
+
+    @Test
+    fun commentsOpenOnlyFromSelectedProfile() {
+        val chosen = session.copy(selectedProfileId = accountId)
+        whenever(snapshots.load(11L, "Kirito", 0, accountId))
+            .thenReturn(ProfileWidgetSnapshotResult.Available(view().copy(selected = entry())))
+        whenever(comments.execute(11L, accountId)).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(responder.reply(eq("q"), eq("OK"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:prof:comments"), chosen))
+        verify(comments).execute(11L, accountId)
+        verifyNoInteractions(activity)
+    }
+
+    @Test
+    fun commentsRequireAnExistingSelectedProfile() {
+        whenever(snapshots.load(11L, "Kirito", 0, null))
+            .thenReturn(ProfileWidgetSnapshotResult.Available(view()))
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:prof:comments"), session))
+        verifyNoInteractions(comments)
     }
 
     @Test
