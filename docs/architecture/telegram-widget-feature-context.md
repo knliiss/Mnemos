@@ -85,6 +85,7 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Added mini-app route inventory from routeRegistry; hardened prompt failure behavior and tests | Static source review; no CI/device test run |
 | 2026-11-10 | Shared SAO matcher, versioned `v4` widget search sessions, direct search result updates for events and SAO Online | Source and tests committed; builds/devices unverified |
 | 2026-11-10 | Widget-originated account creation and joining through reply-bound chat with one-time Redis mutation claims | Application/adapter tests committed; builds/devices unverified |
+| 2026-11-10 | Settings widget for language and notification-pack selection, dashboard navigation and legacy fallback | Static action matching completed; tests committed but not executed |
 
 
 ## Per-route migration checklist (not a completed-parity statement)
@@ -135,3 +136,19 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | `wipe-admin` | Missing | Wipe management, scheduling and protections |
 
 **Acceptance rule:** a route is complete only after its own Mini App actions, permissions, error states, data visibility, refresh behavior, and fallback behavior have been audited and matched against a widget/chat implementation with tests.
+
+## 2026-11-10 continuation: widget-native search, account operations, and settings
+
+- **Search:** the originating Events/SAO Online widget is updated with matching results; searches are scoped to its versioned message-bound Redis session. The SAO nickname match policy is shared by both legacy menu and widget. Reset/refresh has explicit UI actions.
+- **Account onboarding:** the Accounts widget can initiate account creation and joining through a ForceReply message, using existing `AccountGateway`. A Redis prompt claim prevents processing a particular input twice. This is *not* equivalent to durable domain-level idempotency across different prompts or retries after indeterminate downstream failure. Account list is refreshed after the operation.
+- **Settings:** `/settings` opens a ninth widget screen (with legacy fallback), using the existing `SettingsGateway` to read and change `UK/RU/EN` language and choose from visible authorized notification packs. Dashboard navigation and old-menu fallback are wired.
+- **Tests:** application tests were added for the above scenarios and Redis session encoding / mutation claims; not run in this session. Telegram 10.4 device testing remains outstanding. Static inspection found matching action strings for nine current widget renderers and handlers; this is not a runtime validation.
+- **Remaining parity:** public profiles, leaderboards, detailed events, every subscription type, invitations, members/roles, marketplace/purchases/equip flows, creator tools, admin/moderation and finance workflows still need route-by-route implementations and validation. See the per-route checklist. The final feature is **not** complete.
+
+### Next implementation increments
+
+1. Implement public-profile search and profile detail (including permissions, comments/ratings, and activity) with typed service contracts; avoid querying other services' databases.
+2. Implement account invitations, member/role management, and all notification subscription types with explicit user confirmation and domain-backed idempotency for mutations.
+3. Implement store browsing/owned personalization and safe financial flows; user-wallet and account-wallet access must remain strictly separated and authorized.
+4. Implement privileged creator and administration workflows with typed commands, server-side authorization, auditability, and guardrails; retain the graphical editor only if widget/client limitations are verified.
+5. Validate all Kotlin compilation, tests, Telegram Sandbox and real Telegram clients. Keep `mnemos.telegram-bot.widgets.enabled=false` until verified.

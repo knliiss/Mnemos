@@ -114,3 +114,11 @@ The query UI limits each transaction page to four rows. The internal API constra
 The online widget consumes the existing typed `SaoOnlineSnapshotGateway` and does not introduce a separate data collector. The widget shows at most eight realms in its overview and six players in the selected realm so it remains comfortably inside the 1024-byte state budget. It presents UTC snapshot time as supplied by the gateway and makes no claim that results are instantaneous.
 
 The widget route is only used for the argument-free `/online` command. Realm-number and nickname search commands continue through the existing text menu. The text fallback also remains available through the widget's `Пошук гравця` callback.
+
+## Settings and continuation additions (2026-11-10)
+
+- `/settings` is now an opt-in WidgetQuery screen for language selection and owned notification-pack activation via the existing `SettingsGateway`; pagination, refresh and legacy menu fallback are supported.
+- Dashboard WidgetQuery has `w1:settings:open`. Other settings actions are `w1:settings:refresh`, `w1:settings:lang:<language>`, `w1:settings:pack:<uuid>`, `w1:settings:next:<expected-page>`, and `w1:settings:prev:<expected-page>`.
+- Accounts widgets support creating and joining via reply-bound chat prompts `w1:acct:create` and `w1:acct:join`, reusing `AccountGateway` and a Redis at-most-once prompt claim. **Domain-level idempotency is not yet guaranteed**, especially for uncertain downstream results or separate prompts; do not reuse this as a finance flow.
+- Event and online search actions update the originating widget using search bound to a `v4` message session (the Redis reader accepts older `v2/v3` sessions). SAO nickname matching is shared with the text menu.
+- This ADR still describes the first migration slices; the live parity checklist and latest implementation ledger are in [the feature working context](telegram-widget-feature-context.md). No production enablement or claim of full parity is authorized without feature-by-feature verification.
