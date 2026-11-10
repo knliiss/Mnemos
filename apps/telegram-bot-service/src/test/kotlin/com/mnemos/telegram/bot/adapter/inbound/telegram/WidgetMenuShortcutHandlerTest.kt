@@ -59,6 +59,18 @@ class WidgetMenuShortcutHandlerTest {
     }
 
     @Test
+    fun invitesFallbackOpensExistingMenu() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:account-invites")))
+        verify(menuService).open(
+            telegramId = 101L,
+            screen = TelegramMenuScreen.ACCOUNT_INVITES,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
     fun settingsFallbackOpensExistingMenu() {
         whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:settings")))
