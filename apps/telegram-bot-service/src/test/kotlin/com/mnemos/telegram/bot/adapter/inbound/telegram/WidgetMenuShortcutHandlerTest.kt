@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -33,6 +34,21 @@ class WidgetMenuShortcutHandlerTest {
             screenContext = emptyMap(),
             pendingInput = null,
         )
+    }
+
+    @Test
+    fun managementShortcutOpensWidgetWhenEnabledAndAuthorized() {
+        val widget = mock<OpenAccountManagementWidgetUseCase>()
+        val handler = WidgetMenuShortcutHandler(menuService, management = widget)
+        whenever(widget.enabled).thenReturn(true)
+        whenever(widget.execute(101L, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(callback("w:open:account-manage")),
+        )
+        verify(widget).execute(101L, 0)
+        verifyNoInteractions(menuService)
     }
 
     @Test

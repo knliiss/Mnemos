@@ -29,6 +29,19 @@ class ChangeAccountManagementWidgetServiceTest {
     }
 
     @Test
+    fun cannotAssignRolesToSelfOrOwner() {
+        assertEquals(
+            AccountManagementWidgetMutationResult.FORBIDDEN,
+            service.assignRole(11L, "q", view(member = member(self = true)), 0, 0, true),
+        )
+        assertEquals(
+            AccountManagementWidgetMutationResult.FORBIDDEN,
+            service.assignRole(11L, "q", view(member = member(owner = true)), 0, 0, true),
+        )
+        verifyNoInteractions(gateway, guard)
+    }
+
+    @Test
     fun roleChangeRequiresExplicitPermission() {
         val blocked = view(canAssign = false)
         assertEquals(

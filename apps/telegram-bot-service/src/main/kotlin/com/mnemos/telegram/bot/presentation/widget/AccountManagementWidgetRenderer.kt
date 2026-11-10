@@ -93,7 +93,7 @@ class AccountManagementWidgetRenderer(
                     ('Позиція '+entry.rank+' · Дозволів: '+entry.p)));
                   var actions=el('div','rowActions');
                   if(tab==='members'){
-                    if(s.canAssign&&!entry.o){
+                    if(s.canAssign&&!entry.o&&!entry.s){
                       var roles=el('button','','Ролі');
                       roles.addEventListener('click',function(){selected=index;tab='roles';draw(s);});
                       actions.appendChild(roles);
@@ -111,7 +111,7 @@ class AccountManagementWidgetRenderer(
                         actions.appendChild(cancel);
                       }
                     }
-                  }else if(s.canAssign&&selected!==null&&s.members[selected]&&!s.members[selected].o){
+                  }else if(s.canAssign&&selected!==null&&s.members[selected]&&!s.members[selected].o&&!s.members[selected].s){
                     var active=s.members[selected].a.indexOf(index)>=0;
                     var toggle=el('button',active?'':'primary',active?'Зняти роль':'Призначити роль');
                     toggle.addEventListener('click',function(){
