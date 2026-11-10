@@ -156,5 +156,14 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 ## Account-management widget slice (2026-11-10)
 
 - `/manage` and Account widget's `w1:acct:manage` now open an opt-in read-only `ACCOUNT_MANAGEMENT` widget. Snapshot and backend policy are owned by `AccountManagementGateway`; the bot checks the active account against the message-bound session before returning data or changing pages.
-- Shared paging of member/role lists limits widget state to Telegram's 1024-byte cap. Privileged edit, kick, assignment and role hierarchy operations remain in the existing text menu until typed confirmation/idempotency flows are completed.
+- Shared paging limits member/role widget state to Telegram's 1024-byte cap. Role assignment/revocation, confirmed kick, reply-bound role creation and confirmed role deletion now have typed application use cases and Redis replay guards. Account-service still owns all business permissions and hierarchy enforcement. Name/color editing, fine-grained permissions and hierarchy editing still use the legacy menu.
 - The current implementation should not be called full account-management parity. See [working context](telegram-widget-feature-context.md).
+
+## Account-management mutations and security (2026-11-10)
+
+- `ACCOUNT_MANAGEMENT` is a feature-specific widget with account-bound Redis sessions, compact page-local indices and fresh authorized snapshots for every action. No client-supplied member/role UUID is trusted.
+- `w1:manage:role:<page>:<member-index>:<role-index>:<on|off>` uses `ASSIGN_MEMBER_ROLES` and the existing `AccountManagementGateway.setMemberRole`. Owner/self role changes are disabled in the widget; account-service remains the final permission authority.
+- Kick and role deletion require separate three-minute Redis confirmations bound to user, bot, widget message, current account and actual target ID. Query claims reject duplicate delivery of each mutation.
+- `w1:manage:create` starts a ForceReply prompt for a role name; only a matching user/account/message reply can call the typed `createRole` use case. Input claim is at most once per prompt.
+- A per-query Redis key is not domain-level exactly-once execution. Domain-level idempotency and an expected-active-account/version precondition remain necessary to protect against timeout ambiguity and cross-account races. Financial mutations must not rely on current guards.
+- Tests were committed, but JVM builds and Telegram client tests were not executed. Leave widgets disabled for production.
