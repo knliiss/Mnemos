@@ -162,7 +162,7 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 ## Account-management mutations and security (2026-11-10)
 
 - `ACCOUNT_MANAGEMENT` is a feature-specific widget with account-bound Redis sessions, compact page-local indices and fresh authorized snapshots for every action. No client-supplied member/role UUID is trusted.
-- `w1:manage:role:<page>:<member-index>:<role-index>:<on|off>` uses `ASSIGN_MEMBER_ROLES` and the existing `AccountManagementGateway.setMemberRole`. Owner/self role changes are disabled in the widget; account-service remains the final permission authority.
+- `w1:manage:role:<page>:<member-index>:<role-index>:<on|off>` uses `ASSIGN_MEMBER_ROLES` and the existing `AccountManagementGateway.setMemberRole`. Non-owner self/owner role changes are disabled; owners retain the domain-approved owner exception. Account-service remains the final permission authority.
 - Kick and role deletion require separate three-minute Redis confirmations bound to user, bot, widget message, current account and actual target ID. Query claims reject duplicate delivery of each mutation.
 - `w1:manage:create` starts a ForceReply prompt for a role name; only a matching user/account/message reply can call the typed `createRole` use case. Input claim is at most once per prompt.
 - A per-query Redis key is not domain-level exactly-once execution. Domain-level idempotency and an expected-active-account/version precondition remain necessary to protect against timeout ambiguity and cross-account races. Financial mutations must not rely on current guards.
@@ -176,3 +176,8 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - Hierarchy edits require `MANAGE_ROLE_HIERARCHY` and compare current rank against the originally rendered rank before invoking the gateway.
 - All member/role writes now validate a short stable identity tag alongside the original page-local index. The identity tag is for stale-list detection and is not a bearer credential. No privileged command relies on client-provided IDs without a refreshed authorized snapshot.
 - Remaining risks: account-switch race without expected-account precondition at the backend and nontransactional per-query replay claims. Do not declare full parity or enable widgets by default before builds, tests and real Telegram-client verification.
+
+## Owner role assignment exception (2026-11-10)
+
+- The widget mirrors `RoleAccessGuard` behavior: owners can manage their own role assignments, while non-owners cannot change their own or the owner's assignments. All operations still go through the domain gateway.
+- Self-kick and owner removal remain prohibited. Changing permissions on roles assigned to the actor is additionally restricted by `RolePermissionMutationGuard`.
