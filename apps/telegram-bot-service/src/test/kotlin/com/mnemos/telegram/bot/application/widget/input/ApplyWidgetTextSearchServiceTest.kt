@@ -10,6 +10,10 @@ import com.mnemos.telegram.bot.application.widget.online.OnlineWidgetSnapshotQue
 import com.mnemos.telegram.bot.application.widget.online.OnlineWidgetSnapshotResult
 import com.mnemos.telegram.bot.application.widget.online.OnlineWidgetView
 import com.mnemos.telegram.bot.application.widget.online.port.out.OnlineWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSnapshotQuery
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSnapshotResult
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetView
+import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
@@ -28,7 +32,9 @@ class ApplyWidgetTextSearchServiceTest {
     private val eventPublisher = mock<EventWidgetPublisher>()
     private val online = mock<OnlineWidgetSnapshotQuery>()
     private val onlinePublisher = mock<OnlineWidgetPublisher>()
-    private val service = ApplyWidgetTextSearchService(sessions, events, eventPublisher, online, onlinePublisher)
+    private val profiles = mock<ProfileWidgetSnapshotQuery>()
+    private val profilePublisher = mock<ProfileWidgetPublisher>()
+    private val service = ApplyWidgetTextSearchService(sessions, events, eventPublisher, online, onlinePublisher, profiles, profilePublisher)
 
     @Test
     fun eventSearchUpdatesExistingWidgetAndPersistsSearchContext() {
@@ -67,6 +73,20 @@ class ApplyWidgetTextSearchServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, service.apply(session, "Kiri"))
         verify(sessions).save(session.copy(page = 0, cursor = null, search = "Kiri"))
         verifyNoInteractions(eventPublisher)
+    }
+
+    @Test
+    fun profileSearchReusesTypedGatewayAndResetsPreviousSelectedProfile() {
+        val previous = java.util.UUID.randomUUID()
+        val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.PROFILES, null, search = "Old", selectedProfileId = previous)
+        val view = ProfileWidgetView("Kirito", 0, 1, 0, emptyList())
+        whenever(profiles.load(11L, "Kirito", 0, null))
+            .thenReturn(ProfileWidgetSnapshotResult.Available(view))
+        whenever(profilePublisher.update(11L, 8, view)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, service.apply(session, "Kirito"))
+        verify(profilePublisher).update(11L, 8, view)
+        verify(sessions).save(session.copy(page = 0, cursor = null, search = "Kirito", selectedProfileId = null))
     }
 
     @Test

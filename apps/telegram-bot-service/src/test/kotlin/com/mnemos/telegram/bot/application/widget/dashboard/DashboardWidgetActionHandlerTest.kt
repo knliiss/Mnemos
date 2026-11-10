@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -41,7 +42,20 @@ class DashboardWidgetActionHandlerTest {
     private val online = mock<OpenOnlineWidgetUseCase>()
     private val responder = mock<WidgetQueryResponder>()
     private val settings = mock<OpenSettingsWidgetUseCase>()
-    private val handler = DashboardWidgetActionHandler(snapshots, publisher, rewards, notifications, events, accounts, daily, bets, wallet, online, responder, settings)
+    private val profiles = mock<OpenProfileWidgetUseCase>()
+    private val handler = DashboardWidgetActionHandler(snapshots, publisher, rewards, notifications, events, accounts, daily, bets, wallet, online, responder, settings, profiles)
+
+    @Test
+    fun dashboardOpensPublicProfilesWidget() {
+        val accountId = UUID.randomUUID()
+        whenever(snapshots.load(11)).thenReturn(DashboardWidgetSnapshotResult.Available(view(accountId)))
+        whenever(profiles.enabled).thenReturn(true)
+        whenever(profiles.execute(11)).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(responder.reply(eq("q"), eq("OK"), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:prof:open-screen"), session(accountId)))
+        verify(profiles).execute(11)
+    }
 
     @Test
     fun dashboardCanOpenSettingsWidget() {

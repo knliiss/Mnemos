@@ -62,6 +62,17 @@ class HandleWidgetTextReplyServiceTest {
     }
 
     @Test
+    fun profileSearchReplyUpdatesItsOriginalWidget() {
+        givenPending(WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH, TelegramWidgetScreen.PROFILES)
+        val widget = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.PROFILES, null)
+        whenever(search.apply(widget, "Kirito")).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, " Kirito "))
+        verify(search).apply(widget, "Kirito")
+        verifyNoInteractions(menu)
+    }
+
+    @Test
     fun itemDropReplyIsBoundToNotificationWidget() {
         givenPending(WidgetTextInputPurpose.ITEM_DROP_BOTH, TelegramWidgetScreen.NOTIFICATIONS)
         val prompt = WidgetTextInputSession(11L, 41, 8, null, WidgetTextInputPurpose.ITEM_DROP_BOTH)

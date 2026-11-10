@@ -28,7 +28,7 @@ class RedisTelegramWidgetSessionRepositoryTest {
     private val key = "telegram-bot:widget:12345:11:8"
 
     @Test
-    fun v4RoundTripPreservesUnicodeSearchAndCursor() {
+    fun v5RoundTripPreservesUnicodeSearchCursorAndProfileSelection() {
         whenever(redis.opsForValue()).thenReturn(values)
         val session = TelegramWidgetSession(
             telegramId = 11L,
@@ -37,15 +37,27 @@ class RedisTelegramWidgetSessionRepositoryTest {
             accountId = null,
             cursor = UUID.randomUUID(),
             search = "Кіріто",
+            selectedProfileId = UUID.randomUUID(),
         )
 
         repository.save(session)
         val captured = argumentCaptor<String>()
         verify(values).set(eq(key), captured.capture(), eq(Duration.ofDays(7)))
-        assertTrue(captured.firstValue.startsWith("v4|"))
+        assertTrue(captured.firstValue.startsWith("v5|"))
         whenever(values.get(key)).thenReturn(captured.firstValue)
 
         assertEquals(session, repository.find(11L, 8))
+    }
+
+    @Test
+    fun oldV4SessionsRemainReadableWithoutSelectedProfile() {
+        whenever(redis.opsForValue()).thenReturn(values)
+        whenever(values.get(key)).thenReturn("v4|11|ONLINE|-|0|-|S2lyaXRv")
+
+        assertEquals(
+            TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ONLINE, null, search = "Kirito"),
+            repository.find(11L, 8),
+        )
     }
 
     @Test
