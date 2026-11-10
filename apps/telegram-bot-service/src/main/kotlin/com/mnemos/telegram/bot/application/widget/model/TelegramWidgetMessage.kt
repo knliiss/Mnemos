@@ -15,10 +15,11 @@ data class TelegramWidgetMessage(
     init {
         val htmlBytes = html.toByteArray(StandardCharsets.UTF_8)
         require(htmlBytes.size in 1..MAX_HTML_BYTES)
+        require('\u0000' !in html)
         require(compressedSize(htmlBytes) <= MAX_COMPRESSED_HTML_BYTES)
         require(caption.isNotBlank() && caption.length <= MAX_CAPTION_LENGTH)
         require(actionRows.none(List<TelegramWidgetButton>::isEmpty))
-        require(chatData == null || chatData.toByteArray(StandardCharsets.UTF_8).size <= 1_024)
+        require(chatData == null || (chatData.toByteArray(StandardCharsets.UTF_8).size <= 1_024 && '\u0000' !in chatData))
     }
 
     private companion object {

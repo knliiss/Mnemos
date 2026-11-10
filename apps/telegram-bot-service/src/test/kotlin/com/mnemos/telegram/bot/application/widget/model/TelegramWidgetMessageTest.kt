@@ -42,6 +42,16 @@ class TelegramWidgetMessageTest {
     }
 
     @Test
+    fun rejectsNulInHtmlAndChatDataBeforeSendingToTelegram() {
+        assertThrows(IllegalArgumentException::class.java) {
+            TelegramWidgetMessage(html = "<div>\\u0000</div>".replace("\\u0000", "\u0000"), caption = "invalid")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TelegramWidgetMessage(html = "<div>Good</div>", caption = "invalid", chatData = "\u0000")
+        }
+    }
+
+    @Test
     fun rejectsEmptyKeyboardRowsAndCaptions() {
         assertThrows(IllegalArgumentException::class.java) {
             TelegramWidgetMessage(html = "<b>Test</b>", caption = "")

@@ -7,15 +7,18 @@ object TelegramWidgetRequestMapper {
         telegramId: Long,
         widget: TelegramWidgetMessage,
     ): Map<String, Any> =
-        mapOf(
-            "chat_id" to telegramId,
-            "html" to widget.html,
-            "caption" to widget.caption,
-            "allow_queries" to false,
-            "reply_markup" to
-                mapOf(
-                    "inline_keyboard" to
-                        widget.actionRows.map { row ->
+        buildMap {
+            put("chat_id", telegramId)
+            put("html", widget.html)
+            put("caption", widget.caption)
+            put("allow_queries", widget.allowQueries)
+            widget.chatData?.let { put("chat_data", it) }
+
+            if (widget.actionRows.isNotEmpty()) {
+                put(
+                    "reply_markup",
+                    mapOf(
+                        "inline_keyboard" to widget.actionRows.map { row ->
                             row.map { button ->
                                 mapOf(
                                     "text" to button.label,
@@ -23,5 +26,7 @@ object TelegramWidgetRequestMapper {
                                 )
                             }
                         },
-                ),
-        )
+                    ),
+                )
+            }
+        }
