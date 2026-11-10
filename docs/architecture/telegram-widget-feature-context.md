@@ -49,7 +49,7 @@ Source of truth: `apps/mini-app/src/ui/navigation/routeRegistry.ts` (checked 202
 | Mini App area | Route IDs | Current widget coverage / remaining work |
 | --- | --- | --- |
 | Events | `bets`, `events`, `event-detail`, `subscriptions` | Read-only bets, event feed, event detail, item-drop/booster/dungeon/global/raid subscription widgets are present; following events, presence alerts, advanced rule editing and money-changing actions remain |
-| Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selector, create/join, invitation listing/create/revoke, and read-only wallet have widget slices; leaderboards, guides, member/roles and account settings still absent |
+| Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selector, create/join, invitations, a read-only paged member/role overview and wallet now have widget slices; member/role editing, leaderboards, guides and account settings remain |
 | People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online, authenticated public-profile directory search/details and profile drop activity have widget slices; comments/voting, full activity, user settings/wallet remain incomplete |
 | Personalization | `personalization-store`, `personalization-store-category`, `personalization-owned`, `personalization-detail` | Not represented by dedicated widgets; purchase/ownership operations need typed permission and payment review |
 | Creator | `creator-studio`, `creator-revenue`, `personalization-editor` | Not ported; retain Mini App for complex editor work, audit studio and revenue display separately |
@@ -91,6 +91,7 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Linked public profile to paged player drop activity; added exact authorized internal event-service `droppedFor` filter and new activity widget | Unit tests committed; build/client execution not verified |
 | 2026-11-10 | Added read-only event-detail widget using authorized `event-service` ID lookup and server-bound event selection from current feed | Unit tests committed; following and spotlight actions remain unavailable |
 | 2026-11-10 | Fixed initial widget data and the `allow_queries` transport flag, plus NUL validation and request mapper tests (`3b66767`) | Static inspection and unit tests added; client/build not run |
+| 2026-11-10 | Added account-management widget for authorized member/role lists with paged state, account-context checks and `/manage` entrypoint | Unit tests committed; not executed on JVM or Telegram client |
 
 
 | 2026-11-10 | Privacy-aware internal public profile API, profile-search/detail widget, and drop-activity widget | Source and tests committed; compilation and client tests not run |
@@ -105,11 +106,11 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | `events` | Partial | Event type-specific filters, sort, wipe/period selection and complete pagination |
 | `event-detail` | Partial | Read-only event details for item drops, boosters, globals and raids now open from the widget feed. Follow/unfollow, related feed links, own-account highlighting and spotlight purchase remain |
 | `subscriptions` | Partial | Widget can now create item-drop rules via reply-bound input, toggle booster/dungeon/global subscriptions, configure 1–28 raid locations and list/delete drops; player-offline alerts, per-rule editing, audit and advanced controls remain |
-| `account` | Partial | Full account dashboard, members and navigation to all subfeatures |
+| `account` | Partial | Account widget now opens an authorized paged member/role overview in addition to invites and onboarding; editable member and role workflows remain missing |
 | `leaderboards` | Missing | Drops/coins/boosters tabs, periods, rankings and pagination |
 | `guides` | Missing | Permission-gated guides and guide reader |
-| `member` | Missing | Member detail and permitted member operations |
-| `roles` | Missing | Roles overview, rank, permissions |
+| `member` | Partial | Authorized member names, owner and highest role now appear in the account-management widget; member detail and mutations remain missing |
+| `roles` | Partial | Authorized role names, rank and permission counts now appear in the account-management widget; details and mutations remain missing |
 | `role-editor` | Missing | Add/edit roles, hierarchy and permission editor with confirmations |
 | `account-wallet` | Partial | Account wallet transactions present; full Mini App wallet action mapping outstanding |
 | `account-invites` | Partial | Widget listing, creation with expiry options, confirmation-backed revocation and joining by code now present; invite sharing, user notification and audit/retry verification outstanding |
@@ -203,3 +204,10 @@ Do not reuse user JWTs inside service-to-service calls or query other services' 
 - Validate against official documentation: https://core.telegram.org/bots/api#sendwidget and https://core.telegram.org/bots/widgets. Added mapper tests for both interactive and read-only widgets and rejects NUL characters in HTML/chat data. Previous tests incorrectly asserted that all widget queries were disabled; that assertion was updated.
 - **Verification still missing**: no local Gradle build, CI run, actual Telegram bot delivery, or desktop/mobile Telegram-client test has been executed in this session. This is a committed code fix, not a live verification.
 - **Known delivery risks**: 1024-byte query replies and widget state, 15-second acknowledgement deadlines, in-flight duplicate queries and out-of-order state edits still require integration and real-client verification. Keep the feature flag disabled in production.
+
+## Account member/role overview slice (2026-11-10)
+
+- Added read-only `ACCOUNT_MANAGEMENT` widget under the existing per-feature hexagonal layout: gateway-backed snapshot query/use case, publisher port, Telegram adapter and pure renderer. It uses `AccountManagementGateway.getManagement(telegramId)`, whose existing backend validates the Telegram user and active-account permissions. No cross-service database reads.
+- The widget lists members and roles together, 3 of each per page, with aggregate counts, next/previous/refresh and message-bound session. WidgetQuery rejects stale page values and changes in the active account. Member/role identifiers, exact permission sets and privileged mutation commands are **not** sent to the client in this slice.
+- Entrypoints: `/manage` (text fallback if unsupported), `w1:acct:manage` from the Account widget and existing `w:open:account-manage` for legacy editing. Role creation/editing, assignments, hierarchy, kicks and deletions require individual server-authorized, confirmation-backed use cases and remain unported.
+- Added tests for paginated authorized summaries, account-context mismatch, stale-page rejection and entrypoint wiring. No build or client tests executed this session.

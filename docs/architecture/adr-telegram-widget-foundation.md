@@ -152,3 +152,9 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - `sendWidget` must carry `allow_queries=true` for interactive widgets, not a hardcoded `false`, and send the initial `chat_data` for all state-driven widgets; static read-only detail widgets use `false`. Omitting either flag breaks UI behavior despite correct renderers and server handlers. This is enforced by `TelegramWidgetRequestMapperTest`.
 - `chat_data`, `answerWidgetQuery.data`, and `editMessageWidgetData.chat_data` remain bounded to 1024 UTF-8 bytes; NUL characters are invalid in widget HTML/state. `TelegramWidgetMessage` now validates them at construction.
 - No production rollout until Telegram 10.4 real-client tests demonstrate initial hydration, permitted requests, acknowledgement timing, and state updates.
+
+## Account-management widget slice (2026-11-10)
+
+- `/manage` and Account widget's `w1:acct:manage` now open an opt-in read-only `ACCOUNT_MANAGEMENT` widget. Snapshot and backend policy are owned by `AccountManagementGateway`; the bot checks the active account against the message-bound session before returning data or changing pages.
+- Shared paging of member/role lists limits widget state to Telegram's 1024-byte cap. Privileged edit, kick, assignment and role hierarchy operations remain in the existing text menu until typed confirmation/idempotency flows are completed.
+- The current implementation should not be called full account-management parity. See [working context](telegram-widget-feature-context.md).
