@@ -66,7 +66,7 @@ class AccountWidgetRenderer(
               <button id="next" class="secondary">Далі</button>
               <button id="refresh">Оновити</button>
             </div>
-            <div class="actions"><button id="create">Створити</button><button id="join" class="secondary">Приєднатися</button></div>
+            <div class="actions"><button id="create">Створити</button><button id="join" class="secondary">Приєднатися</button><button id="invites" class="secondary">Запрошення</button></div>
             <div id="status" aria-live="polite"></div>
             <script>
             (function(){
@@ -125,6 +125,7 @@ class AccountWidgetRenderer(
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:acct:refresh');});
               document.getElementById('create').addEventListener('click',function(){ask('w1:acct:create');});
               document.getElementById('join').addEventListener('click',function(){ask('w1:acct:join');});
+              document.getElementById('invites').addEventListener('click',function(){ask('w1:acct:invites');});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}
             })();
             </script>

@@ -27,6 +27,7 @@ class WidgetMenuShortcutHandler(
                 "w:open:prime" -> TelegramMenuScreen.PRIME
                 "w:open:online" -> TelegramMenuScreen.ONLINE
                 "w:open:settings" -> TelegramMenuScreen.SETTINGS
+                "w:open:account-invites" -> TelegramMenuScreen.ACCOUNT_INVITES
                 else -> return TelegramDeliveryResult.Delivered
             }
 

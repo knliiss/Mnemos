@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchRe
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.accounts.port.out.AccountWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
@@ -25,6 +26,7 @@ class AccountWidgetActionHandler(
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
     private val input: StartWidgetTextInputUseCase,
+    private val inviteWidget: OpenInviteWidgetUseCase? = null,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.ACCOUNTS
 
@@ -55,6 +57,16 @@ class AccountWidgetActionHandler(
                 runCatching { input.start(session, purpose) }
             }
             return response
+        }
+
+        if (context.data == "w1:acct:invites") {
+            val result = inviteWidget?.takeIf { it.enabled }?.execute(telegramId)
+                ?: TelegramDeliveryResult.PermanentFailure("widgets-disabled")
+            return responder.reply(
+                context.queryId,
+                if (result == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (result == TelegramDeliveryResult.Delivered) "Запрошення відкрито" else "Запрошення недоступні",
+            )
         }
 
         var page = session.page
