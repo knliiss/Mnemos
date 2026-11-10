@@ -61,7 +61,7 @@ object InternalEventFeedApiMapper {
             cursor = cursor?.id,
         )
 
-    private fun EventFeedItem.toInternalResponse(): InternalEventFeedItemResponse =
+    fun EventFeedItem.toInternalResponse(): InternalEventFeedItemResponse =
         when (this) {
             is ItemDropFeedItem ->
                 InternalEventFeedItemResponse(
