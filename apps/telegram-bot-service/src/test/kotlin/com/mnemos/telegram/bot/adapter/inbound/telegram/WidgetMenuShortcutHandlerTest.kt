@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -80,6 +81,18 @@ class WidgetMenuShortcutHandlerTest {
             screenContext = emptyMap(),
             pendingInput = null,
         )
+    }
+
+    @Test
+    fun profileShortcutOpensActualWidgetInsteadOfAccountMenu() {
+        val profiles = mock<OpenProfileWidgetUseCase>()
+        val handler = WidgetMenuShortcutHandler(menuService, profiles)
+        whenever(profiles.enabled).thenReturn(true)
+        whenever(profiles.execute(101L)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:profiles")))
+        verify(profiles).execute(101L)
+        verifyNoInteractions(menuService)
     }
 
     @Test
