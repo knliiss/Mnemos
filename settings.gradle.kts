@@ -34,6 +34,7 @@ include(
     ":libraries:inbox-starter",
 
     ":contracts:account-contracts",
+    ":contracts:profile-contracts",
     ":contracts:wallet-contracts",
     ":contracts:event-contracts",
     ":contracts:moderation-contracts",

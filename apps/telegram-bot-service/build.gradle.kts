@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":libraries:security-starter"))
 
     implementation(project(":contracts:account-contracts"))
+    implementation(project(":contracts:profile-contracts"))
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:payment-contracts"))
     implementation(project(":contracts:personalization-contracts"))
