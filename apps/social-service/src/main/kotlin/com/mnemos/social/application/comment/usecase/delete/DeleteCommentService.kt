@@ -3,6 +3,8 @@ package com.mnemos.social.application.comment.usecase.delete
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.actor.model.SocialActor
+import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.comment.exception.CommentAccessDeniedException
 import com.mnemos.social.application.comment.exception.CommentNotFoundException
 import com.mnemos.social.application.summary.AccountSocialSummaryService
@@ -18,29 +20,41 @@ class DeleteCommentService(
     private val repository: CommentRepository,
     private val actorProvider: SocialActorProvider,
     private val summaryService: AccountSocialSummaryService,
+    private val accountAccess: AccountAccessPort,
     private val clock: Clock,
-) : DeleteCommentUseCase {
+) : DeleteCommentUseCase, DeleteCommentForActorUseCase {
     @Transactional
     override fun execute(commentId: UUID) {
-        val userId = actorProvider.requireUserId()
+        delete(commentId, actorProvider.requireUserId(), globalAdmin = actorProvider.hasAnyUserRole(
+            UserRole.ADMIN, UserRole.SUPER_ADMIN,
+        ), accountModerator = { accountId, userId ->
+            actorProvider.hasPermission(accountId, userId, RolePermission.MODERATE_COMMENTS)
+        })
+    }
+
+    @Transactional
+    override fun executeForActor(commentId: UUID, actor: SocialActor) {
+        delete(commentId, actor.userId, globalAdmin = false, accountModerator = { accountId, userId ->
+            accountAccess.hasPermission(accountId, userId, RolePermission.MODERATE_COMMENTS)
+        })
+    }
+
+    private fun delete(
+        commentId: UUID,
+        userId: UUID,
+        globalAdmin: Boolean,
+        accountModerator: (UUID, UUID) -> Boolean,
+    ) {
         val id = CommentId(commentId)
         val preview =
             repository.findById(id)
                 ?: throw CommentNotFoundException(id)
         val isAuthor = preview.authorUserId == userId
-        val isGlobalAdmin =
-            actorProvider.hasAnyUserRole(
-                UserRole.ADMIN,
-                UserRole.SUPER_ADMIN,
-            )
+        val isGlobalAdmin = globalAdmin
         val canModerateAccount =
             !isAuthor &&
                 !isGlobalAdmin &&
-                actorProvider.hasPermission(
-                    accountId = preview.targetAccountId,
-                    userId = userId,
-                    permission = RolePermission.MODERATE_COMMENTS,
-                )
+                accountModerator(preview.targetAccountId, userId)
 
         if (!isAuthor && !isGlobalAdmin && !canModerateAccount) {
             throw CommentAccessDeniedException(id)
