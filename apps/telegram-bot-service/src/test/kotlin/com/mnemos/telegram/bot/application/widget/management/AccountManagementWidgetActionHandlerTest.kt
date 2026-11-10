@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.application.widget.management
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetMutationGuard
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -26,11 +28,35 @@ class AccountManagementWidgetActionHandlerTest {
     private val responder = mock<WidgetQueryResponder>()
     private val guard = mock<AccountManagementWidgetMutationGuard>()
     private val mutations = mock<ChangeAccountManagementWidgetUseCase>()
-    private val handler = AccountManagementWidgetActionHandler(snapshots, publisher, sessions, responder, guard, mutations)
+    private val textInput = mock<StartWidgetTextInputUseCase>()
+    private val handler = AccountManagementWidgetActionHandler(snapshots, publisher, sessions, responder, guard, mutations, textInput)
     private val accountId = UUID.randomUUID()
     private val memberId = UUID.randomUUID()
     private val roleId = UUID.randomUUID()
     private val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ACCOUNT_MANAGEMENT, accountId)
+
+    @Test
+    fun createRoleRequestOpensChatPromptOnlyWithManageRolesPermission() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),
+        )
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:create"), session))
+        verify(textInput).start(session, WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE)
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun forbiddenRoleCreationDoesNotPromptUser() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
+        whenever(responder.reply(eq("q"), eq("FORBIDDEN"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:create"), session))
+        verifyNoInteractions(textInput, mutations)
+    }
 
     @Test
     fun changingActiveAccountInvalidatesAllManagementActions() {

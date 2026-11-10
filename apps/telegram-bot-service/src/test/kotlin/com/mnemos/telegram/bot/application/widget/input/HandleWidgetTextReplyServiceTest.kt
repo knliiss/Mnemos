@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInputSessionRepository
 import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
+import com.mnemos.telegram.bot.application.widget.management.CreateWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
@@ -29,7 +30,8 @@ class HandleWidgetTextReplyServiceTest {
     private val search = mock<ApplyWidgetTextSearchUseCase>()
     private val accountInput = mock<ApplyWidgetAccountInputUseCase>()
     private val itemDrop = mock<CreateWidgetItemDropSubscriptionUseCase>()
-    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop)
+    private val roleInput = mock<CreateWidgetAccountRoleUseCase>()
+    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop, roleInput)
 
     @Test
     fun unrelatedReplyDoesNotInterceptLegacyInput() {
@@ -70,6 +72,19 @@ class HandleWidgetTextReplyServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, " Kirito "))
         verify(search).apply(widget, "Kirito")
         verifyNoInteractions(menu)
+    }
+
+    @Test
+    fun roleCreationReplyUsesItsOriginalManagementWidget() {
+        givenPending(WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE, TelegramWidgetScreen.ACCOUNT_MANAGEMENT)
+        val prompt = WidgetTextInputSession(11L, 41, 8, null, WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE)
+        val widget = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ACCOUNT_MANAGEMENT, null)
+        whenever(roleInput.create(prompt, widget, "Officer")).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, " Officer "))
+        verify(roleInput).create(prompt, widget, "Officer")
+        verifyNoInteractions(menu, accountInput, itemDrop)
+        verify(pending).delete(11L, 41)
     }
 
     @Test
