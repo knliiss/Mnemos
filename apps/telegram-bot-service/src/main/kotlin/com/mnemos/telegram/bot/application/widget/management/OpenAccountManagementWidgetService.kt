@@ -72,6 +72,8 @@ class OpenAccountManagementWidgetService(
                             TelegramAccountManagementPermission.MANAGE_MEMBERS in data.actorPermissions,
                         canAssignRoles =
                             TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES in data.actorPermissions,
+                        canManageRoles =
+                            TelegramAccountManagementPermission.MANAGE_ROLES in data.actorPermissions,
                     ),
                 )
             }

@@ -13,5 +13,7 @@ data class AccountManagementWidgetView(
     val roles: List<AccountManagementWidgetRole>,
     val canRemoveMembers: Boolean,
     val canAssignRoles: Boolean,
+    val canManageRoles: Boolean = false,
+    val feedback: String? = null,
     val pendingKickIndex: Int? = null,
 )

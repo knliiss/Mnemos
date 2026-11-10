@@ -20,6 +20,8 @@ class AccountManagementWidgetRenderer(
                 "rolesCount" to view.totalRoles,
                 "canKick" to view.canRemoveMembers,
                 "canAssign" to view.canAssignRoles,
+                "canCreate" to view.canManageRoles,
+                "feedback" to view.feedback,
                 "confirm" to view.pendingKickIndex,
                 "members" to view.members.map { member ->
                     mapOf(
@@ -60,6 +62,7 @@ class AccountManagementWidgetRenderer(
             <div class="tabs"><button id="membersTab" class="active">Учасники</button><button id="rolesTab">Ролі</button></div>
             <div id="selection" class="hint"></div>
             <div id="entries"></div>
+            <div class="actions"><button id="createRole" class="primary">Створити роль</button></div>
             <div class="actions"><button id="prev">Назад</button><button id="next">Далі</button><button id="refresh" class="primary">Оновити</button></div>
             <div class="hint" id="feedback" aria-live="polite"></div>
             <script>
@@ -78,6 +81,8 @@ class AccountManagementWidgetRenderer(
                 document.getElementById('prev').style.display=s.page>0?'block':'none';
                 document.getElementById('next').style.display=s.page+1<s.pages?'block':'none';
                 document.getElementById('membersTab').className=tab==='members'?'active':'';
+                document.getElementById('createRole').style.display=s.canCreate&&tab==='roles'?'block':'none';
+                if(s.feedback)document.getElementById('feedback').textContent=s.feedback;
                 document.getElementById('rolesTab').className=tab==='roles'?'active':'';
                 document.getElementById('selection').textContent=tab==='roles'&&selected!==null&&s.members[selected]?
                   'Ролі учасника: '+s.members[selected].n:'';
@@ -140,6 +145,7 @@ class AccountManagementWidgetRenderer(
               document.getElementById('prev').addEventListener('click',function(){ask('w1:manage:prev:'+state.page);});
               document.getElementById('next').addEventListener('click',function(){ask('w1:manage:next:'+state.page);});
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:manage:refresh');});
+              document.getElementById('createRole').addEventListener('click',function(){ask('w1:manage:create');});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}
             })();
             </script>

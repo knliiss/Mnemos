@@ -55,6 +55,9 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH ->
                     "Введіть нікнейм для пошуку публічного профілю (2–64 символи) або «скасувати»." to
                         "Пошук профілю"
+                WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE ->
+                    "Введіть назву нової ролі акаунта або «скасувати». Відповідайте саме на це повідомлення." to
+                        "Назва ролі"
             }
 
         return try {

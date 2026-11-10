@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.application.widget.management
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetMutationGuard
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -21,6 +23,7 @@ class AccountManagementWidgetActionHandler(
     private val responder: WidgetQueryResponder,
     private val guard: AccountManagementWidgetMutationGuard,
     private val mutations: ChangeAccountManagementWidgetUseCase,
+    private val textInput: StartWidgetTextInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.ACCOUNT_MANAGEMENT
 
@@ -41,6 +44,17 @@ class AccountManagementWidgetActionHandler(
         val parts = context.data.split(':')
         if (parts.size >= 3 && parts[0] == "w1" && parts[1] == "manage") {
             when (parts[2]) {
+                "create" -> {
+                    if (parts.size != 3) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (!current.canManageRoles) {
+                        return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу створювати ролі")
+                    }
+                    val ack = responder.reply(context.queryId, "INPUT", "Введіть назву ролі у відповідь на підказку")
+                    if (ack == TelegramDeliveryResult.Delivered) {
+                        runCatching { textInput.start(session, WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE) }
+                    }
+                    return ack
+                }
                 "kick", "kick-confirm" -> {
                     if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
