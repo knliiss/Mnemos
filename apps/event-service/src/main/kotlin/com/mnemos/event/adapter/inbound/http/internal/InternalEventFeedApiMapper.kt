@@ -38,12 +38,14 @@ object InternalEventFeedApiMapper {
         wipeId: UUID?,
         sort: InternalEventFeedSort,
         limit: Int,
+        droppedFor: String? = null,
     ): EventFeedQuery =
         EventFeedQuery(
             after = after?.let(::EventId),
             limit = limit,
             kinds = type?.let { value -> setOf(EventFeedKind.valueOf(value.name)) } ?: EventFeedKind.entries.toSet(),
             search = search?.trim()?.takeIf(String::isNotEmpty),
+            droppedFor = droppedFor?.trim()?.takeIf(String::isNotEmpty),
             itemRarity = itemRarity?.let { value -> DomainItemRarity.valueOf(value.name) },
             itemType = itemType?.let { value -> DomainItemType.valueOf(value.name) },
             boosterType = boosterType?.let { value -> DomainBoosterType.valueOf(value.name) },
@@ -59,7 +61,7 @@ object InternalEventFeedApiMapper {
             cursor = cursor?.id,
         )
 
-    private fun EventFeedItem.toInternalResponse(): InternalEventFeedItemResponse =
+    fun EventFeedItem.toInternalResponse(): InternalEventFeedItemResponse =
         when (this) {
             is ItemDropFeedItem ->
                 InternalEventFeedItemResponse(

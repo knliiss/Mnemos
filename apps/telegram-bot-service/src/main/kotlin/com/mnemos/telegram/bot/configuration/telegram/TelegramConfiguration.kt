@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.configuration.telegram
 
+import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import com.pengrad.telegrambot.TelegramBot
 import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -9,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 import java.time.Duration
 
 @Configuration
-@EnableConfigurationProperties(TelegramBotProperties::class)
+@EnableConfigurationProperties(TelegramBotProperties::class, TelegramWidgetProperties::class)
 class TelegramConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")

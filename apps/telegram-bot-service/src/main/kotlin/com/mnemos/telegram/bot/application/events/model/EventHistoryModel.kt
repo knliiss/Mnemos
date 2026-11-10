@@ -56,6 +56,7 @@ data class EventHistoryQuery(
     val raidLocation: Int? = null,
     val wipeId: UUID? = null,
     val telegramId: Long? = null,
+    val droppedFor: String? = null,
 )
 
 sealed interface EventHistoryItem {

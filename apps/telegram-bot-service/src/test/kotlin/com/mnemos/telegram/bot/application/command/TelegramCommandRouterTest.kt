@@ -10,6 +10,18 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
+import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -24,11 +36,35 @@ class TelegramCommandRouterTest {
     private val startService = mock<HandleTelegramStartService>()
     private val helpService = mock<HandleTelegramHelpService>()
     private val menuService = mock<TelegramMenuService>()
+    private val widgetDashboard = mock<OpenDashboardWidgetUseCase>()
+    private val notificationWidget = mock<OpenNotificationWidgetUseCase>()
+    private val eventWidget = mock<OpenEventWidgetUseCase>()
+    private val accountWidget = mock<OpenAccountWidgetUseCase>()
+    private val dailyWidget = mock<OpenDailyWidgetUseCase>()
+    private val betWidget = mock<OpenBetWidgetUseCase>()
+    private val walletWidget = mock<OpenWalletWidgetUseCase>()
+    private val onlineWidget = mock<OpenOnlineWidgetUseCase>()
+    private val settingsWidget = mock<OpenSettingsWidgetUseCase>()
+    private val inviteWidget = mock<OpenInviteWidgetUseCase>()
+    private val profileWidget = mock<OpenProfileWidgetUseCase>()
+    private val managementWidget = mock<OpenAccountManagementWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
             helpService = helpService,
             menuService = menuService,
+            widgetDashboard = widgetDashboard,
+            notificationWidget = notificationWidget,
+            eventWidget = eventWidget,
+            accountWidget = accountWidget,
+            dailyWidget = dailyWidget,
+            betWidget = betWidget,
+            walletWidget = walletWidget,
+            onlineWidget = onlineWidget,
+            settingsWidget = settingsWidget,
+            inviteWidget = inviteWidget,
+            profileWidget = profileWidget,
+            managementWidget = managementWidget,
         )
 
     @Test
@@ -162,6 +198,164 @@ class TelegramCommandRouterTest {
             screenContext = expectedContext,
             pendingInput = TelegramPendingInput.EVENT_SEARCH,
         )
+    }
+
+    @Test
+    fun `widget shortcut opens dashboard when enabled`() {
+        whenever(widgetDashboard.enabled).thenReturn(true)
+        whenever(widgetDashboard.execute(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(widgetDashboard).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `widget shortcut falls back to legacy menu when disabled`() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(menuService).open(
+            telegramId = TELEGRAM_ID,
+            screen = TelegramMenuScreen.HOME,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
+    fun `rejected widget falls back to legacy menu`() {
+        whenever(widgetDashboard.enabled).thenReturn(true)
+        whenever(widgetDashboard.execute(TELEGRAM_ID)).thenReturn(
+            TelegramDeliveryResult.PermanentFailure("telegram-widget-rejected"),
+        )
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/widget")))
+        verify(menuService).open(
+            telegramId = TELEGRAM_ID,
+            screen = TelegramMenuScreen.HOME,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
+    fun `events command uses event widget without search query`() {
+        whenever(eventWidget.enabled).thenReturn(true)
+        whenever(eventWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL, null, null))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/events")))
+        verify(eventWidget).execute(
+            TELEGRAM_ID,
+            com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL,
+            null,
+            null,
+        )
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `notifications command opens widget when enabled`() {
+        whenever(notificationWidget.enabled).thenReturn(true)
+        whenever(notificationWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/notifications")))
+        verify(notificationWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `account command opens account widget when enabled`() {
+        whenever(accountWidget.enabled).thenReturn(true)
+        whenever(accountWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/account")))
+        verify(accountWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `daily command opens daily widget when enabled`() {
+        whenever(dailyWidget.enabled).thenReturn(true)
+        whenever(dailyWidget.execute(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/daily")))
+        verify(dailyWidget).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `bet command opens read only betting widget when enabled`() {
+        whenever(betWidget.enabled).thenReturn(true)
+        whenever(betWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.bet.model.BetMenuMode.ROUNDS))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/bets")))
+        verify(betWidget).execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.bet.model.BetMenuMode.ROUNDS)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `wallet command opens widget when enabled`() {
+        whenever(walletWidget.enabled).thenReturn(true)
+        whenever(walletWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/wallet")))
+        verify(walletWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `online command without query opens widget when enabled`() {
+        whenever(onlineWidget.enabled).thenReturn(true)
+        whenever(onlineWidget.execute(TELEGRAM_ID, null)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/online")))
+        verify(onlineWidget).execute(TELEGRAM_ID, null)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `profiles command opens widget when enabled`() {
+        whenever(profileWidget.enabled).thenReturn(true)
+        whenever(profileWidget.execute(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/profiles")))
+        verify(profileWidget).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `manage command uses account management widget when enabled`() {
+        whenever(managementWidget.enabled).thenReturn(true)
+        whenever(managementWidget.execute(TELEGRAM_ID, 0))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/manage")))
+        verify(managementWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `invites command uses widget when enabled`() {
+        whenever(inviteWidget.enabled).thenReturn(true)
+        whenever(inviteWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/invites")))
+        verify(inviteWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `settings command opens widget when enabled`() {
+        whenever(settingsWidget.enabled).thenReturn(true)
+        whenever(settingsWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/settings")))
+        verify(settingsWidget).execute(TELEGRAM_ID, 0)
+        verifyNoInteractions(menuService)
     }
 
     @Test

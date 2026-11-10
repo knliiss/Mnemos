@@ -11,6 +11,18 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
+import com.mnemos.telegram.bot.application.widget.dashboard.OpenDashboardWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.notifications.OpenNotificationWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.accounts.OpenAccountWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -20,6 +32,18 @@ class TelegramCommandRouter(
     private val startService: HandleTelegramStartService,
     private val helpService: HandleTelegramHelpService,
     private val menuService: TelegramMenuService,
+    private val widgetDashboard: OpenDashboardWidgetUseCase,
+    private val notificationWidget: OpenNotificationWidgetUseCase,
+    private val eventWidget: OpenEventWidgetUseCase,
+    private val accountWidget: OpenAccountWidgetUseCase,
+    private val dailyWidget: OpenDailyWidgetUseCase,
+    private val betWidget: OpenBetWidgetUseCase,
+    private val walletWidget: OpenWalletWidgetUseCase,
+    private val onlineWidget: OpenOnlineWidgetUseCase,
+    private val settingsWidget: OpenSettingsWidgetUseCase? = null,
+    private val inviteWidget: OpenInviteWidgetUseCase? = null,
+    private val managementWidget: OpenAccountManagementWidgetUseCase? = null,
+    private val profileWidget: OpenProfileWidgetUseCase? = null,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
         val text = context.text.trim()
@@ -40,15 +64,124 @@ class TelegramCommandRouter(
 
             "/help", "/commands" -> helpService.send(context.telegramId)
             "/menu" -> menuService.open(context.telegramId)
-            "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+            "/widget" ->
+                if (!widgetDashboard.enabled) {
+                    menuService.open(context.telegramId)
+                } else {
+                    when (val result = widgetDashboard.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> menuService.open(context.telegramId)
+                        else -> result
+                    }
+                }
+            "/notifications" ->
+                if (!notificationWidget.enabled) {
+                    menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+                } else {
+                    when (val result = notificationWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
+                        else -> result
+                    }
+                }
             "/packs" -> menuService.open(context.telegramId, TelegramMenuScreen.PACKS)
-            "/online" -> openOnline(context.telegramId, argument)
-            "/events" -> openEvents(context.telegramId, argument)
-            "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
-            "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
-            "/bets" -> menuService.open(context.telegramId, TelegramMenuScreen.BETS)
+            "/online" ->
+                if (argument.isBlank() && onlineWidget.enabled) {
+                    when (val result = onlineWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> openOnline(context.telegramId, argument)
+                        else -> result
+                    }
+                } else {
+                    openOnline(context.telegramId, argument)
+                }
+            "/events" ->
+                if (argument.isBlank() && eventWidget.enabled) {
+                    when (val result = eventWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> openEvents(context.telegramId, argument)
+                        else -> result
+                    }
+                } else {
+                    openEvents(context.telegramId, argument)
+                }
+            "/daily" ->
+                if (dailyWidget.enabled) {
+                    when (val result = dailyWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
+                }
+            "/account" ->
+                if (accountWidget.enabled) {
+                    when (val result = accountWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                }
+            "/bets" ->
+                if (betWidget.enabled) {
+                    when (val result = betWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.BETS)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.BETS)
+                }
+            "/wallet" ->
+                if (walletWidget.enabled) {
+                    when (val result = walletWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+                }
             "/prime" -> menuService.open(context.telegramId, TelegramMenuScreen.PRIME)
-            "/settings" -> menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
+            "/profiles", "/profile" ->
+                if (profileWidget?.enabled == true) {
+                    when (val result = profileWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure -> menuService.open(context.telegramId)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId)
+                }
+            "/manage" ->
+                if (managementWidget?.enabled == true) {
+                    when (val result = managementWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_MANAGEMENT)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_MANAGEMENT)
+                }
+            "/invites" ->
+                if (inviteWidget?.enabled == true) {
+                    when (val result = inviteWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_INVITES)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_INVITES)
+                }
+            "/settings" ->
+                if (settingsWidget?.enabled == true) {
+                    when (val result = settingsWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
+                }
             else -> TelegramDeliveryResult.Delivered
         }
     }
@@ -108,9 +241,3 @@ class TelegramCommandRouter(
     }
 }
 
-data class TelegramCommandContext(
-    val telegramId: Long,
-    val text: String,
-    val firstName: String?,
-    val username: String?,
-)

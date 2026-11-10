@@ -57,6 +57,9 @@ class InternalEventFeedController(
         @Min(1)
         @Max(100)
         limit: Int,
+        @RequestParam(required = false)
+        @Size(max = 64)
+        droppedFor: String? = null,
     ): InternalEventFeedResponse =
         listEventFeedService
             .execute(
@@ -64,6 +67,7 @@ class InternalEventFeedController(
                     after = after,
                     type = type,
                     search = search,
+                    droppedFor = droppedFor,
                     itemRarity = itemRarity,
                     itemType = itemType,
                     boosterType = boosterType,

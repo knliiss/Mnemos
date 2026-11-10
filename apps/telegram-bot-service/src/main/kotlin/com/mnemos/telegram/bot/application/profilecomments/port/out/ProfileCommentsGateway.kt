@@ -1,0 +1,10 @@
+package com.mnemos.telegram.bot.application.profilecomments.port.out
+
+import com.mnemos.telegram.bot.application.profilecomments.ProfileCommentsPageResult
+import java.util.UUID
+
+interface ProfileCommentsGateway {
+    fun list(telegramId: Long, accountId: UUID, page: Int): ProfileCommentsPageResult
+
+    fun replies(telegramId: Long, accountId: UUID, rootCommentId: UUID, page: Int): ProfileCommentsPageResult
+}

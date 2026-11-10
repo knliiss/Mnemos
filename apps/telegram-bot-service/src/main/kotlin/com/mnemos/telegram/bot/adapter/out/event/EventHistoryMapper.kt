@@ -16,7 +16,7 @@ object EventHistoryMapper {
             cursor = cursor,
         )
 
-    private fun InternalEventFeedItemResponse.toModel(localization: Map<String, String>): EventHistoryItem =
+    fun InternalEventFeedItemResponse.toModel(localization: Map<String, String> = emptyMap()): EventHistoryItem =
         when (type) {
             InternalEventFeedType.ITEM_DROP -> {
                 val rarity = requireNotNull(itemRarity)

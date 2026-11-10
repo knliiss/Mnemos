@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.adapter.out.event
 
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
+import com.mnemos.event.contracts.internal.v1.InternalEventFeedItemResponse
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
 import com.mnemos.event.contracts.internal.v1.InternalWipeListResponse
@@ -21,6 +22,9 @@ import java.util.UUID
     configuration = [EventServiceFeignConfiguration::class],
 )
 interface EventServiceClient {
+    @GetMapping("/internal/v1/events/details/{eventId}")
+    fun getEvent(@PathVariable eventId: UUID): InternalEventFeedItemResponse
+
     @GetMapping("/internal/v1/events/feed")
     fun listEvents(
         @RequestParam(required = false)
@@ -45,6 +49,8 @@ interface EventServiceClient {
         sort: InternalEventFeedSort,
         @RequestParam
         limit: Int,
+        @RequestParam(required = false)
+        droppedFor: String? = null,
     ): InternalEventFeedResponse
 
     @GetMapping("/internal/v1/events/localizations/sao/{locale}")

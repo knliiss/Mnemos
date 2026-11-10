@@ -4,6 +4,7 @@ import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
 import com.mnemos.contracts.account.internal.v1.InternalAccountSummariesRequest
 import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramActiveAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramWalletContextResponse
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionRequest
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionResponse
 import com.mnemos.wallet.configuration.AccountInternalFeignConfiguration
@@ -31,6 +32,11 @@ interface AccountInternalClient {
     fun resolveTelegramActiveAccount(
         @PathVariable telegramId: Long,
     ): InternalTelegramActiveAccountResponse?
+
+    @GetMapping("/internal/v1/users/telegram/{telegramId}/wallet-context")
+    fun findTelegramWalletContext(
+        @PathVariable telegramId: Long,
+    ): InternalTelegramWalletContextResponse?
 
     @PostMapping("/internal/v1/accounts/{accountId}/permissions/check")
     fun checkPermission(

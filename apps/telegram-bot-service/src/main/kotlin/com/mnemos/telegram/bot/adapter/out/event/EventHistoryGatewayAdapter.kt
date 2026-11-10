@@ -48,6 +48,7 @@ class EventHistoryGatewayAdapter(
                         wipeId = query.wipeId,
                         sort = query.sort.toInternalSort(),
                         limit = PAGE_SIZE,
+                        droppedFor = query.droppedFor,
                     )
                 val locale = query.telegramId?.let(languageResolver::resolve)?.let(::saoLocale) ?: DEFAULT_LOCALE
                 val localization = loadLocalization(locale)

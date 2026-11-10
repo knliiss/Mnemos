@@ -2,6 +2,7 @@ package com.mnemos.social.application.comment.usecase.create
 
 import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.comment.exception.CommentNotFoundException
 import com.mnemos.social.application.comment.exception.DeletedCommentOperationException
@@ -21,11 +22,16 @@ class CreateCommentService(
     private val accountAccessPort: AccountAccessPort,
     private val summaryService: AccountSocialSummaryService,
     private val clock: Clock,
-) : CreateCommentUseCase {
+) : CreateCommentUseCase, CreateCommentForActorUseCase {
     @Transactional
-    override fun execute(command: CreateCommentCommand): Comment {
-        val actor = actorProvider.requireActor()
+    override fun execute(command: CreateCommentCommand): Comment =
+        create(command, actorProvider.requireActor())
 
+    @Transactional
+    override fun executeForActor(command: CreateCommentCommand, actor: SocialActor): Comment =
+        create(command, actor)
+
+    private fun create(command: CreateCommentCommand, actor: SocialActor): Comment {
         if (!accountAccessPort.isActiveAccount(command.targetAccountId)) {
             throw SocialAccountNotFoundException(command.targetAccountId)
         }

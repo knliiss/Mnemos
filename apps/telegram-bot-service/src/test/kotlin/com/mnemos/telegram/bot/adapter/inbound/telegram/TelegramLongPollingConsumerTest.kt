@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.input.TelegramTextInputContext
 import com.mnemos.telegram.bot.application.input.TelegramTextInputRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.payment.HandleTelegramStarPaymentUpdateService
+import com.mnemos.telegram.bot.application.widget.input.HandleWidgetTextReplyUseCase
 import com.pengrad.telegrambot.ExceptionHandler
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.UpdatesListener
@@ -110,6 +111,50 @@ class TelegramLongPollingConsumerTest {
         assertEquals(12, confirmedUpdateId)
         verify(textInputRouter).route(eq(expectedContext))
         verify(commandRouter, never()).route(any())
+    }
+
+    @Test
+    fun `reply bound widget input bypasses legacy text menu`() {
+        val replies = mock<HandleWidgetTextReplyUseCase>()
+        val withWidgetReplies = TelegramLongPollingConsumer(
+            bot = bot,
+            commandRouter = commandRouter,
+            textInputRouter = textInputRouter,
+            callbackRouter = callbackRouter,
+            starPaymentService = starPaymentService,
+            widgetTextReply = replies,
+        )
+        whenever(replies.handle(777L, 41, "Kirito")).thenReturn(TelegramDeliveryResult.Delivered)
+
+        val result = withWidgetReplies.processUpdates(
+            listOf(update(id = 100, message = message(text = "Kirito", telegramId = 777L, replyToMessageId = 41))),
+        )
+
+        assertEquals(100, result)
+        verify(replies).handle(777L, 41, "Kirito")
+        verify(textInputRouter, never()).route(any())
+    }
+
+    @Test
+    fun `reply without matching widget session falls through to legacy menu`() {
+        val replies = mock<HandleWidgetTextReplyUseCase>()
+        val withWidgetReplies = TelegramLongPollingConsumer(
+            bot = bot,
+            commandRouter = commandRouter,
+            textInputRouter = textInputRouter,
+            callbackRouter = callbackRouter,
+            starPaymentService = starPaymentService,
+            widgetTextReply = replies,
+        )
+        whenever(textInputRouter.route(any())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        val result = withWidgetReplies.processUpdates(
+            listOf(update(id = 101, message = message(text = "ordinary reply", telegramId = 777L, replyToMessageId = 41))),
+        )
+
+        assertEquals(101, result)
+        verify(replies).handle(777L, 41, "ordinary reply")
+        verify(textInputRouter).route(TelegramTextInputContext(777L, "ordinary reply"))
     }
 
     @Test
@@ -289,6 +334,7 @@ class TelegramLongPollingConsumerTest {
         messageId: Int = 1,
         firstName: String? = null,
         username: String? = null,
+        replyToMessageId: Int? = null,
     ): Message {
         val chat =
             mock<Chat> {
@@ -307,6 +353,9 @@ class TelegramLongPollingConsumerTest {
             on { this.chat() }.thenReturn(chat)
             on { this.messageId() }.thenReturn(messageId)
             on { from() }.thenReturn(user)
+            on { replyToMessage() }.thenReturn(replyToMessageId?.let { reply ->
+                mock<Message> { on { messageId() }.thenReturn(reply) }
+            })
         }
     }
 
