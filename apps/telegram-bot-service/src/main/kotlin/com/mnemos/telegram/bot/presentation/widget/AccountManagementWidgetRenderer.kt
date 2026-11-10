@@ -112,7 +112,7 @@ class AccountManagementWidgetRenderer(
                   item.appendChild(el('div','name',entry.n));
                   item.appendChild(el('div','detail',tab==='members'?
                     ((entry.o?'Власник':(entry.s?'Ви':'Учасник'))+' · '+(entry.r||'Без ролі')):
-                    ('Позиція '+entry.rank+' · Дозволів: '+entry.p)));
+                    ('Позиція '+entry.rank+' · Дозволів: '+entry.p+' · '+entry.c)));
                   var actions=el('div','rowActions');
                   if(tab==='members'){
                     if(s.canAssign&&!entry.o&&!entry.s){
@@ -145,6 +145,9 @@ class AccountManagementWidgetRenderer(
                     actions.appendChild(up);actions.appendChild(down);
                   }
                   if(tab==='roles'&&s.canCreate){
+                    var editRole=el('button','','Змінити назву/колір');
+                    editRole.addEventListener('click',function(){ask('w1:manage:edit:'+s.page+':'+index);});
+                    actions.appendChild(editRole);
                     var details=el('button',selectedRole===index?'active':'','Дозволи');
                     details.addEventListener('click',function(){selectedRole=selectedRole===index?null:index;draw(s);});
                     actions.appendChild(details);

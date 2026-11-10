@@ -121,6 +121,24 @@ class AccountManagementWidgetActionHandler(
                     guard.cancelKick(context.actorId, context.messageId)
                     return responder.reply(context.queryId, "OK", "Виключення скасовано", publisher.state(current))
                 }
+                "edit" -> {
+                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val roleIndex = parts[4].toIntOrNull()
+                    if (page != session.page || roleIndex == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val role = current.roles.getOrNull(roleIndex)
+                        ?: return responder.reply(context.queryId, "CONFLICT", "Роль більше недоступна")
+                    if (!current.canManageRoles) {
+                        return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу редагувати ролі")
+                    }
+                    val ack = responder.reply(context.queryId, "INPUT", "Введіть назву та колір ролі у відповідь на підказку")
+                    if (ack == TelegramDeliveryResult.Delivered) {
+                        runCatching { textInput.startForRole(session, role.id) }
+                    }
+                    return ack
+                }
                 "permission" -> {
                     if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
