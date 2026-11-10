@@ -18,6 +18,7 @@ import com.mnemos.telegram.bot.application.widget.daily.OpenDailyWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -40,6 +41,7 @@ class TelegramCommandRouterTest {
     private val betWidget = mock<OpenBetWidgetUseCase>()
     private val walletWidget = mock<OpenWalletWidgetUseCase>()
     private val onlineWidget = mock<OpenOnlineWidgetUseCase>()
+    private val settingsWidget = mock<OpenSettingsWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -53,6 +55,7 @@ class TelegramCommandRouterTest {
             betWidget = betWidget,
             walletWidget = walletWidget,
             onlineWidget = onlineWidget,
+            settingsWidget = settingsWidget,
         )
 
     @Test
@@ -231,13 +234,14 @@ class TelegramCommandRouterTest {
     @Test
     fun `events command uses event widget without search query`() {
         whenever(eventWidget.enabled).thenReturn(true)
-        whenever(eventWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL, null))
+        whenever(eventWidget.execute(TELEGRAM_ID, com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL, null, null))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/events")))
         verify(eventWidget).execute(
             TELEGRAM_ID,
             com.mnemos.telegram.bot.application.events.model.EventHistoryFilter.ALL,
+            null,
             null,
         )
         verifyNoInteractions(menuService)
@@ -301,6 +305,16 @@ class TelegramCommandRouterTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/online")))
         verify(onlineWidget).execute(TELEGRAM_ID, null)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `settings command opens widget when enabled`() {
+        whenever(settingsWidget.enabled).thenReturn(true)
+        whenever(settingsWidget.execute(TELEGRAM_ID, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/settings")))
+        verify(settingsWidget).execute(TELEGRAM_ID, 0)
         verifyNoInteractions(menuService)
     }
 

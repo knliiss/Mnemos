@@ -59,6 +59,18 @@ class WidgetMenuShortcutHandlerTest {
     }
 
     @Test
+    fun settingsFallbackOpensExistingMenu() {
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:settings")))
+        verify(menuService).open(
+            telegramId = 101L,
+            screen = TelegramMenuScreen.SETTINGS,
+            screenContext = emptyMap(),
+            pendingInput = null,
+        )
+    }
+
+    @Test
     fun unknownWidgetShortcutIsIgnored() {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(callback("w:open:delete")))
         verifyNoInteractions(menuService)
