@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.management
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetMutationGuard
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -23,55 +24,93 @@ class AccountManagementWidgetActionHandlerTest {
     private val publisher = mock<AccountManagementWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = AccountManagementWidgetActionHandler(snapshots, publisher, sessions, responder)
+    private val guard = mock<AccountManagementWidgetMutationGuard>()
+    private val mutations = mock<ChangeAccountManagementWidgetUseCase>()
+    private val handler = AccountManagementWidgetActionHandler(snapshots, publisher, sessions, responder, guard, mutations)
     private val accountId = UUID.randomUUID()
+    private val memberId = UUID.randomUUID()
+    private val roleId = UUID.randomUUID()
     private val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ACCOUNT_MANAGEMENT, accountId)
 
     @Test
-    fun activeAccountChangeBlocksPagedDataRefresh() {
-        whenever(snapshots.load(11L, 0)).thenReturn(
-            AccountManagementWidgetSnapshotResult.Available(view(UUID.randomUUID(), 0)),
-        )
+    fun changingActiveAccountInvalidatesAllManagementActions() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view(UUID.randomUUID())))
         whenever(responder.reply(eq("q"), eq("CONTEXT_CHANGED"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:next:0"), session))
-        verifyNoInteractions(publisher, sessions)
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0"), session))
+        verifyNoInteractions(guard, mutations)
     }
 
     @Test
-    fun paginationUpdatesOnlyMessageBoundSession() {
-        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view(accountId, 0)))
-        whenever(snapshots.load(11L, 1)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view(accountId, 1)))
+    fun requestingKickStoresAccountAndMemberBoundConfirmation() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
         whenever(publisher.state(any())).thenReturn("{}")
-        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+        whenever(responder.reply(eq("q"), eq("CONFIRM"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0"), session))
+        verify(guard).requestKick(11L, 8, accountId, memberId)
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun cannotKickWithoutMatchingUnexpiredConfirmation() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
+        whenever(responder.reply(eq("q"), eq("CONFIRM_REQUIRED"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:next:0"), session))
-        verify(sessions).save(session.copy(page = 1))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0"), session))
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun confirmedKickUsesMutationUseCaseAndRefreshesWidget() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
+        whenever(guard.consumeKick(11L, 8, accountId, memberId)).thenReturn(true)
+        whenever(mutations.kickMember(11L, "q", view(), 0)).thenReturn(AccountManagementWidgetMutationResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0"), session))
+        verify(mutations).kickMember(11L, "q", view(), 0)
         verify(publisher).update(eq(11L), eq(8), any())
     }
 
     @Test
-    fun staleExpectedPageIsRejected() {
-        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view(accountId, 0)))
+    fun rejectsRoleChangesOnOldPage() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
         whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:next:1"), session))
-        verifyNoInteractions(publisher, sessions)
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:1:0:0:on"), session))
+        verifyNoInteractions(mutations)
     }
 
-    private fun query(data: String) = TelegramWidgetQueryContext("q", 11L, 11L, 8, data, "data", true, false)
+    @Test
+    fun roleActionDelegatesServerVisibleIndicesToMutationUseCase() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view()))
+        whenever(mutations.assignRole(11L, "q", view(), 0, 0, true)).thenReturn(AccountManagementWidgetMutationResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
-    private fun view(id: UUID, page: Int) = AccountManagementWidgetView(
-        accountId = id,
-        nickname = "Kirito",
-        page = page,
-        pages = 2,
-        totalMembers = 4,
-        totalRoles = 4,
-        members = emptyList(),
-        roles = emptyList(),
-    )
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:0:0:0:on"), session))
+        verify(mutations).assignRole(11L, "q", view(), 0, 0, true)
+    }
+
+    private fun query(action: String) =
+        TelegramWidgetQueryContext("q", 11L, 11L, 8, action, "data", true, false)
+
+    private fun view(id: UUID = accountId) =
+        AccountManagementWidgetView(
+            accountId = id,
+            nickname = "Kirito",
+            page = 0,
+            pages = 1,
+            totalMembers = 1,
+            totalRoles = 1,
+            members = listOf(AccountManagementWidgetMember(memberId, "Asuna", "Member", false, false, emptySet())),
+            roles = listOf(AccountManagementWidgetRole(roleId, "Officer", 1, 3)),
+            canRemoveMembers = true,
+            canAssignRoles = true,
+        )
 }
