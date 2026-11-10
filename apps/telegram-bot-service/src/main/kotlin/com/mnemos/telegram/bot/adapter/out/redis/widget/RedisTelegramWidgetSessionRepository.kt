@@ -26,7 +26,8 @@ class RedisTelegramWidgetSessionRepository(
         val parts = content.split('|')
         if ((parts[0] != "v2" || parts.size != 5) &&
             (parts[0] != "v3" || parts.size != 6) &&
-            (parts[0] != "v4" || parts.size != 7)
+            (parts[0] != "v4" || parts.size != 7) &&
+            (parts[0] != "v5" || parts.size != 8)
         ) return null
         val owner = parts[1].toLongOrNull() ?: return null
         val screen = runCatching { TelegramWidgetScreen.valueOf(parts[2]) }.getOrNull() ?: return null
@@ -47,12 +48,24 @@ class RedisTelegramWidgetSessionRepository(
         if (search != null && (search.isBlank() || search.length > 64 || search.toByteArray(Charsets.UTF_8).size > 256)) {
             return null
         }
-        return TelegramWidgetSession(telegramId, messageId, screen, accountId, page, cursor, search)
+        val selectedProfileId = parts.getOrNull(7)?.takeUnless { it == "-" }?.let {
+            runCatching { UUID.fromString(it) }.getOrNull() ?: return null
+        }
+        return TelegramWidgetSession(telegramId, messageId, screen, accountId, page, cursor, search, selectedProfileId)
     }
 
     override fun save(session: TelegramWidgetSession) {
         val encoded = session.search?.let { Base64.getUrlEncoder().withoutPadding().encodeToString(it.toByteArray(Charsets.UTF_8)) } ?: "-"
-        val state = listOf("v4", session.telegramId, session.screen.name, session.accountId ?: "-", session.page, session.cursor ?: "-", encoded).joinToString("|")
+        val state = listOf(
+            "v5",
+            session.telegramId,
+            session.screen.name,
+            session.accountId ?: "-",
+            session.page,
+            session.cursor ?: "-",
+            encoded,
+            session.selectedProfileId ?: "-",
+        ).joinToString("|")
         redis.opsForValue().set(key(session.telegramId, session.messageId), state, widgetProperties.sessionTtl)
     }
 

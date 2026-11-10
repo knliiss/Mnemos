@@ -11,5 +11,6 @@ enum class TelegramWidgetScreen {
     ONLINE,
     SETTINGS,
     INVITES,
+    PROFILES,
 }
 

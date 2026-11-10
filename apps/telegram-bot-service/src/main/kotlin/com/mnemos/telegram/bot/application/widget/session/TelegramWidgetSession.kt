@@ -10,6 +10,7 @@ data class TelegramWidgetSession(
     val page: Int = 0,
     val cursor: UUID? = null,
     val search: String? = null,
+    val selectedProfileId: UUID? = null,
 ) {
     init {
         require(telegramId > 0)
