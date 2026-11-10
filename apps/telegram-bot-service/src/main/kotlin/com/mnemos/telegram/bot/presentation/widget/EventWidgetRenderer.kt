@@ -14,6 +14,7 @@ class EventWidgetRenderer(
         json.writeValueAsString(
             mapOf(
                 "filter" to view.filter.name,
+                "search" to view.search,
                 "cursor" to view.nextCursor?.toString(),
                 "items" to view.items.map { item -> mapOf("type" to item.type, "label" to item.label, "time" to item.time) },
             ),
@@ -45,8 +46,9 @@ class EventWidgetRenderer(
               <button data-filter="GLOBAL">Глобальні</button>
               <button data-filter="RAID">Рейди</button>
             </div>
+            <div class="kind" id="searchLabel"></div>
             <div id="events"></div>
-            <div class="actions"><button id="search">Пошук</button><button id="next">Наступні</button><button id="refresh">Оновити</button></div>
+            <div class="actions"><button id="search">Пошук</button><button id="clear">Скинути</button><button id="next">Наступні</button><button id="refresh">Оновити</button></div>
             <div id="status" aria-live="polite"></div>
             <script>
             (function(){
@@ -54,6 +56,8 @@ class EventWidgetRenderer(
               function draw(s){
                 if(!s)return;
                 state=s;
+                document.getElementById('searchLabel').textContent=s.search?'Пошук: '+s.search:'';
+                document.getElementById('clear').style.display=s.search?'block':'none';
                 var root=document.getElementById('events');
                 while(root.firstChild)root.removeChild(root.firstChild);
                 if(!s.items||s.items.length===0){
@@ -95,6 +99,7 @@ class EventWidgetRenderer(
                 buttons[i].addEventListener('click',function(){ask('w1:evt:filter:'+this.getAttribute('data-filter'));});
               }
               document.getElementById('search').addEventListener('click',function(){ask('w1:evt:search');});
+              document.getElementById('clear').addEventListener('click',function(){ask('w1:evt:clear');});
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:evt:refresh');});
               document.getElementById('next').addEventListener('click',function(){if(state.cursor)ask('w1:evt:next:'+state.cursor);});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}

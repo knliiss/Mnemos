@@ -8,7 +8,6 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlinePlayerMatcher
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
 import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
-import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayerSearchMatch
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
 import com.mnemos.telegram.bot.application.online.port.out.SaoOnlineSnapshotGateway

@@ -16,6 +16,7 @@ class OnlineWidgetRenderer(
                 "total" to view.trackedOnline,
                 "realmCount" to view.totalRealms,
                 "selected" to view.selectedRealmNumber,
+                "search" to view.search,
                 "name" to view.selectedRealmName,
                 "playersTotal" to view.selectedRealmPlayerCount,
                 "time" to view.generatedAt,
@@ -58,12 +59,12 @@ class OnlineWidgetRenderer(
                 state=s;
                 document.getElementById('time').textContent=s.time||'';
                 document.getElementById('online').textContent=String(s.total);
-                document.getElementById('summary').textContent=s.selected==null?'Гравців онлайн · реалмів '+s.realmCount:'Гравців у '+s.name+': '+s.playersTotal;
-                document.getElementById('section').textContent=s.selected==null?'Реалми':'Гравці';
-                document.getElementById('back').style.display=s.selected==null?'none':'block';
+                document.getElementById('summary').textContent=s.search?'Пошук «'+s.search+'» · знайдено '+s.playersTotal:(s.selected==null?'Гравців онлайн · реалмів '+s.realmCount:'Гравців у '+s.name+': '+s.playersTotal);
+                document.getElementById('section').textContent=s.search?'Результати пошуку':(s.selected==null?'Реалми':'Гравці');
+                document.getElementById('back').style.display=s.selected==null&&!s.search?'none':'block';
                 var root=document.getElementById('items');
                 while(root.firstChild)root.removeChild(root.firstChild);
-                if(s.selected==null){
+                if(s.selected==null&&!s.search){
                   if(!s.realms||!s.realms.length){
                     var empty=document.createElement('div');empty.className='row hint';empty.textContent='Реалмів немає';root.appendChild(empty);
                   }else s.realms.forEach(function(realm){
