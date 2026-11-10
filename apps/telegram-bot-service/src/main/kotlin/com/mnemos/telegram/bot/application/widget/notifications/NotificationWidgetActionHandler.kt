@@ -2,6 +2,8 @@ package com.mnemos.telegram.bot.application.widget.notifications
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
+import com.mnemos.telegram.bot.application.widget.notifications.WidgetSubscriptionKind
+import com.mnemos.telegram.bot.application.widget.notifications.WidgetSubscriptionUpdateResult
 import com.mnemos.telegram.bot.application.widget.notifications.port.out.NotificationWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
@@ -21,6 +23,7 @@ class NotificationWidgetActionHandler(
     private val publisher: NotificationWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val updateSubscriptions: UpdateWidgetSubscriptionUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.NOTIFICATIONS
 
@@ -43,6 +46,51 @@ class NotificationWidgetActionHandler(
         val message =
             when {
                 context.data == "w1:sub:refresh" -> "Дані оновлено"
+                context.data.startsWith("w1:sub:booster:") ||
+                    context.data.startsWith("w1:sub:dungeon:") ||
+                    context.data.startsWith("w1:sub:global:") -> {
+                    val tokens = context.data.split(':')
+                    if (tokens.size != 5 || tokens[0] != "w1" || tokens[1] != "sub") {
+                        return responder.reply(context.queryId, "INVALID", "Невірні параметри підписки")
+                    }
+                    val kind = WidgetSubscriptionKind.entries.firstOrNull {
+                        it.name.equals(tokens[2], ignoreCase = true)
+                    } ?: return responder.reply(context.queryId, "INVALID", "Невідомий тип підписки")
+                    val enabled = when (tokens[4]) {
+                        "on" -> true
+                        "off" -> false
+                        else -> return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    }
+                    when (updateSubscriptions.set(telegramId, kind, tokens[3], enabled)) {
+                        WidgetSubscriptionUpdateResult.APPLIED -> "Підписку оновлено"
+                        WidgetSubscriptionUpdateResult.INVALID ->
+                            return responder.reply(context.queryId, "INVALID", "Невідома категорія")
+                        WidgetSubscriptionUpdateResult.USER_NOT_FOUND ->
+                            return responder.reply(context.queryId, "USER_NOT_FOUND", "Користувача не знайдено")
+                        WidgetSubscriptionUpdateResult.UNAVAILABLE ->
+                            return responder.reply(context.queryId, "UNAVAILABLE", "Не вдалося оновити підписку")
+                    }
+                }
+                context.data.startsWith("w1:sub:raid:") -> {
+                    val encoded = context.data.removePrefix("w1:sub:raid:")
+                    val mask = encoded.takeIf { it.matches(Regex("[0-9a-z]{1,6}")) }
+                        ?.toLongOrNull(36)
+                    if (mask == null || mask >= (1L shl 28)) {
+                        return responder.reply(context.queryId, "INVALID", "Невірні локації рейду")
+                    }
+                    val locations = (1..28).filter { number ->
+                        mask and (1L shl (number - 1)) != 0L
+                    }.toSet()
+                    when (updateSubscriptions.setRaidLocations(telegramId, locations)) {
+                        WidgetSubscriptionUpdateResult.APPLIED -> "Локації рейду оновлено"
+                        WidgetSubscriptionUpdateResult.INVALID ->
+                            return responder.reply(context.queryId, "INVALID", "Невірні локації")
+                        WidgetSubscriptionUpdateResult.USER_NOT_FOUND ->
+                            return responder.reply(context.queryId, "USER_NOT_FOUND", "Користувача не знайдено")
+                        WidgetSubscriptionUpdateResult.UNAVAILABLE ->
+                            return responder.reply(context.queryId, "UNAVAILABLE", "Не вдалося змінити локації")
+                    }
+                }
                 context.data.startsWith("w1:next:") -> {
                     val expectedPage = context.data.removePrefix("w1:next:").toIntOrNull()
                     if (expectedPage != session.page) {
