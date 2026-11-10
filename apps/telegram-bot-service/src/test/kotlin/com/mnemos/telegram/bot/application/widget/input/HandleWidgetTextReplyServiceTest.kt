@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInputSessionRepository
+import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
@@ -27,7 +28,8 @@ class HandleWidgetTextReplyServiceTest {
     private val menu = mock<TelegramMenuService>()
     private val search = mock<ApplyWidgetTextSearchUseCase>()
     private val accountInput = mock<ApplyWidgetAccountInputUseCase>()
-    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput)
+    private val itemDrop = mock<CreateWidgetItemDropSubscriptionUseCase>()
+    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop)
 
     @Test
     fun unrelatedReplyDoesNotInterceptLegacyInput() {
@@ -56,6 +58,20 @@ class HandleWidgetTextReplyServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "Kirito"))
         verify(search).apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ONLINE, null), "Kirito")
         verifyNoInteractions(menu)
+        verify(pending).delete(11L, 41)
+    }
+
+    @Test
+    fun itemDropReplyIsBoundToNotificationWidget() {
+        givenPending(WidgetTextInputPurpose.ITEM_DROP_BOTH, TelegramWidgetScreen.NOTIFICATIONS)
+        val prompt = WidgetTextInputSession(11L, 41, 8, null, WidgetTextInputPurpose.ITEM_DROP_BOTH)
+        val widget = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.NOTIFICATIONS, null)
+        whenever(itemDrop.create(prompt, widget, "Kirito;Клинок"))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "Kirito;Клинок"))
+        verify(itemDrop).create(prompt, widget, "Kirito;Клинок")
+        verifyNoInteractions(menu, search, accountInput)
         verify(pending).delete(11L, 41)
     }
 

@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.application.widget.notifications
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
 import com.mnemos.telegram.bot.application.widget.notifications.port.out.NotificationWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -26,9 +28,21 @@ class NotificationWidgetActionHandlerTest {
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
     private val updates = mock<UpdateWidgetSubscriptionUseCase>()
-    private val handler = NotificationWidgetActionHandler(snapshots, subscriptions, publisher, sessions, responder, updates)
+    private val textInput = mock<StartWidgetTextInputUseCase>()
+    private val handler = NotificationWidgetActionHandler(snapshots, subscriptions, publisher, sessions, responder, updates, textInput)
     private val account = UUID.randomUUID()
     private val drop = UUID.randomUUID()
+
+    @Test
+    fun ruleCreationStartsReplyBoundInputWithoutCallingDomainWrite() {
+        whenever(snapshots.load(11, 0)).thenReturn(NotificationWidgetSnapshotResult.Available(view(true)))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:sub:drop:both"), session()))
+        verify(textInput).start(session(), WidgetTextInputPurpose.ITEM_DROP_BOTH)
+        verifyNoInteractions(subscriptions, updates)
+    }
 
     @Test
     fun boosterToggleDelegatesTypedDesiredStateToApplicationService() {
