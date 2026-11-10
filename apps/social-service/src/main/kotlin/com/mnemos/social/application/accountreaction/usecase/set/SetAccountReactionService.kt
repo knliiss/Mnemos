@@ -3,6 +3,7 @@ package com.mnemos.social.application.accountreaction.usecase.set
 import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.accountreaction.exception.SelfAccountReactionException
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.reaction.model.AccountReaction
@@ -18,10 +19,18 @@ class SetAccountReactionService(
     private val accountAccessPort: AccountAccessPort,
     private val summaryService: AccountSocialSummaryService,
     private val clock: Clock,
-) : SetAccountReactionUseCase {
+) : SetAccountReactionUseCase, SetAccountReactionForActorUseCase {
     @Transactional
     override fun execute(command: SetAccountReactionCommand) {
-        val actor = actorProvider.requireActor()
+        change(command, actorProvider.requireActor())
+    }
+
+    @Transactional
+    override fun executeForActor(command: SetAccountReactionCommand, actor: SocialActor) {
+        change(command, actor)
+    }
+
+    private fun change(command: SetAccountReactionCommand, actor: SocialActor) {
 
         if (actor.accountId == command.targetAccountId) {
             throw SelfAccountReactionException(command.targetAccountId)
