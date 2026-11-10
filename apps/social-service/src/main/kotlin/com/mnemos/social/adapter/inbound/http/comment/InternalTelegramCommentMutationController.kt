@@ -6,7 +6,6 @@ import com.mnemos.social.application.comment.telegram.CreateTelegramCommentUseCa
 import com.mnemos.social.application.comment.telegram.TelegramCommentCreationResult
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentRequest
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentResponse
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -30,8 +29,11 @@ class InternalTelegramCommentMutationController(
     fun create(
         @PathVariable telegramId: Long,
         @PathVariable accountId: UUID,
-        @Valid @RequestBody request: InternalTelegramCreateCommentRequest,
+        @RequestBody request: InternalTelegramCreateCommentRequest,
     ): InternalTelegramCreateCommentResponse {
+        if (request.content.isBlank() || request.content.trim().length > 500) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment must contain 1..500 characters")
+        }
         val actor = actors.resolve(telegramId)
             ?: throw ResponseStatusException(HttpStatus.FORBIDDEN, "Active Telegram account required")
         if (actor.accountId != request.expectedActorAccountId) {
