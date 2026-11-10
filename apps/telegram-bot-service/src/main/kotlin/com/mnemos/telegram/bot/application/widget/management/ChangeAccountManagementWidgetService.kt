@@ -25,7 +25,9 @@ class ChangeAccountManagementWidgetService(
         if (!view.canAssignRoles) return AccountManagementWidgetMutationResult.FORBIDDEN
         val member = view.members.getOrNull(memberIndex) ?: return AccountManagementWidgetMutationResult.CONFLICT
         val role = view.roles.getOrNull(roleIndex) ?: return AccountManagementWidgetMutationResult.CONFLICT
-        if (member.owner || member.self) return AccountManagementWidgetMutationResult.FORBIDDEN
+        if ((member.owner || member.self) && !view.actorIsOwner) {
+            return AccountManagementWidgetMutationResult.FORBIDDEN
+        }
         if ((role.id in member.roleIds) == assigned) return AccountManagementWidgetMutationResult.APPLIED
         if (!guard.claimQuery(telegramId, queryId)) return AccountManagementWidgetMutationResult.ALREADY
         return gateway.setMemberRole(telegramId, member.id, role.id, assigned).toWidgetResult()

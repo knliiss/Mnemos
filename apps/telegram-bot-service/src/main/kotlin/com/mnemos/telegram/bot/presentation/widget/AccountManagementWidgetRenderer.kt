@@ -23,6 +23,7 @@ class AccountManagementWidgetRenderer(
                 "canAssign" to view.canAssignRoles,
                 "canCreate" to view.canManageRoles,
                 "canHierarchy" to view.canManageHierarchy,
+                "actorOwner" to view.actorIsOwner,
                 "feedback" to view.feedback,
                 "confirm" to view.pendingKickIndex,
                 "confirmRole" to view.pendingRoleDeletionIndex,
@@ -118,7 +119,7 @@ class AccountManagementWidgetRenderer(
                     ('Позиція '+entry.rank+' · Дозволів: '+entry.p+' · '+entry.c)));
                   var actions=el('div','rowActions');
                   if(tab==='members'){
-                    if(s.canAssign&&!entry.o&&!entry.s){
+                    if(s.canAssign&&(!entry.o&&!entry.s||s.actorOwner)){
                       var roles=el('button','','Ролі');
                       roles.addEventListener('click',function(){selected=index;tab='roles';draw(s);});
                       actions.appendChild(roles);
@@ -166,7 +167,8 @@ class AccountManagementWidgetRenderer(
                       actions.appendChild(cancelRole);
                     }
                   }
-                  if(tab==='roles'&&s.canAssign&&selected!==null&&s.members[selected]&&!s.members[selected].o&&!s.members[selected].s){
+                  if(tab==='roles'&&s.canAssign&&selected!==null&&s.members[selected]&&
+                     (!s.members[selected].o&&!s.members[selected].s||s.actorOwner)){
                     var active=s.members[selected].a.indexOf(index)>=0;
                     var toggle=el('button',active?'':'primary',active?'Зняти роль':'Призначити роль');
                     toggle.addEventListener('click',function(){

@@ -82,6 +82,8 @@ class OpenAccountManagementWidgetService(
                             TelegramAccountManagementPermission.MANAGE_ROLES in data.actorPermissions,
                         canManageHierarchy =
                             TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY in data.actorPermissions,
+                        actorIsOwner =
+                            data.members.firstOrNull { member -> member.id == data.actorMemberId }?.owner == true,
                     ),
                 )
             }
