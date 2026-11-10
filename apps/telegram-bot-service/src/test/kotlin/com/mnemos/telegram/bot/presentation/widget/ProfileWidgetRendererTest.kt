@@ -1,6 +1,8 @@
 package com.mnemos.telegram.bot.presentation.widget
 
 import com.mnemos.telegram.bot.application.profile.model.ProfilePresenceStatus
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionState
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionType
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetEntry
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetView
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,6 +14,24 @@ import java.util.UUID
 class ProfileWidgetRendererTest {
     private val json = ObjectMapper()
     private val renderer = ProfileWidgetRenderer(json)
+
+    @Test
+    fun profileReactionStatusIsServerDataAndButtonsUseExplicitDesiredState() {
+        val view = ProfileWidgetView(
+            "Kirito", 0, 1, 1,
+            emptyList(),
+            selected = entry("Kirito"),
+            reaction = ProfileReactionState.Available(ProfileReactionType.LIKE),
+        )
+
+        val document = renderer.render(view)
+        val state = json.readTree(document.chatData)
+
+        assertTrue(state.path("canReact").asBoolean())
+        assertEquals("LIKE", state.path("reaction").asText())
+        assertTrue(document.html.contains("w1:prof:react:"))
+        assertTrue(document.html.contains("w1:prof:comments"))
+    }
 
     @Test
     fun untrustedNicknameNeverBecomesExecutableHtml() {
