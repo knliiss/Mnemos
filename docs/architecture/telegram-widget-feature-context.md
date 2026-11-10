@@ -48,8 +48,8 @@ Source of truth: `apps/mini-app/src/ui/navigation/routeRegistry.ts` (checked 202
 
 | Mini App area | Route IDs | Current widget coverage / remaining work |
 | --- | --- | --- |
-| Events | `bets`, `events`, `event-detail`, `subscriptions` | Widgets cover read-only bets, event feed, simple subscription listing/ping/deletion; detailed event and complete rule editing not ported |
-| Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selection, widget-originated account create/join and read-only account wallet are partial; leaderboards, guides, member/role/invite/settings flows need their own widgets |
+| Events | `bets`, `events`, `event-detail`, `subscriptions` | Widgets cover read-only bets, event feed and most Telegram subscription types (item drops, booster, dungeon, global, raid), but event detail, presence subscriptions and advanced rule editing remain |
+| Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selector, create/join, invitation listing/create/revoke, and read-only wallet have widget slices; leaderboards, guides, member/roles and account settings still absent |
 | People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online overview plus in-widget nickname search are partial; public profile search, profiles, activity and user-specific settings/wallet remain uncovered |
 | Personalization | `personalization-store`, `personalization-store-category`, `personalization-owned`, `personalization-detail` | Not represented by dedicated widgets; purchase/ownership operations need typed permission and payment review |
 | Creator | `creator-studio`, `creator-revenue`, `personalization-editor` | Not ported; retain Mini App for complex editor work, audit studio and revenue display separately |
@@ -60,8 +60,8 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 ## Next implementation priorities
 
 1. **Widget-originated chat input:** event and online searches update their own widgets; account create/join use prompt-scoped at-most-once claims. Next: durable operation receipts, domain idempotency, user-visible failure recovery and additional typed inputs (subscriptions, invitations, roles). Never intercept unrelated text.
-2. **Reliable query execution:** fast acknowledgement (<15 seconds), safe handling of retries and duplicate updates; avoid replaying a non-idempotent operation when a reply fails.
-3. **State consistency:** per-message widget versioning, refresh coalescing and explicit handling of out-of-order update deliveries. Do not sync cross-widget state blindly.
+2. **Reliable query execution:** fast acknowledgement (<15 seconds), durable operation receipts and backend idempotency. Widget invitation create uses Redis one-query claim, and revoke requires a three-minute message-bound confirmation; those do not guarantee exactly-once business execution during backend timeouts.
+3. **State consistency:** per-message widget versioning, refresh coalescing and explicit handling of out-of-order update deliveries. Do not sync cross-widget state blindly. Keep invite confirmation and mutation claims separate from widget page/search sessions.
 4. **Coverage audit:** list every Mini App capability and map it to implemented widget, chat, retained Mini App, or gap with security/technical rationale. Extend profiles, personalization and administration one typed slice at a time.
 5. **Verification:** unit/adapter tests, integration and real-client tests, widget sandbox inspection, staged opt-in/canary before enabling.
 
@@ -86,6 +86,8 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Shared SAO matcher, versioned `v4` widget search sessions, direct search result updates for events and SAO Online | Source and tests committed; builds/devices unverified |
 | 2026-11-10 | Widget-originated account creation and joining through reply-bound chat with one-time Redis mutation claims | Application/adapter tests committed; builds/devices unverified |
 | 2026-11-10 | Settings widget for language and notification-pack selection, dashboard navigation and legacy fallback | Static action matching completed; tests committed but not executed |
+| 2026-11-10 | Added invitation widget with list/create/revoke, 3-minute confirmation and Redis replay guard | Unit tests committed; not executed |
+| 2026-11-10 | Added widget control of booster/dungeon/global/raid and reply-bound item-drop creation | Unit tests committed; not executed |
 
 
 ## Per-route migration checklist (not a completed-parity statement)
@@ -97,7 +99,7 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | `bets` | Partial | Wager placement, increase, payout view, history and full race/event bet interactions |
 | `events` | Partial | Event type-specific filters, sort, wipe/period selection and complete pagination |
 | `event-detail` | Missing | Individual event detail card and related actions |
-| `subscriptions` | Partial | Create/edit all subscription kinds, presence/offline alerts and per-rule controls |
+| `subscriptions` | Partial | Widget can now create item-drop rules via reply-bound input, toggle booster/dungeon/global subscriptions, configure 1–28 raid locations and list/delete drops; player-offline alerts, per-rule editing, audit and advanced controls remain |
 | `account` | Partial | Full account dashboard, members and navigation to all subfeatures |
 | `leaderboards` | Missing | Drops/coins/boosters tabs, periods, rankings and pagination |
 | `guides` | Missing | Permission-gated guides and guide reader |
@@ -105,7 +107,7 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | `roles` | Missing | Roles overview, rank, permissions |
 | `role-editor` | Missing | Add/edit roles, hierarchy and permission editor with confirmations |
 | `account-wallet` | Partial | Account wallet transactions present; full Mini App wallet action mapping outstanding |
-| `account-invites` | Partial | Joining by code now possible; invite listing, generation, expiration and revocation missing |
+| `account-invites` | Partial | Widget listing, creation with expiry options, confirmation-backed revocation and joining by code now present; invite sharing, user notification and audit/retry verification outstanding |
 | `account-settings` | Missing | Account configuration and permission-gated settings |
 | `account-create` | Partial | Reply-bound creation available; onboarding polish and full error recovery missing |
 | `account-join` | Partial | Reply-bound join available; onboarding polish and full error recovery missing |
@@ -152,3 +154,15 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 3. Implement store browsing/owned personalization and safe financial flows; user-wallet and account-wallet access must remain strictly separated and authorized.
 4. Implement privileged creator and administration workflows with typed commands, server-side authorization, auditability, and guardrails; retain the graphical editor only if widget/client limitations are verified.
 5. Validate all Kotlin compilation, tests, Telegram Sandbox and real Telegram clients. Keep `mnemos.telegram-bot.widgets.enabled=false` until verified.
+
+## Continuation checkpoint — 2026-11-10 (invites and subscriptions)
+
+### Implemented (code on PR, not deployed or verified in a real client)
+
+- **Account invitations:** new `/invites` widget and Accounts-widget navigation; lists 3 invites per page, shows exact codes and validity/status, creates invites with `NONE / ONE_HOUR / ONE_DAY / SEVEN_DAYS`, revokes only visible active invitations after message-bound confirmation. The existing `AccountInviteGateway` still decides permission and active-account eligibility.
+- Invitation mutation safety: Redis SHA-256-scoped query claim (1 day) prevents the *same WidgetQuery ID* from executing twice; revocation confirmation is consumed atomically and expires in 3 minutes. Neither mechanism is a durable business transaction receipt, nor does it deduplicate two distinct intentional clicks. There is still a potential indeterminate-state problem if an internal service times out after committing a mutation.
+- **Core subscription modes:** widget toggles `BOOSTER`, `DUNGEON`, `GLOBAL` selections with desired end-state commands, and can configure all 28 raid locations through a validated 28-bit base36 mask. Reuses typed subscription gateway, existing enum validators and `NotificationRaidLocations` conventions; existing ownership remains service-enforced.
+- **Drop subscriptions:** widget starts reply-bound chat prompts for a player, an item, or both in `nickname;item` form. Reuses `NotificationItemDropInputValidator` and `NotificationSubscriptionCreationGateway`; a Redis prompt claim prevents replay of that specific input; after creation the originating widget is refreshed with feedback.
+- New source and adapter tests for authorization, confirmation, replay, parsing, toggling and snapshot mapping are committed, **but not executed**. No source changes have been deployed.
+- **Remaining in core notifications:** player-presence/offline subscription flows, richer drop-rule editing, cross-widget synchronization, durable business-level idempotency, actual Telegram client/sandbox and integration tests.
+- **Profiles security:** `profile-service` exposes `/api/v1/profiles` behind JWT while Telegram bot's service-to-service authentication uses `/internal/**` API keys. Do **not** bypass this by calling JWT endpoints without a user token. Any profile widget requires an explicit authenticated internal read contract, correctly provisioned service API keys, and privacy-aware mapping of hidden presence.

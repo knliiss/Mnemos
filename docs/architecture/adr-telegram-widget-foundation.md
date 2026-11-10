@@ -122,3 +122,10 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - Accounts widgets support creating and joining via reply-bound chat prompts `w1:acct:create` and `w1:acct:join`, reusing `AccountGateway` and a Redis at-most-once prompt claim. **Domain-level idempotency is not yet guaranteed**, especially for uncertain downstream results or separate prompts; do not reuse this as a finance flow.
 - Event and online search actions update the originating widget using search bound to a `v4` message session (the Redis reader accepts older `v2/v3` sessions). SAO nickname matching is shared with the text menu.
 - This ADR still describes the first migration slices; the live parity checklist and latest implementation ledger are in [the feature working context](telegram-widget-feature-context.md). No production enablement or claim of full parity is authorized without feature-by-feature verification.
+
+## Invites and notification expansion (2026-11-10)
+
+- `/invites` and `w1:acct:invites` open an account-context-bound invitation widget with `w1:inv:refresh`, `w1:inv:next:<page>`, `w1:inv:prev:<page>`, `w1:inv:create:<expiry>`, `w1:inv:confirm:<uuid>`, `w1:inv:revoke:<uuid>`, `w1:inv:cancel`. Existing `AccountInviteGateway` checks permissions and ownership; a per-message Redis confirmation is mandatory before revocation, and repeat query IDs are claimed.
+- Notification widget supports `w1:sub:booster:<type>:<on|off>`, `w1:sub:dungeon:<type>:<on|off>`, `w1:sub:global:<type>:<on|off>` and `w1:sub:raid:<base36-mask>`; the latter encodes a 28-bit bitset of locations 1–28 and uses server-side validation. Desired states are rechecked using existing `NotificationSubscriptionGateway` before mutation.
+- Item-drop rule creation uses `w1:sub:drop:player`, `w1:sub:drop:item`, `w1:sub:drop:both` and reply-bound input. The combined input is `nickname;itemName`. Validation reuses existing notification domain validators.
+- All code remains behind `mnemos.telegram-bot.widgets.enabled` and must not be deployed without compilation, tests and real Telegram Widget Sandbox/device validation.
