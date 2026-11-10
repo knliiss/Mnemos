@@ -21,6 +21,7 @@ class ProfileCommentsWidgetActionHandler(
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
     private val composer: StartProfileCommentInputUseCase,
+    private val deletion: DeleteProfileCommentUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.PROFILE_COMMENTS
 
@@ -34,10 +35,85 @@ class ProfileCommentsWidgetActionHandler(
             ProfileCommentsWidgetSnapshotResult.Unavailable ->
                 return responder.reply(context.queryId, "UNAVAILABLE", "Коментарі тимчасово недоступні")
         }
+        if (context.data == "w1:comments:delete-cancel") {
+            deletion.cancel(session)
+            return responder.reply(context.queryId, "OK", "Видалення скасовано", publisher.state(current))
+        }
+        if (context.data.startsWith("w1:comments:edit:")) {
+            val item = resolveItem(current, context.data.removePrefix("w1:comments:edit:"))
+                ?: return responder.reply(context.queryId, "CONFLICT", "Коментар змінився. Оновіть")
+            if (!item.canEdit || item.deleted) {
+                return responder.reply(context.queryId, "FORBIDDEN", "Редагування цього коментаря недоступне")
+            }
+            val ack = responder.reply(context.queryId, "INPUT", "Напишіть новий текст у відповідь на підказку")
+            if (ack == TelegramDeliveryResult.Delivered) {
+                runCatching { composer.edit(session, item.id) }
+                    .onSuccess { result ->
+                        if (result != TelegramDeliveryResult.Delivered) {
+                            publisher.update(context.actorId, context.messageId, current.copy(
+                                feedback = "Не вдалося відкрити введення. Перевірте активний акаунт",
+                            ))
+                        }
+                    }
+                    .onFailure { log.warn("Cannot open edit-comment input for Telegram user {}", context.actorId, it) }
+            }
+            return ack
+        }
+        if (context.data.startsWith("w1:comments:delete:") ||
+            context.data.startsWith("w1:comments:delete-confirm:")
+        ) {
+            val confirming = context.data.startsWith("w1:comments:delete-confirm:")
+            val raw = context.data.removePrefix(
+                if (confirming) "w1:comments:delete-confirm:" else "w1:comments:delete:",
+            )
+            val item = resolveItem(current, raw)
+                ?: return responder.reply(context.queryId, "CONFLICT", "Коментар змінився. Оновіть")
+            if (!item.canDelete || item.deleted) {
+                return responder.reply(context.queryId, "FORBIDDEN", "Видалення цього коментаря недоступне")
+            }
+            val result = if (confirming) deletion.confirm(session, item.id)
+                else deletion.request(session, item.id)
+            return when (result) {
+                ProfileCommentRemovalResult.CONFIRM_REQUIRED -> {
+                    val index = current.comments.indexOfFirst { it.id == item.id }
+                    responder.reply(
+                        context.queryId, "CONFIRM", "Підтвердьте видалення коментаря",
+                        publisher.state(current.copy(pendingDeleteIndex = index)),
+                    )
+                }
+                ProfileCommentRemovalResult.APPLIED -> {
+                    val fresh = (snapshots.load(context.actorId, profileId, session.page, session.cursor)
+                        as? ProfileCommentsWidgetSnapshotResult.Available)?.view
+                        ?: return responder.reply(context.queryId, "UNAVAILABLE", "Коментар видалено. Оновіть сторінку")
+                    val response = responder.reply(
+                        context.queryId, "OK", "Коментар видалено",
+                        publisher.state(fresh.copy(feedback = "Коментар видалено")),
+                    )
+                    if (response == TelegramDeliveryResult.Delivered) {
+                        publisher.update(context.actorId, context.messageId, fresh)
+                    }
+                    response
+                }
+                ProfileCommentRemovalResult.NOT_CONFIRMED ->
+                    responder.reply(context.queryId, "CONFIRM_REQUIRED", "Потрібне нове підтвердження")
+                ProfileCommentRemovalResult.ACCOUNT_REQUIRED ->
+                    responder.reply(context.queryId, "ACCOUNT_REQUIRED", "Оберіть активний акаунт")
+                ProfileCommentRemovalResult.UNAVAILABLE ->
+                    responder.reply(context.queryId, "UNAVAILABLE", "Видалення тимчасово недоступне")
+                else -> responder.reply(context.queryId, "INVALID", "Дію відхилено")
+            }
+        }
         if (context.data == "w1:comments:compose") {
             val response = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
             if (response == TelegramDeliveryResult.Delivered) {
                 runCatching { composer.execute(session) }
+                    .onSuccess { result ->
+                        if (result != TelegramDeliveryResult.Delivered) {
+                            publisher.update(context.actorId, context.messageId, current.copy(
+                                feedback = "Не вдалося відкрити введення. Перевірте активний акаунт",
+                            ))
+                        }
+                    }
                     .onFailure { log.warn("Cannot start comment input for Telegram user {}", context.actorId, it) }
             }
             return response
@@ -95,6 +171,14 @@ class ProfileCommentsWidgetActionHandler(
             publisher.update(context.actorId, context.messageId, fresh)
         }
         return answer
+    }
+
+    private fun resolveItem(view: ProfileCommentsWidgetView, raw: String): ProfileCommentWidgetItem? {
+        val parts = raw.split(':')
+        if (parts.size != 2) return null
+        val index = parts[0].toIntOrNull() ?: return null
+        val item = view.comments.getOrNull(index) ?: return null
+        return item.takeIf { it.id.toString().replace("-", "").take(12) == parts[1] }
     }
 
     private companion object {

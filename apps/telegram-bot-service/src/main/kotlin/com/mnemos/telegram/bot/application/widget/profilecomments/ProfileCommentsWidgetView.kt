@@ -11,4 +11,5 @@ data class ProfileCommentsWidgetView(
     val rootCommentId: UUID?,
     val comments: List<ProfileCommentWidgetItem>,
     val feedback: String? = null,
+    val pendingDeleteIndex: Int? = null,
 )

@@ -19,6 +19,7 @@ class ProfileCommentsWidgetRenderer(
                 "total" to view.totalItems,
                 "thread" to (view.rootCommentId != null),
                 "feedback" to view.feedback,
+                "confirmDelete" to view.pendingDeleteIndex,
                 "comments" to view.comments.map {
                     mapOf(
                         "a" to it.author,
@@ -91,6 +92,26 @@ class ProfileCommentsWidgetRenderer(
                   row.appendChild(elem('div','content',comment.c));
                   row.appendChild(elem('div','hint',
                     '👍 '+comment.l+' · Відповідей: '+comment.r+' · '+comment.at+' UTC'));
+                  if(comment.e){
+                    var edit=elem('button','','Редагувати');
+                    edit.addEventListener('click',function(){
+                      ask('w1:comments:edit:'+index+':'+comment.t);
+                    });
+                    row.appendChild(edit);
+                  }
+                  if(comment.x){
+                    var confirming=s.confirmDelete===index;
+                    var remove=elem('button','',confirming?'Підтвердити видалення':'Видалити');
+                    remove.addEventListener('click',function(){
+                      ask('w1:comments:'+(confirming?'delete-confirm':'delete')+':'+index+':'+comment.t);
+                    });
+                    row.appendChild(remove);
+                    if(confirming){
+                      var cancel=elem('button','','Скасувати');
+                      cancel.addEventListener('click',function(){ask('w1:comments:delete-cancel');});
+                      row.appendChild(cancel);
+                    }
+                  }
                   if(!s.thread&&!comment.d&&comment.r>0){
                     var replies=elem('button','','Відповіді');
                     replies.addEventListener('click',function(){
