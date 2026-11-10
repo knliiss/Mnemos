@@ -74,6 +74,18 @@ class OpenEventWidgetServiceTest {
     }
 
     @Test
+    fun eventWidgetSearchUsesExistingDomainSearchQuery() {
+        whenever(events.getPage(EventHistoryQuery(EventHistoryFilter.ITEM_DROP, null, search = "Kirito", telegramId = 11L)))
+            .thenReturn(EventHistoryResult.Available(EventHistoryPage(emptyList(), null)))
+        val service = OpenEventWidgetService(TelegramWidgetProperties(enabled = true), events, publisher)
+
+        val result = service.load(11L, EventHistoryFilter.ITEM_DROP, null, "Kirito") as EventWidgetSnapshotResult.Available
+
+        assertEquals("Kirito", result.view.search)
+        verify(events).getPage(EventHistoryQuery(EventHistoryFilter.ITEM_DROP, null, search = "Kirito", telegramId = 11L))
+    }
+
+    @Test
     fun disabledFeatureNeverQueriesDomainService() {
         val service = OpenEventWidgetService(TelegramWidgetProperties(enabled = false), events, publisher)
 

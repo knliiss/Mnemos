@@ -33,7 +33,7 @@ class EventWidgetActionHandlerTest {
     @Test
     fun refusesCursorNotInCurrentPage() {
         val current = UUID.randomUUID()
-        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(current)))
         whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
@@ -46,9 +46,9 @@ class EventWidgetActionHandlerTest {
 
     @Test
     fun filterChangeUsesAQueryAndSendsStateUpdate() {
-        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
-        whenever(snapshots.load(11L, EventHistoryFilter.ITEM_DROP, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ITEM_DROP, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(null).copy(filter = EventHistoryFilter.ITEM_DROP)))
         whenever(publisher.state(any())).thenReturn("""{"filter":"ITEM_DROP","items":[]}""")
         whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
@@ -64,9 +64,9 @@ class EventWidgetActionHandlerTest {
     @Test
     fun validNextCursorOpensNewMessageInsteadOfChangingOldPage() {
         val current = UUID.randomUUID()
-        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(current)))
-        whenever(opener.execute(11L, EventHistoryFilter.ALL, current))
+        whenever(opener.execute(11L, EventHistoryFilter.ALL, current, null))
             .thenReturn(TelegramDeliveryResult.Delivered)
         whenever(responder.reply(eq("q"), eq("OK"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
@@ -77,8 +77,23 @@ class EventWidgetActionHandlerTest {
 
 
     @Test
+    fun clearSearchResetsPageSearchAndRefreshesWidget() {
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, "Kirito"))
+            .thenReturn(EventWidgetSnapshotResult.Available(view(null).copy(search = "Kirito")))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
+            .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+        val searched = session().copy(search = "Kirito")
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:evt:clear"), searched))
+        verify(sessions).save(session())
+    }
+
+    @Test
     fun textSearchAcknowledgesBeforeCreatingAReplyBoundPrompt() {
-        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
         whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
@@ -90,7 +105,7 @@ class EventWidgetActionHandlerTest {
 
     @Test
     fun failedAcknowledgementNeverStartsTextInput() {
-        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
             .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
         whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Retryable)

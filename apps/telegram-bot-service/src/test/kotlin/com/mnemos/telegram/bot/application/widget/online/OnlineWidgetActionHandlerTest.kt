@@ -29,7 +29,7 @@ class OnlineWidgetActionHandlerTest {
 
     @Test
     fun selectingUnlistedRealmIsRejected() {
-        whenever(snapshots.load(11L, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
+        whenever(snapshots.load(11L, null, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
         whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
@@ -39,8 +39,8 @@ class OnlineWidgetActionHandlerTest {
 
     @Test
     fun selectingVisibleRealmUpdatesSessionAndState() {
-        whenever(snapshots.load(11L, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
-        whenever(snapshots.load(11L, 2)).thenReturn(OnlineWidgetSnapshotResult.Available(detail()))
+        whenever(snapshots.load(11L, null, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
+        whenever(snapshots.load(11L, 2, null)).thenReturn(OnlineWidgetSnapshotResult.Available(detail()))
         whenever(publisher.state(any())).thenReturn("""{"selected":2}""")
         whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
@@ -51,12 +51,24 @@ class OnlineWidgetActionHandlerTest {
 
     @Test
     fun backActionReturnsToRealmList() {
-        whenever(snapshots.load(11L, 2)).thenReturn(OnlineWidgetSnapshotResult.Available(detail()))
-        whenever(snapshots.load(11L, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
+        whenever(snapshots.load(11L, 2, null)).thenReturn(OnlineWidgetSnapshotResult.Available(detail()))
+        whenever(snapshots.load(11L, null, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
         whenever(publisher.state(any())).thenReturn("""{"selected":null}""")
         whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:on:list"), session(2)))
+        verify(sessions).save(session())
+    }
+
+    @Test
+    fun clearingSearchReturnsToRealmList() {
+        whenever(snapshots.load(11L, null, "Kirito"))
+            .thenReturn(OnlineWidgetSnapshotResult.Available(overview().copy(search = "Kirito")))
+        whenever(snapshots.load(11L, null, null)).thenReturn(OnlineWidgetSnapshotResult.Available(overview()))
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:on:clear"), session().copy(search = "Kirito")))
         verify(sessions).save(session())
     }
 

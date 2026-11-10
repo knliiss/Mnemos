@@ -62,6 +62,19 @@ class OpenOnlineWidgetServiceTest {
         assertEquals(emptyList<OnlineWidgetRealm>(), result.view.realms)
     }
 
+    @Test
+    fun nicknameSearchKeepsMatchesInWidgetWithoutASeparateGateway() {
+        whenever(source.getSnapshot()).thenReturn(SaoOnlineSnapshotResult.Available(snapshot()))
+
+        val result = service().load(11L, null, "kir") as OnlineWidgetSnapshotResult.Available
+
+        assertEquals("kir", result.view.search)
+        assertEquals(1, result.view.selectedRealmPlayerCount)
+        assertEquals(null, result.view.selectedRealmNumber)
+        assertEquals(emptyList<OnlineWidgetRealm>(), result.view.realms)
+        assertEquals(listOf("Kirito · SAO-7"), result.view.players.map { it.nickname })
+    }
+
     private fun service() = OpenOnlineWidgetService(TelegramWidgetProperties(enabled = true), source, publisher)
 
     private fun snapshot() =

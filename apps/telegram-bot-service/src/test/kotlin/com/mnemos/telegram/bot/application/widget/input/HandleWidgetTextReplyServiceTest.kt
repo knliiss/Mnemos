@@ -25,7 +25,8 @@ class HandleWidgetTextReplyServiceTest {
     private val pending = mock<WidgetTextInputSessionRepository>()
     private val widgets = mock<TelegramWidgetSessionRepository>()
     private val menu = mock<TelegramMenuService>()
-    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu)
+    private val search = mock<ApplyWidgetTextSearchUseCase>()
+    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search)
 
     @Test
     fun unrelatedReplyDoesNotInterceptLegacyInput() {
@@ -34,31 +35,33 @@ class HandleWidgetTextReplyServiceTest {
     }
 
     @Test
-    fun eventReplyUsesExistingEventSearchAndConsumesPrompt() {
+    fun eventReplyUpdatesItsOwnWidgetWithoutOpeningTextMenu() {
         givenPending(WidgetTextInputPurpose.EVENT_SEARCH, TelegramWidgetScreen.EVENTS)
-        whenever(menu.open(eq(11L), eq(TelegramMenuScreen.EVENTS), any(), isNull()))
+        whenever(search.apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.EVENTS, null), "Kirito"))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "  Kirito  "))
-        verify(menu).open(11L, TelegramMenuScreen.EVENTS, EventHistoryMenuContext.search(emptyMap(), "Kirito"))
+        verify(search).apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.EVENTS, null), "Kirito")
+        verifyNoInteractions(menu)
         verify(pending).delete(11L, 41)
     }
 
     @Test
-    fun onlineReplyUsesExistingOnlinePlayerSearch() {
+    fun onlineReplyUpdatesTheOnlineWidget() {
         givenPending(WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH, TelegramWidgetScreen.ONLINE)
-        whenever(menu.open(eq(11L), eq(TelegramMenuScreen.ONLINE), any(), isNull()))
+        whenever(search.apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ONLINE, null), "Kirito"))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "Kirito"))
-        verify(menu).open(11L, TelegramMenuScreen.ONLINE, SaoOnlineMenuContext.search("Kirito"))
+        verify(search).apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ONLINE, null), "Kirito")
+        verifyNoInteractions(menu)
         verify(pending).delete(11L, 41)
     }
 
     @Test
     fun retryableDeliveryPreservesPromptForTheNextUpdateAttempt() {
         givenPending(WidgetTextInputPurpose.EVENT_SEARCH, TelegramWidgetScreen.EVENTS)
-        whenever(menu.open(eq(11L), eq(TelegramMenuScreen.EVENTS), any(), isNull()))
+        whenever(search.apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.EVENTS, null), "test"))
             .thenReturn(TelegramDeliveryResult.Retryable)
 
         assertEquals(TelegramDeliveryResult.Retryable, handler.handle(11L, 41, "test"))
