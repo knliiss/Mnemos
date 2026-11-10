@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInputSessionRepository
 import com.mnemos.telegram.bot.application.widget.input.ApplyWidgetTextSearchUseCase
+import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -23,6 +24,7 @@ class HandleWidgetTextReplyService(
     private val menu: TelegramMenuService,
     private val search: ApplyWidgetTextSearchUseCase,
     private val accountInput: ApplyWidgetAccountInputUseCase,
+    private val itemDropInput: CreateWidgetItemDropSubscriptionUseCase,
 ) : HandleWidgetTextReplyUseCase {
     override fun handle(telegramId: Long, promptMessageId: Int, text: String): TelegramDeliveryResult? {
         if (!properties.enabled) return null
@@ -34,6 +36,9 @@ class HandleWidgetTextReplyService(
                 WidgetTextInputPurpose.EVENT_SEARCH -> TelegramMenuScreen.EVENTS
                 WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> TelegramMenuScreen.ONLINE
                 WidgetTextInputPurpose.ACCOUNT_CREATE, WidgetTextInputPurpose.ACCOUNT_JOIN -> TelegramMenuScreen.ACCOUNT
+                WidgetTextInputPurpose.ITEM_DROP_PLAYER,
+                WidgetTextInputPurpose.ITEM_DROP_ITEM,
+                WidgetTextInputPurpose.ITEM_DROP_BOTH -> TelegramMenuScreen.NOTIFICATIONS
             }
         val result =
             when {
@@ -43,6 +48,10 @@ class HandleWidgetTextReplyService(
                 session.purpose == WidgetTextInputPurpose.ACCOUNT_CREATE ||
                     session.purpose == WidgetTextInputPurpose.ACCOUNT_JOIN ->
                     accountInput.apply(session, widget, text.trim())
+                session.purpose == WidgetTextInputPurpose.ITEM_DROP_PLAYER ||
+                    session.purpose == WidgetTextInputPurpose.ITEM_DROP_ITEM ||
+                    session.purpose == WidgetTextInputPurpose.ITEM_DROP_BOTH ->
+                    itemDropInput.create(session, widget, text.trim())
                 else -> {
                     val normalized =
                         when (session.purpose) {

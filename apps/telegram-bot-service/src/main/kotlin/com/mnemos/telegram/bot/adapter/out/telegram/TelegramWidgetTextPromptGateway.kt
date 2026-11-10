@@ -43,6 +43,15 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.ACCOUNT_JOIN ->
                     "Введіть код запрошення до акаунта. Відповідайте на це повідомлення або напишіть «скасувати»." to
                         "Код запрошення"
+                WidgetTextInputPurpose.ITEM_DROP_PLAYER ->
+                    "Введіть нікнейм гравця для сповіщення про дроп (4–20 символів) або «скасувати»." to
+                        "Нікнейм гравця"
+                WidgetTextInputPurpose.ITEM_DROP_ITEM ->
+                    "Введіть назву предмета (до 24 символів) або «скасувати»." to
+                        "Назва предмета"
+                WidgetTextInputPurpose.ITEM_DROP_BOTH ->
+                    "Введіть нікнейм і назву предмета через крапку з комою: Kirito;Клинок. Для скасування — «скасувати»." to
+                        "Гравець;Предмет"
             }
 
         return try {

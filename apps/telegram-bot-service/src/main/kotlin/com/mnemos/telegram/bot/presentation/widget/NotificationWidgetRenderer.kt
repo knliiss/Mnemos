@@ -25,6 +25,7 @@ class NotificationWidgetRenderer(
                 "dungeonKeys" to view.activeDungeons.sorted(),
                 "globalKeys" to view.activeGlobals.sorted(),
                 "raidLocations" to view.raidLocations.sorted(),
+                "feedback" to view.feedback,
                 "items" to view.itemDrops.map { entry -> mapOf("id" to entry.id.toString(), "label" to entry.label) },
             ),
         )
@@ -63,6 +64,12 @@ class NotificationWidgetRenderer(
             </div>
             <div class="row"><span class="title" id="pingLabel"></span><button id="ping" class="secondary">Змінити</button></div>
             <div id="items"></div>
+            <div class="subhead">Додати правило дропу</div>
+            <div class="actions">
+              <button id="dropPlayer" class="secondary">За гравцем</button>
+              <button id="dropItem" class="secondary">За предметом</button>
+              <button id="dropBoth" class="secondary">Обидва</button>
+            </div>
             <div class="actions"><button id="optionsToggle" class="secondary">Налаштувати типи підписок</button></div>
             <div id="subscriptionOptions" class="hide">
               <div class="subhead">Бустери</div><div class="choices" id="boosterChoices"></div>
@@ -120,6 +127,7 @@ class NotificationWidgetRenderer(
                 document.getElementById('boosts').textContent=String(s.boosters);
                 document.getElementById('globals').textContent=String(s.globals);
                 document.getElementById('pingLabel').textContent=s.ping?'Ping-сповіщення ввімкнені':'Ping-сповіщення вимкнені';
+                if(s.feedback)document.getElementById('status').textContent=s.feedback;
                 renderChoices('boosterChoices','booster',[
                   ['LUCK','Удача'],['MONEY','Гроші'],['DAMAGE','Шкода'],['POWER','Сила']
                 ],s.boosterKeys);
@@ -165,6 +173,9 @@ class NotificationWidgetRenderer(
                   busy=false;
                 },function(){busy=false;status.textContent='Не вдалося виконати дію';});
               }
+              document.getElementById('dropPlayer').addEventListener('click',function(){act('w1:sub:drop:player');});
+              document.getElementById('dropItem').addEventListener('click',function(){act('w1:sub:drop:item');});
+              document.getElementById('dropBoth').addEventListener('click',function(){act('w1:sub:drop:both');});
               document.getElementById('optionsToggle').addEventListener('click',function(){
                 var panel=document.getElementById('subscriptionOptions');
                 panel.className=panel.className==='hide'?'':'hide';

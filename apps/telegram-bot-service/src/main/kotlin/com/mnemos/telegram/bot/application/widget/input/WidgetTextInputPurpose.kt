@@ -7,4 +7,7 @@ enum class WidgetTextInputPurpose(val screen: TelegramWidgetScreen) {
     ONLINE_PLAYER_SEARCH(TelegramWidgetScreen.ONLINE),
     ACCOUNT_CREATE(TelegramWidgetScreen.ACCOUNTS),
     ACCOUNT_JOIN(TelegramWidgetScreen.ACCOUNTS),
+    ITEM_DROP_PLAYER(TelegramWidgetScreen.NOTIFICATIONS),
+    ITEM_DROP_ITEM(TelegramWidgetScreen.NOTIFICATIONS),
+    ITEM_DROP_BOTH(TelegramWidgetScreen.NOTIFICATIONS),
 }

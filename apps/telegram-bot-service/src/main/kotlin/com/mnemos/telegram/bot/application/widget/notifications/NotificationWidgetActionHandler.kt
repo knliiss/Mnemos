@@ -5,6 +5,8 @@ import com.mnemos.telegram.bot.application.notification.port.out.NotificationSub
 import com.mnemos.telegram.bot.application.widget.notifications.WidgetSubscriptionKind
 import com.mnemos.telegram.bot.application.widget.notifications.WidgetSubscriptionUpdateResult
 import com.mnemos.telegram.bot.application.widget.notifications.port.out.NotificationWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -24,6 +26,7 @@ class NotificationWidgetActionHandler(
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
     private val updateSubscriptions: UpdateWidgetSubscriptionUseCase,
+    private val textInput: StartWidgetTextInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.NOTIFICATIONS
 
@@ -40,6 +43,21 @@ class NotificationWidgetActionHandler(
         val current = loaded.view
         if (current.accountId != session.accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Акаунт змінився. Відкрийте підписки знову")
+        }
+
+        val dropInput =
+            when (context.data) {
+                "w1:sub:drop:player" -> WidgetTextInputPurpose.ITEM_DROP_PLAYER
+                "w1:sub:drop:item" -> WidgetTextInputPurpose.ITEM_DROP_ITEM
+                "w1:sub:drop:both" -> WidgetTextInputPurpose.ITEM_DROP_BOTH
+                else -> null
+            }
+        if (dropInput != null) {
+            val answer = responder.reply(context.queryId, "INPUT", "Підказка для введення з'явиться в чаті")
+            if (answer == TelegramDeliveryResult.Delivered) {
+                runCatching { textInput.start(session, dropInput) }
+            }
+            return answer
         }
 
         var targetPage = session.page
