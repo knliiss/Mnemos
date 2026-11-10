@@ -4,6 +4,8 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchRe
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.accounts.port.out.AccountWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -26,9 +28,31 @@ class AccountWidgetActionHandlerTest {
     private val publisher = mock<AccountWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = AccountWidgetActionHandler(snapshots, accounts, publisher, sessions, responder)
+    private val input = mock<StartWidgetTextInputUseCase>()
+    private val handler = AccountWidgetActionHandler(snapshots, accounts, publisher, sessions, responder, input)
     private val currentId = UUID.randomUUID()
     private val otherId = UUID.randomUUID()
+
+    @Test
+    fun accountCreationStartsReplyBoundInputAfterAcknowledgement() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountWidgetSnapshotResult.Available(view(currentId)))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:acct:create"), session(currentId)))
+        verify(input).start(session(currentId), WidgetTextInputPurpose.ACCOUNT_CREATE)
+        verifyNoInteractions(accounts)
+    }
+
+    @Test
+    fun joiningAccountStartsReplyBoundInputAfterAcknowledgement() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountWidgetSnapshotResult.Available(view(currentId)))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:acct:join"), session(currentId)))
+        verify(input).start(session(currentId), WidgetTextInputPurpose.ACCOUNT_JOIN)
+    }
 
     @Test
     fun staleAccountContextCannotSwitchAccounts() {

@@ -26,7 +26,8 @@ class HandleWidgetTextReplyServiceTest {
     private val widgets = mock<TelegramWidgetSessionRepository>()
     private val menu = mock<TelegramMenuService>()
     private val search = mock<ApplyWidgetTextSearchUseCase>()
-    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search)
+    private val accountInput = mock<ApplyWidgetAccountInputUseCase>()
+    private val handler = HandleWidgetTextReplyService(TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput)
 
     @Test
     fun unrelatedReplyDoesNotInterceptLegacyInput() {
@@ -55,6 +56,28 @@ class HandleWidgetTextReplyServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "Kirito"))
         verify(search).apply(TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ONLINE, null), "Kirito")
         verifyNoInteractions(menu)
+        verify(pending).delete(11L, 41)
+    }
+
+    @Test
+    fun accountJoinReplyIsRoutedToTypedApplicationUseCase() {
+        givenPending(WidgetTextInputPurpose.ACCOUNT_JOIN, TelegramWidgetScreen.ACCOUNTS)
+        val prompt = WidgetTextInputSession(11L, 41, 8, null, WidgetTextInputPurpose.ACCOUNT_JOIN)
+        val widget = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ACCOUNTS, null)
+        whenever(accountInput.apply(prompt, widget, "invite42")).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "invite42"))
+        verify(accountInput).apply(prompt, widget, "invite42")
+        verifyNoInteractions(menu, search)
+        verify(pending).delete(11L, 41)
+    }
+
+    @Test
+    fun cancellingInputDoesNotOpenLegacyMenu() {
+        givenPending(WidgetTextInputPurpose.ACCOUNT_CREATE, TelegramWidgetScreen.ACCOUNTS)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "скасувати"))
+        verifyNoInteractions(menu, search, accountInput)
         verify(pending).delete(11L, 41)
     }
 
