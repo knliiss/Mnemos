@@ -19,4 +19,12 @@ interface SocialServiceClient {
         @RequestParam page: Int,
         @RequestParam size: Int,
     ): InternalTelegramCommentPage
+
+    @GetMapping("/internal/v1/telegram/social/profiles/{accountId}/comments/{rootId}/replies")
+    fun listReplies(
+        @PathVariable accountId: UUID,
+        @PathVariable rootId: UUID,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+    ): InternalTelegramCommentPage
 }

@@ -2,6 +2,11 @@ package com.mnemos.social.adapter.inbound.http.comment
 
 import com.mnemos.social.application.comment.usecase.list.ListCommentsUseCase
 import com.mnemos.social.application.comment.usecase.list.ListRootCommentsQuery
+import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
+import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
+import com.mnemos.social.domain.comment.model.CommentId
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import com.mnemos.social.application.common.pagination.PageQuery
 import com.mnemos.social.contracts.internal.v1.InternalTelegramComment
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCommentPage
@@ -22,6 +27,7 @@ import java.util.UUID
 @PreAuthorize("authentication.name == 'telegram-bot-service'")
 class InternalTelegramCommentsController(
     private val comments: ListCommentsUseCase,
+    private val getComment: GetCommentUseCase,
 ) {
     @GetMapping("/profiles/{accountId}/comments")
     fun list(
@@ -30,8 +36,29 @@ class InternalTelegramCommentsController(
         @RequestParam @Min(1) @Max(8) size: Int,
     ): InternalTelegramCommentPage {
         val result = comments.listRoot(ListRootCommentsQuery(accountId, PageQuery(page, size)))
+        return result.toInternalPage()
+    }
+
+    @GetMapping("/profiles/{accountId}/comments/{rootId}/replies")
+    fun replies(
+        @PathVariable accountId: UUID,
+        @PathVariable rootId: UUID,
+        @RequestParam @Min(0) @Max(1_000) page: Int,
+        @RequestParam @Min(1) @Max(8) size: Int,
+    ): InternalTelegramCommentPage {
+        val root = getComment.execute(rootId)
+        if (root.targetAccountId != accountId || root.parentCommentId != null || root.deleted) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
+        return comments.listReplies(ListCommentRepliesQuery(CommentId(rootId), PageQuery(page, size)))
+            .toInternalPage()
+    }
+
+    private fun com.mnemos.social.application.common.pagination.PageResult<
+        com.mnemos.social.application.comment.model.CommentView
+    >.toInternalPage(): InternalTelegramCommentPage {
         return InternalTelegramCommentPage(
-            items = result.items.map { comment ->
+            items = items.map { comment ->
                 InternalTelegramComment(
                     id = comment.id.id,
                     authorAccountId = comment.authorAccountId,
@@ -42,9 +69,9 @@ class InternalTelegramCommentsController(
                     createdAt = comment.createdAt,
                 )
             },
-            page = result.page,
-            totalPages = result.totalPages,
-            totalItems = result.totalItems,
+            page = page,
+            totalPages = totalPages,
+            totalItems = totalItems,
         )
     }
 }
