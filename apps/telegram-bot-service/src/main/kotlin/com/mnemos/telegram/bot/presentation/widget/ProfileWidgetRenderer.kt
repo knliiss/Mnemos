@@ -106,6 +106,10 @@ class ProfileWidgetRenderer(
                   details.appendChild(row(label+(selected.realm?' · '+selected.realm:''),true));
                   if(selected.lastSeen)details.appendChild(row('Останній онлайн: '+selected.lastSeen,true));
                   details.appendChild(row('У Mnemos із '+selected.joined,true));
+                  var activity=document.createElement('button');activity.textContent='Історія дропів';
+                  activity.className='primary';
+                  activity.addEventListener('click',function(){ask('w1:prof:activity');});
+                  details.appendChild(activity);
                 }else{
                   summary.textContent=s.query?'«'+s.query+'» · '+s.total+' результатів · '+(s.page+1)+'/'+Math.max(1,s.pages):'Знайдіть користувача за нікнеймом';
                   if(!s.profiles||!s.profiles.length){

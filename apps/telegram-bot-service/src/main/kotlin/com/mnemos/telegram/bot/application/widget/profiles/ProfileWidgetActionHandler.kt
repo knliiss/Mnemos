@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.profileactivity.OpenProfileActivityWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -22,6 +23,7 @@ class ProfileWidgetActionHandler(
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
     private val input: StartWidgetTextInputUseCase,
+    private val activity: OpenProfileActivityWidgetUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.PROFILES
 
@@ -37,6 +39,17 @@ class ProfileWidgetActionHandler(
         val current = (snapshots.load(context.actorId, session.search, session.page, session.selectedProfileId)
             as? ProfileWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Профілі зараз недоступні")
+        if (context.data == "w1:prof:activity") {
+            val profileId = session.selectedProfileId
+                ?: return responder.reply(context.queryId, "CONFLICT", "Спочатку відкрийте профіль")
+            val opened = activity.execute(context.actorId, profileId)
+            return responder.reply(
+                context.queryId,
+                if (opened == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (opened == TelegramDeliveryResult.Delivered) "Активність відкрито" else "Активність недоступна",
+            )
+        }
+
         var query = session.search
         var page = session.page
         var selected = session.selectedProfileId
