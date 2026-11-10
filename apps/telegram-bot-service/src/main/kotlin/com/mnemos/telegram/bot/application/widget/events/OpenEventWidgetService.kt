@@ -65,7 +65,12 @@ class OpenEventWidgetService(
                                 is EventHistoryItem.Global -> "Глобальна" to item.globalType
                                 is EventHistoryItem.Raid -> "Рейд" to item.locations.joinToString(", ")
                             }
-                        EventWidgetItem(kind, WidgetTextLimiter.truncateUtf8(title, 36), item.occurredAt.toString().substring(11, 16) + " UTC")
+                        EventWidgetItem(
+                            kind,
+                            WidgetTextLimiter.truncateUtf8(title, 36),
+                            item.occurredAt.toString().substring(11, 16) + " UTC",
+                            item.eventId,
+                        )
                     },
             ),
         )

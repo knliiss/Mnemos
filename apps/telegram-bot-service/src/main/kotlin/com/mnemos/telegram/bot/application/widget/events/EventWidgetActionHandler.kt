@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.application.widget.events
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.eventdetail.OpenEventDetailWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
@@ -24,6 +25,7 @@ class EventWidgetActionHandler(
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
     private val textInput: StartWidgetTextInputUseCase,
+    private val eventDetail: OpenEventDetailWidgetUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.EVENTS
 
@@ -45,6 +47,19 @@ class EventWidgetActionHandler(
         val old =
             (snapshots.load(telegramId, filter, session.cursor, session.search) as? EventWidgetSnapshotResult.Available)?.view
                 ?: return responder.reply(context.queryId, "UNAVAILABLE", "Стрічка недоступна")
+
+        if (context.data.startsWith("w1:evt:detail:")) {
+            val index = context.data.removePrefix("w1:evt:detail:").toIntOrNull()
+                ?: return responder.reply(context.queryId, "INVALID", "Невірна подія")
+            val eventId = old.items.getOrNull(index)?.eventId
+                ?: return responder.reply(context.queryId, "CONFLICT", "Оновіть список подій")
+            val delivery = eventDetail.execute(telegramId, eventId)
+            return responder.reply(
+                context.queryId,
+                if (delivery == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (delivery == TelegramDeliveryResult.Delivered) "Деталі відкрито" else "Подія недоступна",
+            )
+        }
 
         if (context.data.startsWith("w1:evt:next:")) {
             val cursor =

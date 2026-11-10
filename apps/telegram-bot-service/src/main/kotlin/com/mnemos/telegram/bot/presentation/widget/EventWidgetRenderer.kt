@@ -64,14 +64,16 @@ class EventWidgetRenderer(
                   var empty=document.createElement('div');empty.className='event kind';empty.textContent='Подій немає';
                   root.appendChild(empty);
                 }else{
-                  s.items.forEach(function(item){
+                  s.items.forEach(function(item,index){
                     var row=document.createElement('div');row.className='event';
                     var txt=document.createElement('div');txt.className='title';
                     var kind=document.createElement('div');kind.className='kind';kind.textContent=item.type;
                     var label=document.createElement('div');label.textContent=item.label;
                     txt.appendChild(kind);txt.appendChild(label);
                     var time=document.createElement('span');time.className='time';time.textContent=item.time;
-                    row.appendChild(txt);row.appendChild(time);root.appendChild(row);
+                    var open=document.createElement('button');open.textContent='Деталі';
+                    open.addEventListener('click',function(){ask('w1:evt:detail:'+index);});
+                    row.appendChild(txt);row.appendChild(time);row.appendChild(open);root.appendChild(row);
                   });
                 }
                 document.getElementById('next').style.display=s.cursor?'block':'none';

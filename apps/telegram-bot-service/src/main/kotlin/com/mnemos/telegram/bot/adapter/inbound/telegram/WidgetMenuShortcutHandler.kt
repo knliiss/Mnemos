@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.events.OpenEventWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
@@ -14,10 +15,22 @@ import org.springframework.stereotype.Component
 class WidgetMenuShortcutHandler(
     private val menuService: TelegramMenuService,
     private val profiles: OpenProfileWidgetUseCase? = null,
+    private val eventWidgets: OpenEventWidgetUseCase? = null,
 ) : TelegramScopedCallbackHandler {
     override val callbackPrefix: String = "w:open:"
 
     override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
+        if (context.data == "w:open:events") {
+            val widget = eventWidgets?.takeIf { it.enabled }
+            if (widget != null) {
+                when (val result = widget.execute(context.telegramId)) {
+                    is TelegramDeliveryResult.PermanentFailure -> Unit
+                    else -> return result
+                }
+            }
+            return menuService.open(context.telegramId, TelegramMenuScreen.EVENTS)
+        }
+
         if (context.data == "w:open:profiles") {
             val widget = profiles?.takeIf { it.enabled }
             if (widget != null) {
