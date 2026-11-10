@@ -5,6 +5,9 @@ import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.comment.telegram.CreateTelegramCommentUseCase
 import com.mnemos.social.application.comment.telegram.CreateTelegramCommentCommand
 import com.mnemos.social.application.comment.telegram.TelegramCommentCreationResult
+import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
+import com.mnemos.social.application.comment.usecase.edit.EditCommentForActorUseCase
+import com.mnemos.social.application.comment.usecase.delete.DeleteCommentForActorUseCase
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,7 +24,10 @@ import java.util.UUID
 class InternalTelegramCommentMutationControllerTest {
     private val actors = mock<ResolveTelegramSocialActorUseCase>()
     private val create = mock<CreateTelegramCommentUseCase>()
-    private val controller = InternalTelegramCommentMutationController(actors, create)
+    private val edit = mock<EditCommentForActorUseCase>()
+    private val delete = mock<DeleteCommentForActorUseCase>()
+    private val get = mock<GetCommentUseCase>()
+    private val controller = InternalTelegramCommentMutationController(actors, create, edit, delete, get)
     private val actor = SocialActor(UUID.randomUUID(), UUID.randomUUID(), "Kirito")
     private val target = UUID.randomUUID()
     private val operationId = UUID.randomUUID()

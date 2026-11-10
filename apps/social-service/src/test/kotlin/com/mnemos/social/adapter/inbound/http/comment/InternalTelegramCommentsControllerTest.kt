@@ -1,6 +1,8 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
 import com.mnemos.social.application.comment.model.CommentView
+import com.mnemos.social.application.actor.ResolveTelegramSocialActorUseCase
+import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
 import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
 import com.mnemos.social.application.comment.usecase.list.ListCommentsUseCase
@@ -26,7 +28,9 @@ import java.util.UUID
 class InternalTelegramCommentsControllerTest {
     private val comments = mock<ListCommentsUseCase>()
     private val getComment = mock<GetCommentUseCase>()
-    private val controller = InternalTelegramCommentsController(comments, getComment)
+    private val actors = mock<ResolveTelegramSocialActorUseCase>()
+    private val access = mock<AccountAccessPort>()
+    private val controller = InternalTelegramCommentsController(comments, getComment, actors, access)
     private val accountId = UUID.randomUUID()
     private val rootId = UUID.randomUUID()
 

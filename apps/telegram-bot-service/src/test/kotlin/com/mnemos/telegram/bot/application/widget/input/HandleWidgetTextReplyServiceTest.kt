@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItem
 import com.mnemos.telegram.bot.application.widget.management.CreateWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.management.EditWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.profilecomments.CreateWidgetProfileCommentUseCase
+import com.mnemos.telegram.bot.application.widget.profilecomments.EditWidgetProfileCommentUseCase
 import java.util.UUID
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
@@ -36,9 +37,10 @@ class HandleWidgetTextReplyServiceTest {
     private val roleInput = mock<CreateWidgetAccountRoleUseCase>()
     private val editRole = mock<EditWidgetAccountRoleUseCase>()
     private val commentInput = mock<CreateWidgetProfileCommentUseCase>()
+    private val editComment = mock<EditWidgetProfileCommentUseCase>()
     private val handler = HandleWidgetTextReplyService(
         TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop,
-        roleInput, editRole, commentInput,
+        roleInput, editRole, commentInput, editComment,
     )
 
     @Test

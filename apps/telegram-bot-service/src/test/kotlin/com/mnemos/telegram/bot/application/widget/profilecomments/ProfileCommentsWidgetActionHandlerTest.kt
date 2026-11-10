@@ -24,7 +24,8 @@ class ProfileCommentsWidgetActionHandlerTest {
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
     private val composer = mock<StartProfileCommentInputUseCase>()
-    private val handler = ProfileCommentsWidgetActionHandler(snapshots, publisher, sessions, responder, composer)
+    private val deletion = mock<DeleteProfileCommentUseCase>()
+    private val handler = ProfileCommentsWidgetActionHandler(snapshots, publisher, sessions, responder, composer, deletion)
     private val profileId = UUID.randomUUID()
     private val commentId = UUID.randomUUID()
     private val session = TelegramWidgetSession(

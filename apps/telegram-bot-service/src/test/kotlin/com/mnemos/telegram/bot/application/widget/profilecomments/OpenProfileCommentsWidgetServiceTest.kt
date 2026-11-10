@@ -35,7 +35,7 @@ class OpenProfileCommentsWidgetServiceTest {
     @Test
     fun commentsUseValidatedPublicProfileAndLimitUntrustedContent() {
         whenever(profiles.get(profileId)).thenReturn(PublicProfileDetailResult.Available(profile()))
-        whenever(comments.list(profileId, 0)).thenReturn(
+        whenever(comments.list(11L, profileId, 0)).thenReturn(
             ProfileCommentsPageResult.Available(
                 ProfileCommentsPage(
                     listOf(entry(content = "Ж".repeat(300))),
@@ -49,13 +49,13 @@ class OpenProfileCommentsWidgetServiceTest {
         assertEquals(profileId, result.view.profileId)
         assertEquals(5, result.view.totalItems)
         assertTrue(result.view.comments.single().content.toByteArray(Charsets.UTF_8).size <= 160)
-        verify(comments).list(profileId, 0)
+        verify(comments).list(11L, profileId, 0)
     }
 
     @Test
     fun repliesRemainBoundToTheSelectedProfileAndRoot() {
         whenever(profiles.get(profileId)).thenReturn(PublicProfileDetailResult.Available(profile()))
-        whenever(comments.replies(profileId, commentId, 1)).thenReturn(
+        whenever(comments.replies(11L, profileId, commentId, 1)).thenReturn(
             ProfileCommentsPageResult.Available(ProfileCommentsPage(listOf(entry()), 1, 2, 4)),
         )
 
@@ -63,7 +63,7 @@ class OpenProfileCommentsWidgetServiceTest {
 
         assertEquals(commentId, result.view.rootCommentId)
         assertEquals(1, result.view.page)
-        verify(comments).replies(profileId, commentId, 1)
+        verify(comments).replies(11L, profileId, commentId, 1)
     }
 
     @Test
