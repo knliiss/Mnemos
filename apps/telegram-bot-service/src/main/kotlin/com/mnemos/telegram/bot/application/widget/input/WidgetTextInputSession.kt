@@ -8,6 +8,7 @@ data class WidgetTextInputSession(
     val widgetMessageId: Int,
     val accountId: UUID?,
     val purpose: WidgetTextInputPurpose,
+    val targetRoleId: UUID? = null,
 ) {
     init {
         require(telegramId > 0)

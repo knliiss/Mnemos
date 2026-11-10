@@ -58,6 +58,9 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE ->
                     "Введіть назву нової ролі акаунта або «скасувати». Відповідайте саме на це повідомлення." to
                         "Назва ролі"
+                WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT ->
+                    "Введіть назву й колір ролі у форматі «Назва #RRGGBB» або «скасувати»." to
+                        "Назва #RRGGBB"
             }
 
         return try {

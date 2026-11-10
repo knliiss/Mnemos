@@ -21,16 +21,26 @@ class RedisWidgetTextInputSessionRepository(
     override fun find(telegramId: Long, promptMessageId: Int): WidgetTextInputSession? {
         val value = redis.opsForValue().get(key(telegramId, promptMessageId)) ?: return null
         val parts = value.split('|')
-        if (parts.size != 4 || parts[0] != "v1") return null
+        if (!((parts.size == 4 && parts[0] == "v1") || (parts.size == 5 && parts[0] == "v2"))) return null
         val widgetId = parts[1].toIntOrNull()?.takeIf { it > 0 } ?: return null
         val accountId = if (parts[2] == "-") null else runCatching { UUID.fromString(parts[2]) }.getOrNull()
         if (parts[2] != "-" && accountId == null) return null
         val purpose = runCatching { WidgetTextInputPurpose.valueOf(parts[3]) }.getOrNull() ?: return null
-        return WidgetTextInputSession(telegramId, promptMessageId, widgetId, accountId, purpose)
+        val targetRoleId = if (parts.size == 5 && parts[4] != "-") {
+            runCatching { UUID.fromString(parts[4]) }.getOrNull() ?: return null
+        } else null
+        if (purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT && targetRoleId == null) return null
+        return WidgetTextInputSession(telegramId, promptMessageId, widgetId, accountId, purpose, targetRoleId)
     }
 
     override fun save(session: WidgetTextInputSession) {
-        val value = listOf("v1", session.widgetMessageId, session.accountId ?: "-", session.purpose.name).joinToString("|")
+        val value = listOf(
+            "v2",
+            session.widgetMessageId,
+            session.accountId ?: "-",
+            session.purpose.name,
+            session.targetRoleId ?: "-",
+        ).joinToString("|")
         val ttl = minOf(widgets.sessionTtl, Duration.ofMinutes(10))
         redis.opsForValue().set(key(session.telegramId, session.promptMessageId), value, ttl)
     }

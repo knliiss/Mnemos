@@ -12,4 +12,5 @@ enum class WidgetTextInputPurpose(val screen: TelegramWidgetScreen) {
     ITEM_DROP_BOTH(TelegramWidgetScreen.NOTIFICATIONS),
     PUBLIC_PROFILE_SEARCH(TelegramWidgetScreen.PROFILES),
     ACCOUNT_ROLE_CREATE(TelegramWidgetScreen.ACCOUNT_MANAGEMENT),
+    ACCOUNT_ROLE_EDIT(TelegramWidgetScreen.ACCOUNT_MANAGEMENT),
 }

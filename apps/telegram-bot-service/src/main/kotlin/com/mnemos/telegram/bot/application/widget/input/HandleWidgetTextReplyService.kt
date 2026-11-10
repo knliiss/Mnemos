@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInput
 import com.mnemos.telegram.bot.application.widget.input.ApplyWidgetTextSearchUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
 import com.mnemos.telegram.bot.application.widget.management.CreateWidgetAccountRoleUseCase
+import com.mnemos.telegram.bot.application.widget.management.EditWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSearchQuery
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
@@ -28,6 +29,7 @@ class HandleWidgetTextReplyService(
     private val accountInput: ApplyWidgetAccountInputUseCase,
     private val itemDropInput: CreateWidgetItemDropSubscriptionUseCase,
     private val roleInput: CreateWidgetAccountRoleUseCase,
+    private val editRole: EditWidgetAccountRoleUseCase,
 ) : HandleWidgetTextReplyUseCase {
     override fun handle(telegramId: Long, promptMessageId: Int, text: String): TelegramDeliveryResult? {
         if (!properties.enabled) return null
@@ -43,7 +45,8 @@ class HandleWidgetTextReplyService(
                 WidgetTextInputPurpose.ITEM_DROP_ITEM,
                 WidgetTextInputPurpose.ITEM_DROP_BOTH -> TelegramMenuScreen.NOTIFICATIONS
                 WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH -> TelegramMenuScreen.HOME
-                WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE -> TelegramMenuScreen.ACCOUNT_MANAGEMENT
+                WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE,
+                WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT -> TelegramMenuScreen.ACCOUNT_MANAGEMENT
             }
         val result =
             when {
@@ -59,6 +62,8 @@ class HandleWidgetTextReplyService(
                     itemDropInput.create(session, widget, text.trim())
                 session.purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE ->
                     roleInput.create(session, widget, text.trim())
+                session.purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT ->
+                    editRole.edit(session, widget, text.trim())
                 else -> {
                     val normalized =
                         when (session.purpose) {

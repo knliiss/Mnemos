@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 @Service
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
@@ -17,8 +18,20 @@ class StartWidgetTextInputService(
     private val prompts: WidgetTextPromptGateway,
     private val sessions: WidgetTextInputSessionRepository,
 ) : StartWidgetTextInputUseCase {
-    override fun start(session: TelegramWidgetSession, purpose: WidgetTextInputPurpose): TelegramDeliveryResult {
-        if (!properties.enabled || session.screen != purpose.screen) {
+    override fun start(session: TelegramWidgetSession, purpose: WidgetTextInputPurpose): TelegramDeliveryResult =
+        startScoped(session, purpose, null)
+
+    override fun startForRole(session: TelegramWidgetSession, roleId: UUID): TelegramDeliveryResult =
+        startScoped(session, WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT, roleId)
+
+    private fun startScoped(
+        session: TelegramWidgetSession,
+        purpose: WidgetTextInputPurpose,
+        roleId: UUID?,
+    ): TelegramDeliveryResult {
+        if (!properties.enabled || session.screen != purpose.screen ||
+            (purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT) != (roleId != null)
+        ) {
             return TelegramDeliveryResult.PermanentFailure("widget-input-unavailable")
         }
 
@@ -33,6 +46,7 @@ class StartWidgetTextInputService(
                                 widgetMessageId = session.messageId,
                                 accountId = session.accountId,
                                 purpose = purpose,
+                                targetRoleId = roleId,
                             ),
                         )
                         TelegramDeliveryResult.Delivered
