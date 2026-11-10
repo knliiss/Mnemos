@@ -2,6 +2,8 @@ package com.mnemos.telegram.bot.application.widget.online
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.online.port.out.OnlineWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -22,7 +24,8 @@ class OnlineWidgetActionHandlerTest {
     private val publisher = mock<OnlineWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = OnlineWidgetActionHandler(snapshots, publisher, sessions, responder)
+    private val textInput = mock<StartWidgetTextInputUseCase>()
+    private val handler = OnlineWidgetActionHandler(snapshots, publisher, sessions, responder, textInput)
 
     @Test
     fun selectingUnlistedRealmIsRejected() {
@@ -55,6 +58,25 @@ class OnlineWidgetActionHandlerTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:on:list"), session(2)))
         verify(sessions).save(session())
+    }
+
+    @Test
+    fun searchUsesReplyBoundInputWithoutLoadingOnlineSnapshot() {
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:on:search"), session()))
+        verify(textInput).start(session(), WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH)
+        verifyNoInteractions(snapshots, publisher)
+    }
+
+    @Test
+    fun failedQueryAcknowledgementDoesNotOpenInput() {
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Retryable)
+
+        assertEquals(TelegramDeliveryResult.Retryable, handler.handle(query("w1:on:search"), session()))
+        verifyNoInteractions(textInput)
     }
 
     private fun query(data: String) =

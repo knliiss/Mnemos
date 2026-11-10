@@ -48,7 +48,7 @@ class OnlineWidgetRenderer(
             <div class="hint" id="summary"></div>
             <div class="section" id="section">Реалми</div>
             <div id="items"></div>
-            <div class="actions"><button id="back">Усі реалми</button><button id="refresh">Оновити</button></div>
+            <div class="actions"><button id="search">Пошук</button><button id="back">Усі реалми</button><button id="refresh">Оновити</button></div>
             <div id="feedback" aria-live="polite"></div>
             <script>
             (function(){
@@ -99,6 +99,7 @@ class OnlineWidgetRenderer(
                   busy=false;
                 },function(){busy=false;feedback.textContent='Не вдалося оновити дані';});
               }
+              document.getElementById('search').addEventListener('click',function(){ask('w1:on:search');});
               document.getElementById('back').addEventListener('click',function(){ask('w1:on:list');});
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:on:refresh');});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}

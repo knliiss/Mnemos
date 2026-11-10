@@ -34,17 +34,17 @@ class EventWidgetActionHandler(
         val telegramId = context.actorId
         val filter = EventHistoryFilter.entries.getOrNull(session.page)
             ?: return responder.reply(context.queryId, "EXPIRED", "Відкрийте стрічку заново")
-        val old =
-            (snapshots.load(telegramId, filter, session.cursor) as? EventWidgetSnapshotResult.Available)?.view
-                ?: return responder.reply(context.queryId, "UNAVAILABLE", "Стрічка недоступна")
-
         if (context.data == "w1:evt:search") {
             val answer = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
             if (answer == TelegramDeliveryResult.Delivered) {
-                textInput.start(session, WidgetTextInputPurpose.EVENT_SEARCH)
+                runCatching { textInput.start(session, WidgetTextInputPurpose.EVENT_SEARCH) }
             }
             return answer
         }
+
+        val old =
+            (snapshots.load(telegramId, filter, session.cursor) as? EventWidgetSnapshotResult.Available)?.view
+                ?: return responder.reply(context.queryId, "UNAVAILABLE", "Стрічка недоступна")
 
         if (context.data.startsWith("w1:evt:next:")) {
             val cursor =

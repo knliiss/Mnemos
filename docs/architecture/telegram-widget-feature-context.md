@@ -35,11 +35,14 @@ Expose **all feasible existing Mini App capabilities in the Telegram bot** with 
 - `/online`: read-only realm/player overview; advanced search via existing command.
 - Telegram widget-aware JSON polling shares the legacy update handling path while feature-enabled. Redis holds message-bound widget sessions; each widget slice has a query, use case, publisher port and renderer.
 - Latest fix before this context: commit `7e84ef5` treats Telegram's “message is not modified” response to `editMessageWidgetData` as an idempotent success.
-- Last verified here: source inspection of the branch and existing ADR. Build/test/device compatibility not verified in this work session.
+- Reply-bound chat input foundation: WidgetQuery acknowledges quickly, then Telegram `sendMessage` with `ForceReply` prompts the user; a separate 10-minute Redis key stores prompt ID, widget ID, owner, purpose and account context. Only a private user's reply to that specific prompt can be interpreted as a widget input; regular text and existing menu pending input retain their path.
+- Read-only event search and online-player search reuse their **existing legacy menu search** contracts after collecting the query. Search results currently open in the text menu, not inside the original widget. This is deliberately an incremental bridge, not full in-widget parity.
+- Known remaining concern: after a successful query acknowledgment, a failed prompt is not retried automatically. A new tap can request another prompt; ensure failures are surfaced in the next reliability slice.
+- Last verified here: source inspection and new tests committed. Build/test/device compatibility have not been executed in this work session.
 
 ## Next implementation priorities
 
-1. **Widget-originated chat input:** correlate a private user's reply to a specific widget message and a typed pending operation. Handle cancellation, TTL, stale account context and conflict with existing menu input. Do not hijack unrelated user text. Reuse existing use cases for the final mutation.
+1. **Widget-originated chat input:** initial read-only event / online reply-bound search in place with cancellation, TTL and a separate session. Next: user-visible prompt failure recovery, non-read-only operation confirmation, account-sensitive revalidation and direct widget result presentation. Never intercept unrelated text.
 2. **Reliable query execution:** fast acknowledgement (<15 seconds), safe handling of retries and duplicate updates; avoid replaying a non-idempotent operation when a reply fails.
 3. **State consistency:** per-message widget versioning, refresh coalescing and explicit handling of out-of-order update deliveries. Do not sync cross-widget state blindly.
 4. **Coverage audit:** list every Mini App capability and map it to implemented widget, chat, retained Mini App, or gap with security/technical rationale. Extend profiles, personalization and administration one typed slice at a time.
@@ -60,3 +63,5 @@ Expose **all feasible existing Mini App capabilities in the Telegram bot** with 
 | 2026-11-09 | Foundation widget slices and architecture ADR added to draft PR #274 | Source and tests committed; real device/CI status not confirmed |
 | 2026-11-10 | Idempotent unchanged-state Telegram widget edit handling (`7e84ef5`) | Commit verified; runtime not executed |
 | 2026-11-10 | Created this living feature context and continuation checklist | File committed in the feature branch |
+| 2026-11-10 | Added reply-bound ForceReply input for event search; event widget can start search (`56e6558`) | Source reviewed; client/CI unverified |
+| 2026-11-10 | Reused pending input for SAO Online player search; added use-case/inbound tests | Tests committed; execution still pending |

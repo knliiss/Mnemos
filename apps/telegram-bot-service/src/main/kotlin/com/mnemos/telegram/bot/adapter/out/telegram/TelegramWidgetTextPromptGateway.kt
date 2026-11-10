@@ -29,9 +29,14 @@ class TelegramWidgetTextPromptGateway(
         widgetMessageId: Int,
         purpose: WidgetTextInputPurpose,
     ): TelegramMessageSendResult {
-        val text =
+        val (text, placeholder) =
             when (purpose) {
-                WidgetTextInputPurpose.EVENT_SEARCH -> "Введіть запит для пошуку подій. Відповідайте на це повідомлення або напишіть «скасувати»."
+                WidgetTextInputPurpose.EVENT_SEARCH ->
+                    "Введіть запит для пошуку подій. Відповідайте на це повідомлення або напишіть «скасувати»." to
+                        "Пошук подій"
+                WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH ->
+                    "Введіть нікнейм гравця. Відповідайте на це повідомлення або напишіть «скасувати»." to
+                        "Нікнейм гравця"
             }
 
         return try {
@@ -45,7 +50,7 @@ class TelegramWidgetTextPromptGateway(
                         "reply_parameters" to mapOf("message_id" to widgetMessageId),
                         "reply_markup" to mapOf(
                             "force_reply" to true,
-                            "input_field_placeholder" to "Пошук подій",
+                            "input_field_placeholder" to placeholder,
                         ),
                     ),
                 )

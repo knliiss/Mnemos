@@ -5,6 +5,8 @@ import com.mnemos.telegram.bot.application.events.EventHistorySearchQuery
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
+import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInputSessionRepository
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
@@ -24,21 +26,37 @@ class HandleWidgetTextReplyService(
         val session = pending.find(telegramId, promptMessageId) ?: return null
         val widget = widgets.find(telegramId, session.widgetMessageId)
 
+        val screen =
+            when (session.purpose) {
+                WidgetTextInputPurpose.EVENT_SEARCH -> TelegramMenuScreen.EVENTS
+                WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> TelegramMenuScreen.ONLINE
+            }
         val result =
-            if (widget == null || widget.screen != session.purpose.screen || widget.accountId != session.accountId) {
-                menu.open(telegramId, TelegramMenuScreen.EVENTS)
+            if (widget == null || widget.screen != session.purpose.screen || widget.accountId != session.accountId ||
+                text.trim().equals("скасувати", ignoreCase = true)
+            ) {
+                menu.open(telegramId, screen)
             } else {
-                val query = EventHistorySearchQuery.normalize(text)
-                val screenContext =
-                    when {
-                        text.trim().equals("скасувати", ignoreCase = true) -> emptyMap()
-                        query != null -> EventHistoryMenuContext.search(emptyMap(), query)
-                        else -> EventHistoryMenuContext.withSearchError(
-                            emptyMap(),
-                            EventHistorySearchQuery.INVALID_MESSAGE,
-                        )
+                val context =
+                    when (session.purpose) {
+                        WidgetTextInputPurpose.EVENT_SEARCH -> {
+                            val query = EventHistorySearchQuery.normalize(text)
+                            if (query == null) {
+                                EventHistoryMenuContext.withSearchError(emptyMap(), EventHistorySearchQuery.INVALID_MESSAGE)
+                            } else {
+                                EventHistoryMenuContext.search(emptyMap(), query)
+                            }
+                        }
+                        WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> {
+                            val query = SaoOnlineSearchQuery.normalize(text)
+                            if (query == null) {
+                                mapOf(SaoOnlineMenuContext.SEARCH_ERROR_KEY to SaoOnlineSearchQuery.INVALID_MESSAGE)
+                            } else {
+                                SaoOnlineMenuContext.search(query)
+                            }
+                        }
                     }
-                menu.open(telegramId, TelegramMenuScreen.EVENTS, screenContext = screenContext)
+                menu.open(telegramId, screen, screenContext = context)
             }
 
         if (result != TelegramDeliveryResult.Retryable) {

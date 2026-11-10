@@ -2,6 +2,8 @@ package com.mnemos.telegram.bot.application.widget.online
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.online.port.out.OnlineWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -18,6 +20,7 @@ class OnlineWidgetActionHandler(
     private val publisher: OnlineWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val textInput: StartWidgetTextInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.ONLINE
 
@@ -25,6 +28,14 @@ class OnlineWidgetActionHandler(
         context: TelegramWidgetQueryContext,
         session: TelegramWidgetSession,
     ): TelegramDeliveryResult {
+        if (context.data == "w1:on:search") {
+            val answer = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            if (answer == TelegramDeliveryResult.Delivered) {
+                runCatching { textInput.start(session, WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH) }
+            }
+            return answer
+        }
+
         val currentRealm = session.page.takeIf { it > 0 }
         val current = (snapshots.load(context.actorId, currentRealm) as? OnlineWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Дані SAO Online недоступні")

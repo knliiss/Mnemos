@@ -4,4 +4,5 @@ import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 
 enum class WidgetTextInputPurpose(val screen: TelegramWidgetScreen) {
     EVENT_SEARCH(TelegramWidgetScreen.EVENTS),
+    ONLINE_PLAYER_SEARCH(TelegramWidgetScreen.ONLINE),
 }
