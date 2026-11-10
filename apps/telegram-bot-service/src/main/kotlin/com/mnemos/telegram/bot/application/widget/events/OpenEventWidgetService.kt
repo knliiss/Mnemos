@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.application.widget.events
 
+import com.mnemos.telegram.bot.application.events.EventHistorySearchQuery
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItem
 import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
@@ -28,9 +29,10 @@ class OpenEventWidgetService(
         telegramId: Long,
         filter: EventHistoryFilter,
         after: UUID?,
+        search: String?,
     ): TelegramDeliveryResult {
         if (!enabled) return TelegramDeliveryResult.PermanentFailure("widgets-disabled")
-        return when (val snapshot = load(telegramId, filter, after)) {
+        return when (val snapshot = load(telegramId, filter, after, search)) {
             is EventWidgetSnapshotResult.Available -> publisher.publish(telegramId, snapshot.view)
             EventWidgetSnapshotResult.Unavailable -> TelegramDeliveryResult.Retryable
         }
@@ -40,8 +42,12 @@ class OpenEventWidgetService(
         telegramId: Long,
         filter: EventHistoryFilter,
         after: UUID?,
+        search: String?,
     ): EventWidgetSnapshotResult {
-        val result = events.getPage(EventHistoryQuery(filter = filter, after = after, telegramId = telegramId))
+        if (search != null && EventHistorySearchQuery.normalize(search) != search) {
+            return EventWidgetSnapshotResult.Unavailable
+        }
+        val result = events.getPage(EventHistoryQuery(filter = filter, after = after, search = search, telegramId = telegramId))
         if (result !is EventHistoryResult.Available) return EventWidgetSnapshotResult.Unavailable
 
         return EventWidgetSnapshotResult.Available(
@@ -49,6 +55,7 @@ class OpenEventWidgetService(
                 filter = filter,
                 after = after,
                 nextCursor = result.page.cursor,
+                search = search,
                 items =
                     result.page.items.map { item ->
                         val (kind, title) =

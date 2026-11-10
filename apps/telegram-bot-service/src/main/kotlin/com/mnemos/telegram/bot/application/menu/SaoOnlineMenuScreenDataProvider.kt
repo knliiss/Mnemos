@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
+import com.mnemos.telegram.bot.application.online.SaoOnlinePlayerMatcher
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
 import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayerSearchMatch
@@ -88,7 +89,7 @@ class SaoOnlineMenuScreenDataProvider(
                 ?.trim()
                 ?.takeIf(String::isNotEmpty)
                 ?: return SaoOnlineMenuScreenData.RealmList(snapshot)
-        val matches = findMatches(snapshot, query)
+        val matches = SaoOnlinePlayerMatcher.findMatches(snapshot, query)
         val page = resolvePage(context, matches.size)
 
         return SaoOnlineMenuScreenData.SearchResults(
@@ -100,34 +101,6 @@ class SaoOnlineMenuScreenDataProvider(
             matches = matches.page(page),
         )
     }
-
-    private fun findMatches(
-        snapshot: SaoOnlineSnapshot,
-        query: String,
-    ): List<SaoOnlinePlayerSearchMatch> {
-        val matches =
-            snapshot.realms.flatMap { realm ->
-                realm.players
-                    .filter { player -> player.nickname.contains(query, ignoreCase = true) }
-                    .map { player ->
-                        SaoOnlinePlayerSearchMatch(
-                            nickname = player.nickname,
-                            realmName = realm.name,
-                            realmNumber = realm.number,
-                        )
-                    }
-            }
-        val exactMatches = matches.filter { match -> match.nickname.equals(query, ignoreCase = true) }
-        val partialMatches = matches.filterNot { match -> match.nickname.equals(query, ignoreCase = true) }
-
-        return sortMatches(exactMatches) + sortMatches(partialMatches)
-    }
-
-    private fun sortMatches(matches: List<SaoOnlinePlayerSearchMatch>): List<SaoOnlinePlayerSearchMatch> =
-        matches.sortedWith(
-            compareBy<SaoOnlinePlayerSearchMatch, String>(String.CASE_INSENSITIVE_ORDER) { match -> match.nickname }
-                .thenBy { match -> match.realmNumber },
-        )
 
     private fun resolvePage(
         context: Map<String, String>,

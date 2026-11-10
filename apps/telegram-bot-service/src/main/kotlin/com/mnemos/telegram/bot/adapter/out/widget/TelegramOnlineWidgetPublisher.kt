@@ -32,6 +32,7 @@ class TelegramOnlineWidgetPublisher(
                         screen = TelegramWidgetScreen.ONLINE,
                         accountId = null,
                         page = view.selectedRealmNumber ?: 0,
+                        search = view.search,
                     ),
                 )
                 TelegramDeliveryResult.Delivered

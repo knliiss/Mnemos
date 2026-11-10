@@ -43,7 +43,7 @@ class EventWidgetActionHandler(
         }
 
         val old =
-            (snapshots.load(telegramId, filter, session.cursor) as? EventWidgetSnapshotResult.Available)?.view
+            (snapshots.load(telegramId, filter, session.cursor, session.search) as? EventWidgetSnapshotResult.Available)?.view
                 ?: return responder.reply(context.queryId, "UNAVAILABLE", "Стрічка недоступна")
 
         if (context.data.startsWith("w1:evt:next:")) {
@@ -52,7 +52,7 @@ class EventWidgetActionHandler(
             if (cursor == null || cursor != old.nextCursor) {
                 return responder.reply(context.queryId, "CONFLICT", "Сторінка змінилася, оновіть віджет")
             }
-            val result = opener.execute(telegramId, filter, cursor)
+            val result = opener.execute(telegramId, filter, cursor, session.search)
             return responder.reply(
                 context.queryId,
                 if (result == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
@@ -69,20 +69,22 @@ class EventWidgetActionHandler(
                 else -> null
             }
 
+        val clearSearch = context.data == "w1:evt:clear"
         val nextFilter =
             when {
-                context.data == "w1:evt:refresh" -> filter
+                context.data == "w1:evt:refresh" || clearSearch -> filter
                 requestedFilter != null -> requestedFilter
                 else -> return responder.reply(context.queryId, "UNSUPPORTED", "Невідома дія")
             }
-        val nextCursor = if (requestedFilter != null) null else session.cursor
+        val nextSearch = if (clearSearch) null else session.search
+        val nextCursor = if (requestedFilter != null || clearSearch) null else session.cursor
         val fresh =
-            (snapshots.load(telegramId, nextFilter, nextCursor) as? EventWidgetSnapshotResult.Available)?.view
+            (snapshots.load(telegramId, nextFilter, nextCursor, nextSearch) as? EventWidgetSnapshotResult.Available)?.view
                 ?: return responder.reply(context.queryId, "UNAVAILABLE", "Не вдалося оновити події")
 
         val result = responder.reply(context.queryId, "OK", "Стрічку оновлено", publisher.state(fresh))
         if (result == TelegramDeliveryResult.Delivered) {
-            sessions.save(session.copy(page = nextFilter.ordinal, cursor = nextCursor))
+            sessions.save(session.copy(page = nextFilter.ordinal, cursor = nextCursor, search = nextSearch))
             publisher.update(telegramId, context.messageId, fresh)
         }
         return result

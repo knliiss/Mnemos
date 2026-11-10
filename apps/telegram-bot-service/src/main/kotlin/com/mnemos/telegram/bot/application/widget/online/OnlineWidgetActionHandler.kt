@@ -37,13 +37,13 @@ class OnlineWidgetActionHandler(
         }
 
         val currentRealm = session.page.takeIf { it > 0 }
-        val current = (snapshots.load(context.actorId, currentRealm) as? OnlineWidgetSnapshotResult.Available)?.view
+        val current = (snapshots.load(context.actorId, currentRealm, session.search) as? OnlineWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Дані SAO Online недоступні")
 
         val realmNumber =
             when {
                 context.data == "w1:on:refresh" -> currentRealm
-                context.data == "w1:on:list" -> null
+                context.data == "w1:on:list" || context.data == "w1:on:clear" -> null
                 context.data.startsWith("w1:on:realm:") -> {
                     val candidate = context.data.removePrefix("w1:on:realm:").toIntOrNull()
                         ?: return responder.reply(context.queryId, "INVALID", "Невірний реалм")
@@ -56,12 +56,14 @@ class OnlineWidgetActionHandler(
                 else -> return responder.reply(context.queryId, "UNSUPPORTED", "Невідома дія")
             }
 
-        val fresh = (snapshots.load(context.actorId, realmNumber) as? OnlineWidgetSnapshotResult.Available)?.view
+        val nextSearch =
+            if (context.data == "w1:on:list" || context.data == "w1:on:clear") null else session.search
+        val fresh = (snapshots.load(context.actorId, realmNumber, nextSearch) as? OnlineWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Реалм зараз недоступний")
 
         val response = responder.reply(context.queryId, "OK", "SAO Online оновлено", publisher.state(fresh))
         if (response == TelegramDeliveryResult.Delivered) {
-            sessions.save(session.copy(page = fresh.selectedRealmNumber ?: 0))
+            sessions.save(session.copy(page = fresh.selectedRealmNumber ?: 0, search = nextSearch))
             publisher.update(context.actorId, context.messageId, fresh)
         }
         return response

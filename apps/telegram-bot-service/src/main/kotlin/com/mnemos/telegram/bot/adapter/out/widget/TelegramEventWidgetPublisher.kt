@@ -33,6 +33,7 @@ class TelegramEventWidgetPublisher(
                         accountId = null,
                         page = view.filter.ordinal,
                         cursor = view.after,
+                        search = view.search,
                     ),
                 )
                 TelegramDeliveryResult.Delivered

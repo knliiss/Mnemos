@@ -11,5 +11,6 @@ interface OpenEventWidgetUseCase {
         telegramId: Long,
         filter: EventHistoryFilter = EventHistoryFilter.ALL,
         after: UUID? = null,
+        search: String? = null,
     ): TelegramDeliveryResult
 }

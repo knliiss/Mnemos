@@ -8,5 +8,6 @@ interface EventWidgetSnapshotQuery {
         telegramId: Long,
         filter: EventHistoryFilter,
         after: UUID?,
+        search: String? = null,
     ): EventWidgetSnapshotResult
 }

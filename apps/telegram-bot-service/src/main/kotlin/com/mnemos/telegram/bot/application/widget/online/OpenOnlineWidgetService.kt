@@ -1,6 +1,8 @@
 package com.mnemos.telegram.bot.application.widget.online
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
+import com.mnemos.telegram.bot.application.online.SaoOnlinePlayerMatcher
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
 import com.mnemos.telegram.bot.application.online.port.out.SaoOnlineSnapshotGateway
 import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
@@ -34,8 +36,11 @@ class OpenOnlineWidgetService(
     override fun load(
         telegramId: Long,
         realmNumber: Int?,
+        search: String?,
     ): OnlineWidgetSnapshotResult {
-        if (realmNumber != null && realmNumber !in 1..MAX_REALM_NUMBER) {
+        if ((realmNumber != null && realmNumber !in 1..MAX_REALM_NUMBER) ||
+            (search != null && (SaoOnlineSearchQuery.normalize(search) != search || realmNumber != null))
+        ) {
             return OnlineWidgetSnapshotResult.Unavailable
         }
 
@@ -43,8 +48,9 @@ class OpenOnlineWidgetService(
             ?: return OnlineWidgetSnapshotResult.Unavailable
         val snapshot = result.snapshot
         val ordered = snapshot.realms.sortedBy { it.number }
+        val matches = search?.let { SaoOnlinePlayerMatcher.findMatches(snapshot, it) }.orEmpty()
         val selected =
-            if (realmNumber == null) {
+            if (realmNumber == null || search != null) {
                 null
             } else {
                 ordered.firstOrNull { it.number == realmNumber }
@@ -57,10 +63,11 @@ class OpenOnlineWidgetService(
                 totalRealms = ordered.size,
                 selectedRealmNumber = selected?.number,
                 selectedRealmName = selected?.name?.let { WidgetTextLimiter.truncateUtf8(it, 28) },
-                selectedRealmPlayerCount = selected?.playerCount,
+                selectedRealmPlayerCount = if (search != null) matches.size else selected?.playerCount,
                 generatedAt = snapshot.generatedAt.toString().substring(11, 16) + " UTC",
+                search = search,
                 realms =
-                    (if (selected == null) ordered.take(MAX_VISIBLE_REALMS) else emptyList()).map { realm ->
+                    (if (selected == null && search == null) ordered.take(MAX_VISIBLE_REALMS) else emptyList()).map { realm ->
                         OnlineWidgetRealm(
                             number = realm.number,
                             name = WidgetTextLimiter.truncateUtf8(realm.name, 28),
@@ -68,12 +75,18 @@ class OpenOnlineWidgetService(
                         )
                     },
                 players =
-                    selected?.players.orEmpty()
-                        .sortedWith(compareBy<com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer, String>(String.CASE_INSENSITIVE_ORDER) { it.nickname })
-                        .take(MAX_VISIBLE_PLAYERS)
-                        .map { player ->
-                            OnlineWidgetPlayer(WidgetTextLimiter.truncateUtf8(player.nickname, 32))
-                        },
+                    if (search != null) {
+                        matches.take(MAX_VISIBLE_PLAYERS).map { match ->
+                            OnlineWidgetPlayer(WidgetTextLimiter.truncateUtf8(match.nickname + " · " + match.realmName, 48))
+                        }
+                    } else {
+                        selected?.players.orEmpty()
+                            .sortedWith(compareBy<com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer, String>(String.CASE_INSENSITIVE_ORDER) { it.nickname })
+                            .take(MAX_VISIBLE_PLAYERS)
+                            .map { player ->
+                                OnlineWidgetPlayer(WidgetTextLimiter.truncateUtf8(player.nickname, 32))
+                            }
+                    },
             ),
         )
     }
