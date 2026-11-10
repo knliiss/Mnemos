@@ -121,6 +121,41 @@ class AccountManagementWidgetActionHandler(
                     guard.cancelKick(context.actorId, context.messageId)
                     return responder.reply(context.queryId, "OK", "Виключення скасовано", publisher.state(current))
                 }
+                "permission" -> {
+                    if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val roleIndex = parts[4].toIntOrNull()
+                    val permissionIndex = parts[5].toIntOrNull()
+                    val enabled = when (parts[6]) {
+                        "on" -> true
+                        "off" -> false
+                        else -> return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    }
+                    if (page != session.page || roleIndex == null || permissionIndex == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val result = mutations.setRolePermission(
+                        context.actorId, context.queryId, current, roleIndex, permissionIndex, enabled,
+                    )
+                    if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
+                    return refresh(context, session, current.accountId, session.page, "Дозволи ролі оновлено")
+                }
+                "move" -> {
+                    if (parts.size != 6) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val roleIndex = parts[4].toIntOrNull()
+                    val offset = when (parts[5]) {
+                        "up" -> -1
+                        "down" -> 1
+                        else -> return responder.reply(context.queryId, "INVALID", "Невірний напрямок")
+                    }
+                    if (page != session.page || roleIndex == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val result = mutations.moveRole(context.actorId, context.queryId, current, roleIndex, offset)
+                    if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
+                    return refresh(context, session, current.accountId, session.page, "Порядок ролей оновлено")
+                }
                 "role" -> {
                     if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()

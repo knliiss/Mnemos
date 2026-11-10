@@ -21,6 +21,7 @@ class AccountManagementWidgetRenderer(
                 "canKick" to view.canRemoveMembers,
                 "canAssign" to view.canAssignRoles,
                 "canCreate" to view.canManageRoles,
+                "canHierarchy" to view.canManageHierarchy,
                 "feedback" to view.feedback,
                 "confirm" to view.pendingKickIndex,
                 "confirmRole" to view.pendingRoleDeletionIndex,
@@ -34,7 +35,14 @@ class AccountManagementWidgetRenderer(
                     )
                 },
                 "roles" to view.roles.map {
-                    mapOf("n" to it.name, "rank" to it.rank, "p" to it.permissionCount)
+                    mapOf(
+                        "n" to it.name,
+                        "rank" to it.rank,
+                        "p" to it.permissionCount,
+                        "c" to it.color,
+                        "m" to it.permissions.sumOf { permission -> 1 shl permission.ordinal },
+                        "e" to it.canEditPermissions,
+                    )
                 },
             ),
         )
@@ -56,6 +64,9 @@ class AccountManagementWidgetRenderer(
               .detail{font-size:11px;color:var(--tg-theme-hint-color);margin-top:3px}
               .rowActions{display:flex;gap:6px;margin-top:7px}
               .rowActions button{font-size:11px;padding:7px 9px}
+              .permissionGrid{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+              .permissionGrid button{font-size:10px;padding:7px 8px}
+              .permissionGrid button.on{background:var(--tg-theme-button-color);color:var(--tg-theme-button-text-color)}
               #feedback{min-height:16px;margin-top:8px}
             </style>
             <div class="title">УЧАСНИКИ ТА РОЛІ</div>
@@ -68,7 +79,12 @@ class AccountManagementWidgetRenderer(
             <div class="hint" id="feedback" aria-live="polite"></div>
             <script>
             (function(){
-              var state={},tab='members',selected=null,busy=false;
+              var state={},tab='members',selected=null,selectedRole=null,busy=false;
+              var permissionLabels=[
+                'Учасники','Призначення ролей','Керування ролями','Ієрархія ролей',
+                'Базова роль','Історія операцій','Ставки','Купівля оформлення',
+                'Застосування оформлення','Модерація коментарів'
+              ];
               function el(tag,className,text){
                 var node=document.createElement(tag);node.className=className;
                 if(text!==undefined)node.textContent=text;
@@ -76,7 +92,7 @@ class AccountManagementWidgetRenderer(
               }
               function draw(s){
                 if(!s)return;
-                if(state.page!==undefined&&state.page!==s.page)selected=null;
+                if(state.page!==undefined&&state.page!==s.page){selected=null;selectedRole=null;}
                 state=s;
                 document.getElementById('account').textContent=s.name+' · '+s.membersCount+' учасників · '+s.rolesCount+' ролей · '+(s.page+1)+'/'+Math.max(1,s.pages);
                 document.getElementById('prev').style.display=s.page>0?'block':'none';
@@ -118,7 +134,20 @@ class AccountManagementWidgetRenderer(
                       }
                     }
                   }
+                  if(tab==='roles'&&s.canHierarchy){
+                    var absoluteIndex=s.page*3+index;
+                    var up=el('button','','Вище');
+                    up.disabled=absoluteIndex===0;
+                    up.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':up');});
+                    var down=el('button','','Нижче');
+                    down.disabled=absoluteIndex>=s.rolesCount-1;
+                    down.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':down');});
+                    actions.appendChild(up);actions.appendChild(down);
+                  }
                   if(tab==='roles'&&s.canCreate){
+                    var details=el('button',selectedRole===index?'active':'','Дозволи');
+                    details.addEventListener('click',function(){selectedRole=selectedRole===index?null:index;draw(s);});
+                    actions.appendChild(details);
                     var confirmRole=s.confirmRole===index;
                     var remove=el('button',confirmRole?'primary':'',confirmRole?'Підтвердити видалення':'Видалити роль');
                     remove.addEventListener('click',function(){
@@ -139,7 +168,21 @@ class AccountManagementWidgetRenderer(
                     });
                     actions.appendChild(toggle);
                   }
-                  item.appendChild(actions);root.appendChild(item);
+                  item.appendChild(actions);
+                  if(tab==='roles'&&selectedRole===index&&s.canCreate){
+                    var box=el('div','permissionGrid');
+                    permissionLabels.forEach(function(label,permissionIndex){
+                      var enabled=(entry.m&(1<<permissionIndex))!==0;
+                      var button=el('button',enabled?'on':'',label+(enabled?' ✓':''));
+                      button.disabled=!entry.e;
+                      button.addEventListener('click',function(){
+                        ask('w1:manage:permission:'+s.page+':'+index+':'+permissionIndex+':'+(enabled?'off':'on'));
+                      });
+                      box.appendChild(button);
+                    });
+                    item.appendChild(box);
+                  }
+                  root.appendChild(item);
                 });
               }
               function hydrate(){if(!window.TelegramWidget)return;try{draw(JSON.parse(TelegramWidget.chatData||'{}'));}catch(e){}}
