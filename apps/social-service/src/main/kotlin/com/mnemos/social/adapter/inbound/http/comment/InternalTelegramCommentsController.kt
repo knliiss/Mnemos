@@ -84,9 +84,11 @@ class InternalTelegramCommentsController(
                     likes = comment.likes,
                     replies = comment.replies,
                     createdAt = comment.createdAt,
-                    canEdit = !comment.deleted && actor?.userId == comment.authorUserId,
+                    canEdit = !comment.deleted && actor != null &&
+                        comment.authorUserId != null && actor.userId == comment.authorUserId,
                     canDelete = !comment.deleted && (
-                        actor?.userId == comment.authorUserId || canModerate
+                        (actor != null && comment.authorUserId != null && actor.userId == comment.authorUserId) ||
+                            canModerate
                     ),
                 )
             },
