@@ -101,6 +101,67 @@ class AccountManagementWidgetActionHandlerTest {
     }
 
     @Test
+    fun permissionToggleRejectsReplacedRoleAtSamePageIndex() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(
+                view().copy(
+                    canManageRoles = true,
+                    roles = listOf(AccountManagementWidgetRole(UUID.randomUUID(), "Other", 1, 0)),
+                ),
+            ),
+        )
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:permission:0:0:2:on:" + tag(roleId)), session),
+        )
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun removingMemberRejectsReplacedMemberAtSamePageIndex() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(
+                view().copy(
+                    members = listOf(AccountManagementWidgetMember(
+                        UUID.randomUUID(), "Other", null, false, false, emptySet(),
+                    )),
+                ),
+            ),
+        )
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:kick:0:0:" + tag(memberId)), session),
+        )
+        verifyNoInteractions(guard, mutations)
+    }
+
+    @Test
+    fun movingRoleRejectsChangedRankEvenWhenIdentityMatches() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(
+                view().copy(
+                    canManageHierarchy = true,
+                    roles = listOf(AccountManagementWidgetRole(roleId, "Officer", 200, 1)),
+                ),
+            ),
+        )
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:move:0:0:down:" + tag(roleId) + ":1"), session),
+        )
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
     fun changingActiveAccountInvalidatesAllManagementActions() {
         whenever(snapshots.load(11L, 0)).thenReturn(AccountManagementWidgetSnapshotResult.Available(view(UUID.randomUUID())))
         whenever(responder.reply(eq("q"), eq("CONTEXT_CHANGED"), any(), isNull()))
