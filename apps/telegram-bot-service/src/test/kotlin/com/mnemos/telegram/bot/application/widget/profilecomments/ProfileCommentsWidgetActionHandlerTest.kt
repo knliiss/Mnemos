@@ -23,7 +23,8 @@ class ProfileCommentsWidgetActionHandlerTest {
     private val publisher = mock<ProfileCommentsWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = ProfileCommentsWidgetActionHandler(snapshots, publisher, sessions, responder)
+    private val composer = mock<StartProfileCommentInputUseCase>()
+    private val handler = ProfileCommentsWidgetActionHandler(snapshots, publisher, sessions, responder, composer)
     private val profileId = UUID.randomUUID()
     private val commentId = UUID.randomUUID()
     private val session = TelegramWidgetSession(
@@ -33,6 +34,18 @@ class ProfileCommentsWidgetActionHandlerTest {
         accountId = null,
         selectedProfileId = profileId,
     )
+
+    @Test
+    fun composeActionStartsPromptForCorrectWidgetSession() {
+        whenever(snapshots.load(11L, profileId, 0, null))
+            .thenReturn(ProfileCommentsWidgetSnapshotResult.Available(view()))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(composer.execute(session)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:comments:compose"), session))
+        verify(composer).execute(session)
+    }
 
     @Test
     fun opensOnlyMatchingRootCommentFromCurrentServerPage() {

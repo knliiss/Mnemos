@@ -9,6 +9,8 @@ import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInput
 import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
 import com.mnemos.telegram.bot.application.widget.management.CreateWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.management.EditWidgetAccountRoleUseCase
+import com.mnemos.telegram.bot.application.widget.profilecomments.CreateWidgetProfileCommentUseCase
+import java.util.UUID
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
@@ -33,8 +35,10 @@ class HandleWidgetTextReplyServiceTest {
     private val itemDrop = mock<CreateWidgetItemDropSubscriptionUseCase>()
     private val roleInput = mock<CreateWidgetAccountRoleUseCase>()
     private val editRole = mock<EditWidgetAccountRoleUseCase>()
+    private val commentInput = mock<CreateWidgetProfileCommentUseCase>()
     private val handler = HandleWidgetTextReplyService(
-        TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop, roleInput, editRole,
+        TelegramWidgetProperties(enabled = true), pending, widgets, menu, search, accountInput, itemDrop,
+        roleInput, editRole, commentInput,
     )
 
     @Test
@@ -76,6 +80,48 @@ class HandleWidgetTextReplyServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, " Kirito "))
         verify(search).apply(widget, "Kirito")
         verifyNoInteractions(menu)
+    }
+
+    @Test
+    fun commentReplyDelegatesToOriginatingCommentWidgetWithoutLegacyMenu() {
+        val profile = UUID.randomUUID()
+        val account = UUID.randomUUID()
+        val parent = UUID.randomUUID()
+        val input = WidgetTextInputSession(
+            11L, 41, 8, null, WidgetTextInputPurpose.PROFILE_COMMENT_REPLY,
+            targetProfileId = profile, targetCommentId = parent,
+            expectedActorAccountId = account, mutationId = UUID.randomUUID(),
+        )
+        val widget = TelegramWidgetSession(
+            11L, 8, TelegramWidgetScreen.PROFILE_COMMENTS, null,
+            cursor = parent, selectedProfileId = profile,
+        )
+        whenever(pending.find(11L, 41)).thenReturn(input)
+        whenever(widgets.find(11L, 8)).thenReturn(widget)
+        whenever(commentInput.create(input, widget, "Reply")).thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(11L, 41, "Reply"))
+        verify(commentInput).create(input, widget, "Reply")
+        verifyNoInteractions(menu)
+        verify(pending).delete(11L, 41)
+    }
+
+    @Test
+    fun retryableCommentKeepsOriginalPromptForSafeReplay() {
+        val profile = UUID.randomUUID()
+        val input = WidgetTextInputSession(
+            11L, 41, 8, null, WidgetTextInputPurpose.PROFILE_COMMENT_CREATE,
+            targetProfileId = profile, expectedActorAccountId = UUID.randomUUID(), mutationId = UUID.randomUUID(),
+        )
+        val widget = TelegramWidgetSession(
+            11L, 8, TelegramWidgetScreen.PROFILE_COMMENTS, null, selectedProfileId = profile,
+        )
+        whenever(pending.find(11L, 41)).thenReturn(input)
+        whenever(widgets.find(11L, 8)).thenReturn(widget)
+        whenever(commentInput.create(input, widget, "Comment")).thenReturn(TelegramDeliveryResult.Retryable)
+
+        assertEquals(TelegramDeliveryResult.Retryable, handler.handle(11L, 41, "Comment"))
+        verify(pending, org.mockito.kotlin.never()).delete(any(), any())
     }
 
     @Test

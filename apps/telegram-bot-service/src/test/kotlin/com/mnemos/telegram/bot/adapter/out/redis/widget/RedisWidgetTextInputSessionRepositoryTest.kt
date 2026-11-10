@@ -27,6 +27,35 @@ class RedisWidgetTextInputSessionRepositoryTest {
     )
 
     @Test
+    fun commentV3PromptPersistsAccountProfileRootAndIdempotency() {
+        val profileId = UUID.randomUUID()
+        val authorId = UUID.randomUUID()
+        val rootId = UUID.randomUUID()
+        val operationId = UUID.randomUUID()
+        val session = WidgetTextInputSession(
+            11L, 41, 8, null, WidgetTextInputPurpose.PROFILE_COMMENT_REPLY,
+            targetProfileId = profileId, targetCommentId = rootId,
+            expectedActorAccountId = authorId, mutationId = operationId,
+        )
+        val key = "telegram-bot:widget-input:12345:11:41"
+        val value = "v3|8|-|PROFILE_COMMENT_REPLY|-|$profileId|$rootId|$authorId|$operationId"
+        whenever(redis.opsForValue()).thenReturn(values)
+        repository.save(session)
+        verify(values).set(eq(key), eq(value), eq(Duration.ofMinutes(10)))
+        whenever(values.get(key)).thenReturn(value)
+        assertEquals(session, repository.find(11L, 41))
+    }
+
+    @Test
+    fun commentV3WithoutAccountOrOperationCannotBeReplayed() {
+        val profileId = UUID.randomUUID()
+        whenever(redis.opsForValue()).thenReturn(values)
+        whenever(values.get("telegram-bot:widget-input:12345:11:41"))
+            .thenReturn("v3|8|-|PROFILE_COMMENT_CREATE|-|$profileId|-|-|-")
+        assertEquals(null, repository.find(11L, 41))
+    }
+
+    @Test
     fun roleEditPromptPersistsTargetRoleIdentityInVersionedSession() {
         val accountId = UUID.randomUUID()
         val roleId = UUID.randomUUID()
