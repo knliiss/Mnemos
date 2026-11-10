@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextR
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
+import com.mnemos.telegram.bot.application.notification.NotificationRaidLocations
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
 import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
 import com.mnemos.telegram.bot.application.widget.notifications.port.out.NotificationWidgetPublisher
@@ -72,6 +73,10 @@ class OpenNotificationWidgetService(
                 dungeons = result.dungeonSubscriptions.size,
                 globalEvents = result.globalSubscriptions.size,
                 raidEnabled = result.raidSubscription != null,
+                activeBoosters = result.boosterSubscriptions.keys.map { it.name }.toSet(),
+                activeDungeons = result.dungeonSubscriptions.keys.map { it.name }.toSet(),
+                activeGlobals = result.globalSubscriptions.keys.map { it.name }.toSet(),
+                raidLocations = NotificationRaidLocations.active(result.raidSubscription),
             ),
         )
     }

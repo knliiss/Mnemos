@@ -13,4 +13,8 @@ data class NotificationWidgetView(
     val dungeons: Int,
     val globalEvents: Int,
     val raidEnabled: Boolean,
+    val activeBoosters: Set<String> = emptySet(),
+    val activeDungeons: Set<String> = emptySet(),
+    val activeGlobals: Set<String> = emptySet(),
+    val raidLocations: Set<Int> = emptySet(),
 )
