@@ -25,9 +25,61 @@ class NotificationWidgetActionHandlerTest {
     private val publisher = mock<NotificationWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = NotificationWidgetActionHandler(snapshots, subscriptions, publisher, sessions, responder)
+    private val updates = mock<UpdateWidgetSubscriptionUseCase>()
+    private val handler = NotificationWidgetActionHandler(snapshots, subscriptions, publisher, sessions, responder, updates)
     private val account = UUID.randomUUID()
     private val drop = UUID.randomUUID()
+
+    @Test
+    fun boosterToggleDelegatesTypedDesiredStateToApplicationService() {
+        whenever(snapshots.load(11, 0)).thenReturn(NotificationWidgetSnapshotResult.Available(view(true)))
+        whenever(updates.set(11, WidgetSubscriptionKind.BOOSTER, "LUCK", true))
+            .thenReturn(WidgetSubscriptionUpdateResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:sub:booster:LUCK:on"), session()),
+        )
+        verify(updates).set(11, WidgetSubscriptionKind.BOOSTER, "LUCK", true)
+        verify(publisher).update(eq(11), eq(8), any())
+    }
+
+    @Test
+    fun raidMaskRejectsOutOfRangeValues() {
+        whenever(snapshots.load(11, 0)).thenReturn(NotificationWidgetSnapshotResult.Available(view(true)))
+        whenever(responder.reply(eq("q"), eq("INVALID"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:sub:raid:zzzzzz"), session()))
+        verifyNoInteractions(updates)
+    }
+
+    @Test
+    fun raidMaskMapsToExactServerSideLocationSet() {
+        whenever(snapshots.load(11, 0)).thenReturn(NotificationWidgetSnapshotResult.Available(view(true)))
+        whenever(updates.setRaidLocations(11, setOf(1, 3))).thenReturn(WidgetSubscriptionUpdateResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:sub:raid:5"), session()))
+        verify(updates).setRaidLocations(11, setOf(1, 3))
+    }
+
+    @Test
+    fun staleAccountContextCannotChangeSubscriptions() {
+        whenever(snapshots.load(11, 0)).thenReturn(
+            NotificationWidgetSnapshotResult.Available(view(true).copy(accountId = UUID.randomUUID())),
+        )
+        whenever(responder.reply(eq("q"), eq("CONTEXT_CHANGED"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:sub:booster:LUCK:on"), session()))
+        verifyNoInteractions(updates)
+    }
 
     @Test
     fun togglesPingThroughExistingGateway() {
