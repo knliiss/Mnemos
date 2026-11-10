@@ -31,7 +31,7 @@ This is a functional but incomplete Widget UI integration slice. It must not be 
 
 ### Explicitly not implemented yet
 
-- Full widget-native editing and mutations; the first read-only event and player searches now use reply-bound chat prompts, and still show results through the existing text menus. Live cross-widget synchronization and message-level refresh scheduling remain unimplemented.
+- Full widget-native editing and mutations. Read-only event/player search now updates its originating widget and account create/join uses correlated chat prompts; advanced subscription, financial, moderation and creator flows remain unported. Live cross-widget synchronization and scheduled refresh remain unimplemented.
 - Privileged mutations, finance, account-role editing and asynchronous operations.
 - Shared widgets, forwards and inline-mode widgets.
 
@@ -39,7 +39,7 @@ Pengrad 10.1.0 lacks the Bot API 10.4 widget update model. When the widget flag 
 
 ## Next architectural increment
 
-1. Extend the initial reply-bound event/player text input sessions to other typed use cases; keep existing legacy menu input as fallback and complete failure recovery/correlation testing.
+1. Extend the reply-bound event/player/account input foundation to subscriptions, invitations, roles and other typed workflows, with domain-level idempotency and durable operation receipts before monetary mutations.
 2. Build widget screen versioning, update subscriptions, and refresh coalescing for multiple live cards.
 3. Make slow actions asynchronous so every widget query receives an acknowledgement within the 15-second deadline.
 4. Extend feature parity beyond the initial event feed to profiles, wallet, bets, personalization and administration.
