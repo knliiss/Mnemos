@@ -44,7 +44,7 @@ class CreateWidgetAccountRoleService(
         }
 
         val name = AccountManagementRoleInputParser.parseName(text)
-            ?.takeIf { it.length in 1..64 && it.toByteArray(Charsets.UTF_8).size <= 128 && it.none(Char::isISOControl) }
+            ?.takeIf { it.length in 1..64 && it.toByteArray(Charsets.UTF_8).size <= 128 && it.none { character -> Character.isISOControl(character) } }
         val message = when {
             name == null -> "Назва ролі недопустима"
             !prompts.claimMutation(prompt.telegramId, prompt.promptMessageId) ->

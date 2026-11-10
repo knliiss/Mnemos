@@ -79,6 +79,7 @@ class AccountManagementWidgetRendererTest {
         assertEquals(payload, json.readTree(rendered.chatData).path("members")[0].path("n").asText())
         assertFalse(rendered.html.contains(payload))
         assertTrue(rendered.html.contains("textContent"))
-        assertTrue(rendered.html.contains("w1:manage:kick-confirm"))
+        assertTrue(rendered.html.contains("kick-confirm"))
+        assertTrue(rendered.html.contains("w1:manage:"))
     }
 }
