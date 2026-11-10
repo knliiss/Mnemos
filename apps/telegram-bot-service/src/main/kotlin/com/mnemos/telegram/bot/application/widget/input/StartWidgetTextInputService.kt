@@ -32,7 +32,8 @@ class StartWidgetTextInputService(
         if (!properties.enabled || session.screen != purpose.screen ||
             (purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT) != (roleId != null) ||
             purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
-            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ||
+            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT
         ) {
             return TelegramDeliveryResult.PermanentFailure("widget-input-unavailable")
         }

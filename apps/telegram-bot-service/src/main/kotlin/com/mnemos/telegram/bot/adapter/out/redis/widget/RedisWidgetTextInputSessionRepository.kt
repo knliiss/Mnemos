@@ -23,7 +23,8 @@ class RedisWidgetTextInputSessionRepository(
         val parts = value.split('|')
         if (!((parts.size == 4 && parts[0] == "v1") ||
             (parts.size == 5 && parts[0] == "v2") ||
-            (parts.size == 9 && parts[0] == "v3")
+            (parts.size == 9 && parts[0] == "v3") ||
+            (parts.size == 10 && parts[0] == "v4")
         )) return null
         val widgetId = parts[1].toIntOrNull()?.takeIf { it > 0 } ?: return null
         val accountId = if (parts[2] == "-") null else runCatching { UUID.fromString(parts[2]) }.getOrNull()
@@ -34,35 +35,49 @@ class RedisWidgetTextInputSessionRepository(
         } else null
         if (purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT && targetRoleId == null) return null
         val commentPurpose = purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
-            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
-        if (commentPurpose && parts.size != 9) return null
+            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ||
+            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT
+        if (commentPurpose && (parts.size != 9 && parts.size != 10)) return null
+        if (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT && parts.size != 10) return null
         fun optionalId(raw: String): UUID? =
             if (raw == "-") null else runCatching { UUID.fromString(raw) }.getOrNull()
         val profileId = parts.getOrNull(5)?.let(::optionalId)
         val parentId = parts.getOrNull(6)?.let(::optionalId)
         val actorId = parts.getOrNull(7)?.let(::optionalId)
         val mutationId = parts.getOrNull(8)?.let(::optionalId)
+        val rootId = parts.getOrNull(9)?.let(::optionalId)
         if (commentPurpose && (profileId == null || actorId == null || mutationId == null ||
             (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY && parentId == null) ||
-            (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE && parentId != null)
+            (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE && parentId != null) ||
+            (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT && parentId == null)
         )) return null
         return WidgetTextInputSession(
             telegramId, promptMessageId, widgetId, accountId, purpose,
-            targetRoleId, profileId, parentId, actorId, mutationId,
+            targetRoleId, profileId, parentId, actorId, mutationId, rootId,
         )
     }
 
     override fun save(session: WidgetTextInputSession) {
         val commentPurpose = session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
-            session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+            session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ||
+            session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT
         val value = if (commentPurpose) {
             require(session.targetProfileId != null &&
                 session.expectedActorAccountId != null && session.mutationId != null)
-            listOf(
-                "v3", session.widgetMessageId, session.accountId ?: "-",
-                session.purpose.name, "-", session.targetProfileId,
-                session.targetCommentId ?: "-", session.expectedActorAccountId, session.mutationId,
-            ).joinToString("|")
+            if (session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT) {
+                require(session.targetCommentId != null)
+                listOf(
+                    "v4", session.widgetMessageId, session.accountId ?: "-",
+                    session.purpose.name, "-", session.targetProfileId, session.targetCommentId,
+                    session.expectedActorAccountId, session.mutationId, session.threadRootId ?: "-",
+                ).joinToString("|")
+            } else {
+                listOf(
+                    "v3", session.widgetMessageId, session.accountId ?: "-",
+                    session.purpose.name, "-", session.targetProfileId,
+                    session.targetCommentId ?: "-", session.expectedActorAccountId, session.mutationId,
+                ).joinToString("|")
+            }
         } else {
             listOf(
                 "v2", session.widgetMessageId, session.accountId ?: "-",

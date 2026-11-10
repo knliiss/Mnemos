@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItem
 import com.mnemos.telegram.bot.application.widget.management.CreateWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.management.EditWidgetAccountRoleUseCase
 import com.mnemos.telegram.bot.application.widget.profilecomments.CreateWidgetProfileCommentUseCase
+import com.mnemos.telegram.bot.application.widget.profilecomments.EditWidgetProfileCommentUseCase
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSearchQuery
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
@@ -32,6 +33,7 @@ class HandleWidgetTextReplyService(
     private val roleInput: CreateWidgetAccountRoleUseCase,
     private val editRole: EditWidgetAccountRoleUseCase,
     private val commentInput: CreateWidgetProfileCommentUseCase,
+    private val editComment: EditWidgetProfileCommentUseCase,
 ) : HandleWidgetTextReplyUseCase {
     override fun handle(telegramId: Long, promptMessageId: Int, text: String): TelegramDeliveryResult? {
         if (!properties.enabled) return null
@@ -50,7 +52,8 @@ class HandleWidgetTextReplyService(
                 WidgetTextInputPurpose.ACCOUNT_ROLE_CREATE,
                 WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT -> TelegramMenuScreen.ACCOUNT_MANAGEMENT
                 WidgetTextInputPurpose.PROFILE_COMMENT_CREATE,
-                WidgetTextInputPurpose.PROFILE_COMMENT_REPLY -> TelegramMenuScreen.HOME
+                WidgetTextInputPurpose.PROFILE_COMMENT_REPLY,
+                WidgetTextInputPurpose.PROFILE_COMMENT_EDIT -> TelegramMenuScreen.HOME
             }
         val result =
             when {
@@ -71,6 +74,8 @@ class HandleWidgetTextReplyService(
                 session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
                     session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ->
                     commentInput.create(session, widget, text)
+                session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_EDIT ->
+                    editComment.edit(session, widget, text)
                 else -> {
                     val normalized =
                         when (session.purpose) {

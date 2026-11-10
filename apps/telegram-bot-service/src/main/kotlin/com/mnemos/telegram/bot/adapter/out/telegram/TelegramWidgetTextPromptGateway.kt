@@ -67,6 +67,9 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ->
                     "Напишіть відповідь у гілці коментарів (до 500 символів) або «скасувати»." to
                         "Ваша відповідь"
+                WidgetTextInputPurpose.PROFILE_COMMENT_EDIT ->
+                    "Введіть новий текст свого коментаря (до 500 символів) або «скасувати»." to
+                        "Новий текст"
             }
 
         return try {

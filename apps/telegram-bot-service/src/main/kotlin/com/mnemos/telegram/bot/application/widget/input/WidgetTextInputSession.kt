@@ -13,6 +13,7 @@ data class WidgetTextInputSession(
     val targetCommentId: UUID? = null,
     val expectedActorAccountId: UUID? = null,
     val mutationId: UUID? = null,
+    val threadRootId: UUID? = null,
 ) {
     init {
         require(telegramId > 0)

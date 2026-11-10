@@ -22,7 +22,13 @@ class StartProfileCommentInputService(
     private val prompts: WidgetTextPromptGateway,
     private val sessions: WidgetTextInputSessionRepository,
 ) : StartProfileCommentInputUseCase {
-    override fun execute(widget: TelegramWidgetSession): TelegramDeliveryResult {
+    override fun execute(widget: TelegramWidgetSession): TelegramDeliveryResult =
+        start(widget, null)
+
+    override fun edit(widget: TelegramWidgetSession, commentId: UUID): TelegramDeliveryResult =
+        start(widget, commentId)
+
+    private fun start(widget: TelegramWidgetSession, editedCommentId: UUID?): TelegramDeliveryResult {
         if (!properties.enabled || widget.screen != TelegramWidgetScreen.PROFILE_COMMENTS) {
             return TelegramDeliveryResult.PermanentFailure("widget-input-unavailable")
         }
@@ -34,9 +40,11 @@ class StartProfileCommentInputService(
             return TelegramDeliveryResult.Retryable
         } ?: return TelegramDeliveryResult.PermanentFailure("active-account-required")
 
-        val purpose = if (widget.cursor == null) {
-            WidgetTextInputPurpose.PROFILE_COMMENT_CREATE
-        } else WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+        val purpose = when {
+            editedCommentId != null -> WidgetTextInputPurpose.PROFILE_COMMENT_EDIT
+            widget.cursor == null -> WidgetTextInputPurpose.PROFILE_COMMENT_CREATE
+            else -> WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+        }
         return try {
             when (val sent = prompts.prompt(widget.telegramId, widget.messageId, purpose)) {
                 is TelegramMessageSendResult.Delivered -> {
@@ -48,9 +56,10 @@ class StartProfileCommentInputService(
                             accountId = widget.accountId,
                             purpose = purpose,
                             targetProfileId = targetProfileId,
-                            targetCommentId = widget.cursor,
+                            targetCommentId = editedCommentId ?: widget.cursor,
                             expectedActorAccountId = actorAccountId,
                             mutationId = UUID.randomUUID(),
+                            threadRootId = if (editedCommentId != null) widget.cursor else null,
                         ),
                     )
                     TelegramDeliveryResult.Delivered
