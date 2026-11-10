@@ -146,3 +146,9 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - The event feed's `w1:evt:detail:<index>` action resolves the index only from the current server-loaded page before opening an immutable, read-only detail widget. A new `/internal/v1/events/details/{eventId}` endpoint is restricted to the Telegram bot service principal. This does not yet transfer follow/unfollow or spotlight actions.
 - Treating Telegram ID as a social service user ID is forbidden: social writes must use user/active-account resolution with explicit permissions. Read-only profile details and activity remain separate from account-scoped reactions and comments until that boundary is implemented.
 - See [feature working context](telegram-widget-feature-context.md) for the per-route checklist and verification status.
+
+## Bot API 10.4 sendWidget transport correction (2026-11-10)
+
+- `sendWidget` must carry `allow_queries=true` for interactive widgets, not a hardcoded `false`, and send the initial `chat_data` for all state-driven widgets; static read-only detail widgets use `false`. Omitting either flag breaks UI behavior despite correct renderers and server handlers. This is enforced by `TelegramWidgetRequestMapperTest`.
+- `chat_data`, `answerWidgetQuery.data`, and `editMessageWidgetData.chat_data` remain bounded to 1024 UTF-8 bytes; NUL characters are invalid in widget HTML/state. `TelegramWidgetMessage` now validates them at construction.
+- No production rollout until Telegram 10.4 real-client tests demonstrate initial hydration, permitted requests, acknowledgement timing, and state updates.

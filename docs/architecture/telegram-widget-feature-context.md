@@ -90,6 +90,7 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Added widget control of booster/dungeon/global/raid and reply-bound item-drop creation | Unit tests committed; not executed |
 | 2026-11-10 | Linked public profile to paged player drop activity; added exact authorized internal event-service `droppedFor` filter and new activity widget | Unit tests committed; build/client execution not verified |
 | 2026-11-10 | Added read-only event-detail widget using authorized `event-service` ID lookup and server-bound event selection from current feed | Unit tests committed; following and spotlight actions remain unavailable |
+| 2026-11-10 | Fixed initial widget data and the `allow_queries` transport flag, plus NUL validation and request mapper tests (`3b66767`) | Static inspection and unit tests added; client/build not run |
 
 
 | 2026-11-10 | Privacy-aware internal public profile API, profile-search/detail widget, and drop-activity widget | Source and tests committed; compilation and client tests not run |
@@ -195,3 +196,10 @@ Do not reuse user JWTs inside service-to-service calls or query other services' 
 - **Social reactions/comments** cannot be ported by treating a service API key as an end-user identity. The current social use cases rely on `SocialActorProvider` and `CurrentMnemosUser`, plus account permission checks. Before exposing writes from Telegram widgets, add a server-authorized actor resolution flow mapping Telegram identity to an authenticated Mnemos user and active account, preserving permissions, audit, and idempotency.
 - **Validation gap**: tests added for activity pagination, exact drop filtering, shortcut behavior, bound event selection and detail mapping. No Gradle build or Telegram client test was run in this session; the feature flag must remain off by default.
 - **Immediate next priorities**: (1) actor-aware social/profile comments and reactions, (2) event detail follow/unfollow, (3) account members/roles, (4) full notification presence rules, (5) finances and personalization once domain-side idempotency is proven.
+
+## Transport correctness audit — Telegram Bot API 10.4 (2026-11-10)
+
+- **Critical foundation fix**: the pre-existing `TelegramWidgetRequestMapper` had been sending `allow_queries=false` for *all* widgets and omitted initial `chat_data`. This made embedded WidgetQuery actions unavailable and left dynamically rendered screens without their initial state. Its payload now respects `TelegramWidgetMessage.allowQueries` and includes the initial `chat_data` when supplied. Empty inline keyboards are omitted. The read-only event-detail widget deliberately keeps queries disabled while retaining its initial state.
+- Validate against official documentation: https://core.telegram.org/bots/api#sendwidget and https://core.telegram.org/bots/widgets. Added mapper tests for both interactive and read-only widgets and rejects NUL characters in HTML/chat data. Previous tests incorrectly asserted that all widget queries were disabled; that assertion was updated.
+- **Verification still missing**: no local Gradle build, CI run, actual Telegram bot delivery, or desktop/mobile Telegram-client test has been executed in this session. This is a committed code fix, not a live verification.
+- **Known delivery risks**: 1024-byte query replies and widget state, 15-second acknowledgement deadlines, in-flight duplicate queries and out-of-order state edits still require integration and real-client verification. Keep the feature flag disabled in production.
