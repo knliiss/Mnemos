@@ -43,7 +43,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:edit:0:0"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:edit:0:0:" + tag(roleId)), session))
         verify(textInput).startForRole(session, roleId)
         verifyNoInteractions(mutations)
     }
@@ -61,7 +61,7 @@ class AccountManagementWidgetActionHandlerTest {
 
         assertEquals(
             TelegramDeliveryResult.Delivered,
-            handler.handle(query("w1:manage:permission:0:0:2:on"), session),
+            handler.handle(query("w1:manage:permission:0:0:2:on:" + tag(roleId)), session),
         )
         verify(mutations).setRolePermission(11L, "q", view().copy(canManageRoles = true), 0, 2, true)
     }
@@ -73,7 +73,7 @@ class AccountManagementWidgetActionHandlerTest {
         )
         whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:move:1:0:up"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:move:1:0:up:" + tag(roleId) + ":1"), session))
         verifyNoInteractions(mutations)
     }
 
@@ -106,7 +106,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(responder.reply(eq("q"), eq("CONTEXT_CHANGED"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0:" + tag(memberId)), session))
         verifyNoInteractions(guard, mutations)
     }
 
@@ -122,12 +122,12 @@ class AccountManagementWidgetActionHandlerTest {
 
         assertEquals(
             TelegramDeliveryResult.Delivered,
-            handler.handle(query("w1:manage:role-delete:0:0"), session),
+            handler.handle(query("w1:manage:role-delete:0:0:" + tag(roleId)), session),
         )
         verify(guard).requestRoleDeletion(11L, 8, accountId, roleId)
         assertEquals(
             TelegramDeliveryResult.Delivered,
-            handler.handle(query("w1:manage:role-delete-confirm:0:0"), session),
+            handler.handle(query("w1:manage:role-delete-confirm:0:0:" + tag(roleId)), session),
         )
         verifyNoInteractions(mutations)
     }
@@ -145,7 +145,7 @@ class AccountManagementWidgetActionHandlerTest {
 
         assertEquals(
             TelegramDeliveryResult.Delivered,
-            handler.handle(query("w1:manage:role-delete-confirm:0:0"), session),
+            handler.handle(query("w1:manage:role-delete-confirm:0:0:" + tag(roleId)), session),
         )
         verify(mutations).deleteRole(11L, "q", view().copy(canManageRoles = true), 0)
         verify(publisher).update(eq(11L), eq(8), any())
@@ -157,7 +157,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(publisher.state(any())).thenReturn("{}")
         whenever(responder.reply(eq("q"), eq("CONFIRM"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick:0:0:" + tag(memberId)), session))
         verify(guard).requestKick(11L, 8, accountId, memberId)
         verifyNoInteractions(mutations)
     }
@@ -168,7 +168,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(responder.reply(eq("q"), eq("CONFIRM_REQUIRED"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0:" + tag(memberId)), session))
         verifyNoInteractions(mutations)
     }
 
@@ -180,7 +180,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(publisher.state(any())).thenReturn("{}")
         whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:kick-confirm:0:0:" + tag(memberId)), session))
         verify(mutations).kickMember(11L, "q", view(), 0)
         verify(publisher).update(eq(11L), eq(8), any())
     }
@@ -191,7 +191,7 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
             .thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:1:0:0:on"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:1:0:0:on:" + tag(memberId) + ":" + tag(roleId)), session))
         verifyNoInteractions(mutations)
     }
 
@@ -202,9 +202,11 @@ class AccountManagementWidgetActionHandlerTest {
         whenever(publisher.state(any())).thenReturn("{}")
         whenever(responder.reply(eq("q"), eq("OK"), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
 
-        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:0:0:0:on"), session))
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:role:0:0:0:on:" + tag(memberId) + ":" + tag(roleId)), session))
         verify(mutations).assignRole(11L, "q", view(), 0, 0, true)
     }
+
+    private fun tag(id: UUID): String = AccountManagementWidgetIdentity.tag(id)
 
     private fun query(action: String) =
         TelegramWidgetQueryContext("q", 11L, 11L, 8, action, "data", true, false)

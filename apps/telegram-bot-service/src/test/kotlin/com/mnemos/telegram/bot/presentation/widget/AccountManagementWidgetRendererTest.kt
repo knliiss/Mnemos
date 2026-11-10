@@ -84,6 +84,8 @@ class AccountManagementWidgetRendererTest {
         assertTrue(rendered.chatData!!.toByteArray(Charsets.UTF_8).size <= 1_024)
         assertEquals(3, data.path("members").size())
         assertEquals(3, data.path("roles").size())
+        assertEquals(12, data.path("roles")[0].path("t").asText().length)
+        assertEquals(12, data.path("members")[0].path("t").asText().length)
         assertEquals(3, data.path("members")[0].path("a").size())
         assertTrue(data.path("canCreate").asBoolean())
         assertFalse(rendered.html.contains(members.first().name))
