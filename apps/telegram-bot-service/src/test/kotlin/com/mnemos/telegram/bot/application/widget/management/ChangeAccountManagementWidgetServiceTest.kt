@@ -149,6 +149,20 @@ class ChangeAccountManagementWidgetServiceTest {
     }
 
     @Test
+    fun accountOwnerCanAssignOwnRoleWhenAccountServicePolicyAllowsIt() {
+        val current = view(member = member(owner = true, self = true)).copy(actorIsOwner = true)
+        whenever(guard.claimQuery(11L, "q")).thenReturn(true)
+        whenever(gateway.setMemberRole(11L, memberId, roleId, true))
+            .thenReturn(TelegramAccountManagementMutationResult.UPDATED)
+
+        assertEquals(
+            AccountManagementWidgetMutationResult.APPLIED,
+            service.assignRole(11L, "q", current, 0, 0, true),
+        )
+        verify(gateway).setMemberRole(11L, memberId, roleId, true)
+    }
+
+    @Test
     fun roleChangeRequiresExplicitPermission() {
         val blocked = view(canAssign = false)
         assertEquals(

@@ -45,6 +45,7 @@ class AccountManagementWidgetRendererTest {
         assertEquals((1 shl 2) or (1 shl 9), state.path("roles")[0].path("m").asInt())
         assertEquals("#AABBCC", state.path("roles")[0].path("c").asText())
         assertTrue(state.path("canHierarchy").asBoolean())
+        assertFalse(state.path("actorOwner").asBoolean())
     }
 
     @Test
