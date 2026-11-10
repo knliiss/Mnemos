@@ -7,6 +7,9 @@ import com.mnemos.telegram.bot.application.profile.model.PublicProfileSearchPage
 import com.mnemos.telegram.bot.application.profile.model.PublicProfileSearchResult
 import com.mnemos.telegram.bot.application.profile.model.PublicProfileSummary
 import com.mnemos.telegram.bot.application.profile.port.out.PublicProfileGateway
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionState
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionType
+import com.mnemos.telegram.bot.application.profilereaction.port.out.ProfileReactionGateway
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,7 +23,8 @@ import java.util.UUID
 class OpenProfileWidgetServiceTest {
     private val gateway = mock<PublicProfileGateway>()
     private val publisher = mock<ProfileWidgetPublisher>()
-    private val service = OpenProfileWidgetService(TelegramWidgetProperties(enabled = true), gateway, publisher)
+    private val reactions = mock<ProfileReactionGateway>()
+    private val service = OpenProfileWidgetService(TelegramWidgetProperties(enabled = true), gateway, publisher, reactions)
     private val accountId = UUID.randomUUID()
 
     @Test
@@ -45,6 +49,16 @@ class OpenProfileWidgetServiceTest {
     }
 
     @Test
+    fun selectedProfileLoadsTheActorSpecificReactionState() {
+        whenever(gateway.get(accountId)).thenReturn(PublicProfileDetailResult.Available(profile()))
+        whenever(reactions.get(11L, accountId)).thenReturn(ProfileReactionState.Available(ProfileReactionType.LIKE))
+
+        val result = service.load(11L, "Kirito", 0, accountId) as ProfileWidgetSnapshotResult.Available
+
+        assertEquals(ProfileReactionState.Available(ProfileReactionType.LIKE), result.view.reaction)
+    }
+
+    @Test
     fun detailUsesExistingPublicProfileProjection() {
         whenever(gateway.get(accountId)).thenReturn(PublicProfileDetailResult.Available(profile()))
         val result = service.load(11L, "Kirito", 0, accountId) as ProfileWidgetSnapshotResult.Available
@@ -61,7 +75,7 @@ class OpenProfileWidgetServiceTest {
 
     @Test
     fun disabledWidgetNeverQueriesProfiles() {
-        val disabled = OpenProfileWidgetService(TelegramWidgetProperties(enabled = false), gateway, publisher)
+        val disabled = OpenProfileWidgetService(TelegramWidgetProperties(enabled = false), gateway, publisher, reactions)
         assertEquals(TelegramDeliveryResult.PermanentFailure("widgets-disabled"), disabled.execute(11L))
         verifyNoInteractions(gateway)
     }

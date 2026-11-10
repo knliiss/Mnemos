@@ -1,6 +1,9 @@
 package com.mnemos.telegram.bot.application.widget.profiles
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionChangeResult
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionState
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionType
 import com.mnemos.telegram.bot.application.profile.model.ProfilePresenceStatus
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
@@ -31,7 +34,8 @@ class ProfileWidgetActionHandlerTest {
     private val input = mock<StartWidgetTextInputUseCase>()
     private val activity = mock<OpenProfileActivityWidgetUseCase>()
     private val comments = mock<OpenProfileCommentsWidgetUseCase>()
-    private val handler = ProfileWidgetActionHandler(snapshots, publisher, sessions, responder, input, activity, comments)
+    private val reactions = mock<ChangeProfileReactionUseCase>()
+    private val handler = ProfileWidgetActionHandler(snapshots, publisher, sessions, responder, input, activity, comments, reactions)
     private val accountId = UUID.randomUUID()
     private val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.PROFILES, null, search = "Kirito")
 
@@ -109,6 +113,42 @@ class ProfileWidgetActionHandlerTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:prof:comments"), session))
         verifyNoInteractions(comments)
+    }
+
+    @Test
+    fun changingReactionRequiresSelectedProfileAndResolvedActor() {
+        val chosen = session.copy(selectedProfileId = accountId)
+        val active = view().copy(
+            selected = entry(),
+            reaction = ProfileReactionState.Available(null),
+        )
+        whenever(snapshots.load(11L, "Kirito", 0, accountId)).thenReturn(ProfileWidgetSnapshotResult.Available(active))
+        whenever(reactions.execute(11L, accountId, ProfileReactionType.LIKE, "q"))
+            .thenReturn(ProfileReactionChangeResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:prof:react:like"), chosen),
+        )
+        verify(reactions).execute(11L, accountId, ProfileReactionType.LIKE, "q")
+    }
+
+    @Test
+    fun reactionCannotBeWrittenWithoutValidActorContext() {
+        val chosen = session.copy(selectedProfileId = accountId)
+        whenever(snapshots.load(11L, "Kirito", 0, accountId))
+            .thenReturn(ProfileWidgetSnapshotResult.Available(view().copy(selected = entry())))
+        whenever(responder.reply(eq("q"), eq("UNAVAILABLE"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:prof:react:dislike"), chosen),
+        )
+        verifyNoInteractions(reactions)
     }
 
     @Test
