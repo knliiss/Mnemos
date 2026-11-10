@@ -20,6 +20,7 @@ import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -41,6 +42,7 @@ class TelegramCommandRouter(
     private val onlineWidget: OpenOnlineWidgetUseCase,
     private val settingsWidget: OpenSettingsWidgetUseCase? = null,
     private val inviteWidget: OpenInviteWidgetUseCase? = null,
+    private val managementWidget: OpenAccountManagementWidgetUseCase? = null,
     private val profileWidget: OpenProfileWidgetUseCase? = null,
 ) {
     fun route(context: TelegramCommandContext): TelegramDeliveryResult {
@@ -149,6 +151,16 @@ class TelegramCommandRouter(
                     }
                 } else {
                     menuService.open(context.telegramId)
+                }
+            "/manage" ->
+                if (managementWidget?.enabled == true) {
+                    when (val result = managementWidget.execute(context.telegramId)) {
+                        is TelegramDeliveryResult.PermanentFailure ->
+                            menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_MANAGEMENT)
+                        else -> result
+                    }
+                } else {
+                    menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT_MANAGEMENT)
                 }
             "/invites" ->
                 if (inviteWidget?.enabled == true) {
