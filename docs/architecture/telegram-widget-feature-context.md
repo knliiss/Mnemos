@@ -27,12 +27,12 @@ Transfer **every Mini App capability** to a coherent Telegram-first experience, 
 
 - `/widget`: dashboard, navigation, account/balance context, daily claim.
 - `/notifications`: ping setting, paged item-drop subscriptions, deletion; complex creation/editing uses legacy chat menu.
-- `/events`: feed and filtering, pagination; search remains in the text command.
+- `/events`: event feed, filtering, search and pagination in widgets; individual event detail now opens a read-only widget using a typed internal event-service endpoint. Following similar events, spotlight purchases and complete advanced filters remain unfinished.
 - `/account`: paged account selection plus widget-originated create/join via reply-bound chat prompts; member roles, invites, account settings and privileged management still need dedicated widget surfaces.
 - `/daily`: reward claim and streak restore through existing gateway.
 - `/bets`: read-only odds, races, history; money-changing operations remain in existing chat flow.
 - `/wallet`: balances and read-only, per-account authorized transaction history.
-- `/online`: read-only realm/player overview; advanced search via existing command.
+- `/online`: live realm overview, player search and refresh in widgets; full searchable lists need audit.
 - Telegram widget-aware JSON polling shares the legacy update handling path while feature-enabled. Redis holds message-bound widget sessions; each widget slice has a query, use case, publisher port and renderer.
 - Latest fix before this context: commit `7e84ef5` treats Telegram's “message is not modified” response to `editMessageWidgetData` as an idempotent success.
 - Reply-bound chat input foundation: WidgetQuery acknowledges quickly, then Telegram `sendMessage` with `ForceReply` prompts the user; a separate 10-minute Redis key stores prompt ID, widget ID, owner, purpose and account context. Only a private user's reply to that specific prompt can be interpreted as a widget input; regular text and existing menu pending input retain their path.
@@ -48,7 +48,7 @@ Source of truth: `apps/mini-app/src/ui/navigation/routeRegistry.ts` (checked 202
 
 | Mini App area | Route IDs | Current widget coverage / remaining work |
 | --- | --- | --- |
-| Events | `bets`, `events`, `event-detail`, `subscriptions` | Widgets cover read-only bets, event feed and most Telegram subscription types (item drops, booster, dungeon, global, raid), but event detail, presence subscriptions and advanced rule editing remain |
+| Events | `bets`, `events`, `event-detail`, `subscriptions` | Read-only bets, event feed, event detail, item-drop/booster/dungeon/global/raid subscription widgets are present; following events, presence alerts, advanced rule editing and money-changing actions remain |
 | Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selector, create/join, invitation listing/create/revoke, and read-only wallet have widget slices; leaderboards, guides, member/roles and account settings still absent |
 | People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online, authenticated public-profile directory search/details and profile drop activity have widget slices; comments/voting, full activity, user settings/wallet remain incomplete |
 | Personalization | `personalization-store`, `personalization-store-category`, `personalization-owned`, `personalization-detail` | Not represented by dedicated widgets; purchase/ownership operations need typed permission and payment review |
@@ -62,7 +62,7 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 1. **Widget-originated chat input:** event and online searches update their own widgets; account create/join use prompt-scoped at-most-once claims. Next: durable operation receipts, domain idempotency, user-visible failure recovery and additional typed inputs (subscriptions, invitations, roles). Never intercept unrelated text.
 2. **Reliable query execution:** fast acknowledgement (<15 seconds), durable operation receipts and backend idempotency. Widget invitation create uses Redis one-query claim, and revoke requires a three-minute message-bound confirmation; those do not guarantee exactly-once business execution during backend timeouts.
 3. **State consistency:** per-message widget versioning, refresh coalescing and explicit handling of out-of-order update deliveries. Do not sync cross-widget state blindly. Keep invite confirmation and mutation claims separate from widget page/search sessions.
-4. **Coverage audit:** list every Mini App capability and map it to implemented widget, chat, retained Mini App, or gap with security/technical rationale. Extend profiles, personalization and administration one typed slice at a time.
+4. **Coverage audit:** extend profile social workflows using explicit Telegram-user-to-account actor authentication in social-service, not a service-key impersonation. Then finish event-detail follow actions, account member/roles and user-visible subscriptions before cosmetics or creator tools.
 5. **Verification:** unit/adapter tests, integration and real-client tests, widget sandbox inspection, staged opt-in/canary before enabling.
 
 ## Working protocol for future sessions
@@ -88,6 +88,8 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Settings widget for language and notification-pack selection, dashboard navigation and legacy fallback | Static action matching completed; tests committed but not executed |
 | 2026-11-10 | Added invitation widget with list/create/revoke, 3-minute confirmation and Redis replay guard | Unit tests committed; not executed |
 | 2026-11-10 | Added widget control of booster/dungeon/global/raid and reply-bound item-drop creation | Unit tests committed; not executed |
+| 2026-11-10 | Linked public profile to paged player drop activity; added exact authorized internal event-service `droppedFor` filter and new activity widget | Unit tests committed; build/client execution not verified |
+| 2026-11-10 | Added read-only event-detail widget using authorized `event-service` ID lookup and server-bound event selection from current feed | Unit tests committed; following and spotlight actions remain unavailable |
 
 
 | 2026-11-10 | Privacy-aware internal public profile API, profile-search/detail widget, and drop-activity widget | Source and tests committed; compilation and client tests not run |
@@ -100,7 +102,7 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | --- | --- | --- |
 | `bets` | Partial | Wager placement, increase, payout view, history and full race/event bet interactions |
 | `events` | Partial | Event type-specific filters, sort, wipe/period selection and complete pagination |
-| `event-detail` | Missing | Individual event detail card and related actions |
+| `event-detail` | Partial | Read-only event details for item drops, boosters, globals and raids now open from the widget feed. Follow/unfollow, related feed links, own-account highlighting and spotlight purchase remain |
 | `subscriptions` | Partial | Widget can now create item-drop rules via reply-bound input, toggle booster/dungeon/global subscriptions, configure 1–28 raid locations and list/delete drops; player-offline alerts, per-rule editing, audit and advanced controls remain |
 | `account` | Partial | Full account dashboard, members and navigation to all subfeatures |
 | `leaderboards` | Missing | Drops/coins/boosters tabs, periods, rankings and pagination |
@@ -185,3 +187,11 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 ### Architecture decision
 
 Do not reuse user JWTs inside service-to-service calls or query other services' databases. Profile read contracts remain separate from social mutations; future writes require explicitly permission-checked, idempotent use cases rather than generic transport proxies.
+
+## Follow-up checkpoint — profile activity and event details (2026-11-10)
+
+- **Profile activity** is a separate read-only widget opened from a selected public profile. It queries `EventHistoryGateway` with exact `droppedFor` and enforces server-side cursor validation; the underlying `event-service` endpoint is restricted to the authenticated `telegram-bot-service` internal service principal. The new `droppedFor` parameter is optional for existing event callers.
+- **Event details** are read-only widgets opened only for an item belonging to the current server-loaded event page. A dedicated `event-service` internal endpoint returns the existing event projection by ID; the Telegram feature uses a typed gateway, with no browser-originated event ID accepted directly. Detail widgets show type-specific facts but not follow/unfollow or spotlight purchase actions yet.
+- **Social reactions/comments** cannot be ported by treating a service API key as an end-user identity. The current social use cases rely on `SocialActorProvider` and `CurrentMnemosUser`, plus account permission checks. Before exposing writes from Telegram widgets, add a server-authorized actor resolution flow mapping Telegram identity to an authenticated Mnemos user and active account, preserving permissions, audit, and idempotency.
+- **Validation gap**: tests added for activity pagination, exact drop filtering, shortcut behavior, bound event selection and detail mapping. No Gradle build or Telegram client test was run in this session; the feature flag must remain off by default.
+- **Immediate next priorities**: (1) actor-aware social/profile comments and reactions, (2) event detail follow/unfollow, (3) account members/roles, (4) full notification presence rules, (5) finances and personalization once domain-side idempotency is proven.

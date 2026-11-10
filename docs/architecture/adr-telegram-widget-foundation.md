@@ -139,3 +139,10 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - Widgets must never modify profile reactions, comments or privacy settings through read-only DTOs. All future social writes require social-service-backed authenticated commands, replay safety and permission checks.
 - Profile activity state uses compact serialized keys to respect Telegram's maximum 1,024-byte `chat_data`. The HTML, JSON and navigation tests are committed but not yet run in CI or a real Telegram client.
 - Not finished: user social interactions, full activity, personalized visuals, user wallet, marketplace, roles, leaderboards, privileged screens and comprehensive test coverage. The feature flag must remain disabled.
+
+## Profile activity and event-detail slices (2026-11-10)
+
+- Public-profile detail can open an independent `PROFILE_ACTIVITY` widget. The application combines the existing public profile gateway with exact player drop filtering from the event service. Widget query cursors are checked against a fresh server-loaded page, not trusted from the client.
+- The event feed's `w1:evt:detail:<index>` action resolves the index only from the current server-loaded page before opening an immutable, read-only detail widget. A new `/internal/v1/events/details/{eventId}` endpoint is restricted to the Telegram bot service principal. This does not yet transfer follow/unfollow or spotlight actions.
+- Treating Telegram ID as a social service user ID is forbidden: social writes must use user/active-account resolution with explicit permissions. Read-only profile details and activity remain separate from account-scoped reactions and comments until that boundary is implemented.
+- See [feature working context](telegram-widget-feature-context.md) for the per-route checklist and verification status.
