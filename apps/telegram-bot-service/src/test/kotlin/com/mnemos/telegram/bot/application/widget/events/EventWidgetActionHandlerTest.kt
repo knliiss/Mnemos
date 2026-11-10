@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.application.widget.events
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.eventdetail.OpenEventDetailWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
@@ -28,7 +29,34 @@ class EventWidgetActionHandlerTest {
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
     private val input = mock<StartWidgetTextInputUseCase>()
-    private val handler = EventWidgetActionHandler(snapshots, opener, publisher, sessions, responder, input)
+    private val details = mock<OpenEventDetailWidgetUseCase>()
+    private val handler = EventWidgetActionHandler(snapshots, opener, publisher, sessions, responder, input, details)
+
+    @Test
+    fun eventDetailsOpenOnlyForAnEntryReturnedByCurrentSnapshot() {
+        val eventId = UUID.randomUUID()
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
+            .thenReturn(EventWidgetSnapshotResult.Available(
+                view(null).copy(items = listOf(EventWidgetItem("Дроп", "Клинок", "12:00 UTC", eventId))),
+            ))
+        whenever(details.execute(11L, eventId)).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(responder.reply(eq("q"), eq("OK"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:evt:detail:0"), session()))
+        verify(details).execute(11L, eventId)
+    }
+
+    @Test
+    fun detailIndexCannotOpenAnUnknownEvent() {
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null, null))
+            .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:evt:detail:1"), session()))
+        verifyNoInteractions(details)
+    }
 
     @Test
     fun refusesCursorNotInCurrentPage() {
