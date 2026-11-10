@@ -1,6 +1,8 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
 import com.mnemos.social.application.comment.usecase.list.ListCommentsUseCase
+import com.mnemos.social.application.comment.model.CommentView
+import com.mnemos.social.application.common.pagination.PageResult
 import com.mnemos.social.application.comment.usecase.list.ListRootCommentsQuery
 import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
 import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
@@ -54,9 +56,7 @@ class InternalTelegramCommentsController(
             .toInternalPage()
     }
 
-    private fun com.mnemos.social.application.common.pagination.PageResult<
-        com.mnemos.social.application.comment.model.CommentView
-    >.toInternalPage(): InternalTelegramCommentPage {
+    private fun PageResult<CommentView>.toInternalPage(): InternalTelegramCommentPage {
         return InternalTelegramCommentPage(
             items = items.map { comment ->
                 InternalTelegramComment(
