@@ -2,6 +2,7 @@ package com.mnemos.social.adapter.inbound.http.comment
 
 import com.mnemos.social.application.comment.model.CommentView
 import com.mnemos.social.application.actor.ResolveTelegramSocialActorUseCase
+import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
 import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
@@ -83,6 +84,31 @@ class InternalTelegramCommentsControllerTest {
     }
 
     @Test
+    fun unlinkedTelegramUserNeverReceivesAuthorPermissions() {
+        val comment = view(authorUserId = null)
+        whenever(comments.listRoot(ListRootCommentsQuery(accountId, PageQuery(0, 3))))
+            .thenReturn(PageResult(listOf(comment), 0, 3, 1, 1, false))
+
+        val result = controller.list(accountId, 0, 3)
+        assertFalse(result.items.single().canEdit)
+        assertFalse(result.items.single().canDelete)
+    }
+
+    @Test
+    fun matchedTelegramUserReceivesAuthorControlsWithoutRawUserId() {
+        val userId = UUID.randomUUID()
+        val actor = SocialActor(userId, UUID.randomUUID(), "Kirito")
+        whenever(actors.resolve(11L)).thenReturn(actor)
+        whenever(comments.listRoot(ListRootCommentsQuery(accountId, PageQuery(0, 3))))
+            .thenReturn(PageResult(listOf(view(authorUserId = userId)), 0, 3, 1, 1, false))
+
+        val result = controller.list(accountId, 0, 3, telegramId = 11L)
+        assertTrue(result.items.single().canEdit)
+        assertTrue(result.items.single().canDelete)
+        assertFalse(result.items.single().javaClass.declaredFields.any { it.name == "authorUserId" })
+    }
+
+    @Test
     fun onlyAuthenticatedBotServiceCanCallInternalEndpoint() {
         val guard = InternalTelegramCommentsController::class.java.getAnnotation(PreAuthorize::class.java)
         assertNotNull(guard)
@@ -94,6 +120,7 @@ class InternalTelegramCommentsControllerTest {
         parent: CommentId? = null,
         deleted: Boolean = false,
         content: String? = "Test",
+        authorUserId: UUID? = UUID.randomUUID(),
     ) = CommentView(
         id = CommentId(rootId),
         targetAccountId = account,
@@ -105,6 +132,6 @@ class InternalTelegramCommentsControllerTest {
         replies = 1,
         createdAt = Instant.parse("2026-11-10T15:00:00Z"),
         updatedAt = Instant.parse("2026-11-10T15:00:00Z"),
-        authorUserId = UUID.randomUUID(),
+        authorUserId = authorUserId,
     )
 }
