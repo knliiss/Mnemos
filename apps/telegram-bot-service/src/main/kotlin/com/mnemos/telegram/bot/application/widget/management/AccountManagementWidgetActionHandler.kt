@@ -56,7 +56,7 @@ class AccountManagementWidgetActionHandler(
                     return ack
                 }
                 "kick", "kick-confirm" -> {
-                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 6) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val index = parts[4].toIntOrNull()
                     if (page != session.page || index == null) {
@@ -64,6 +64,9 @@ class AccountManagementWidgetActionHandler(
                     }
                     val member = current.members.getOrNull(index)
                         ?: return responder.reply(context.queryId, "CONFLICT", "Учасника вже немає")
+                    if (AccountManagementWidgetIdentity.tag(member.id) != parts[5]) {
+                        return responder.reply(context.queryId, "CONFLICT", "Список учасників змінився. Оновіть")
+                    }
                     if (!current.canRemoveMembers || member.owner || member.self) {
                         return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу виключити учасника")
                     }
@@ -84,7 +87,7 @@ class AccountManagementWidgetActionHandler(
                     return refresh(context, session, current.accountId, 0, "Учасника виключено")
                 }
                 "role-delete", "role-delete-confirm" -> {
-                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 6) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val index = parts[4].toIntOrNull()
                     if (page != session.page || index == null) {
@@ -92,6 +95,9 @@ class AccountManagementWidgetActionHandler(
                     }
                     val role = current.roles.getOrNull(index)
                         ?: return responder.reply(context.queryId, "CONFLICT", "Роль більше недоступна")
+                    if (AccountManagementWidgetIdentity.tag(role.id) != parts[5]) {
+                        return responder.reply(context.queryId, "CONFLICT", "Список ролей змінився. Оновіть")
+                    }
                     if (!current.canManageRoles) {
                         return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу видаляти ролі")
                     }
@@ -122,7 +128,7 @@ class AccountManagementWidgetActionHandler(
                     return responder.reply(context.queryId, "OK", "Виключення скасовано", publisher.state(current))
                 }
                 "edit" -> {
-                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 6) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val roleIndex = parts[4].toIntOrNull()
                     if (page != session.page || roleIndex == null) {
@@ -130,6 +136,9 @@ class AccountManagementWidgetActionHandler(
                     }
                     val role = current.roles.getOrNull(roleIndex)
                         ?: return responder.reply(context.queryId, "CONFLICT", "Роль більше недоступна")
+                    if (AccountManagementWidgetIdentity.tag(role.id) != parts[5]) {
+                        return responder.reply(context.queryId, "CONFLICT", "Список ролей змінився. Оновіть")
+                    }
                     if (!current.canManageRoles) {
                         return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу редагувати ролі")
                     }
@@ -140,7 +149,7 @@ class AccountManagementWidgetActionHandler(
                     return ack
                 }
                 "permission" -> {
-                    if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 8) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val roleIndex = parts[4].toIntOrNull()
                     val permissionIndex = parts[5].toIntOrNull()
@@ -152,6 +161,10 @@ class AccountManagementWidgetActionHandler(
                     if (page != session.page || roleIndex == null || permissionIndex == null) {
                         return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
                     }
+                    val role = current.roles.getOrNull(roleIndex)
+                    if (role == null || AccountManagementWidgetIdentity.tag(role.id) != parts[7]) {
+                        return responder.reply(context.queryId, "CONFLICT", "Роль змінилася. Оновіть")
+                    }
                     val result = mutations.setRolePermission(
                         context.actorId, context.queryId, current, roleIndex, permissionIndex, enabled,
                     )
@@ -159,7 +172,7 @@ class AccountManagementWidgetActionHandler(
                     return refresh(context, session, current.accountId, session.page, "Дозволи ролі оновлено")
                 }
                 "move" -> {
-                    if (parts.size != 6) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 8) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val roleIndex = parts[4].toIntOrNull()
                     val offset = when (parts[5]) {
@@ -170,12 +183,19 @@ class AccountManagementWidgetActionHandler(
                     if (page != session.page || roleIndex == null) {
                         return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
                     }
+                    val role = current.roles.getOrNull(roleIndex)
+                    val expectedRank = parts[7].toLongOrNull()
+                    if (role == null || AccountManagementWidgetIdentity.tag(role.id) != parts[6] ||
+                        expectedRank != role.rank
+                    ) {
+                        return responder.reply(context.queryId, "CONFLICT", "Порядок ролей змінився. Оновіть")
+                    }
                     val result = mutations.moveRole(context.actorId, context.queryId, current, roleIndex, offset)
                     if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
                     return refresh(context, session, current.accountId, session.page, "Порядок ролей оновлено")
                 }
                 "role" -> {
-                    if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    if (parts.size != 9) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     val page = parts[3].toIntOrNull()
                     val memberIndex = parts[4].toIntOrNull()
                     val roleIndex = parts[5].toIntOrNull()
@@ -186,6 +206,14 @@ class AccountManagementWidgetActionHandler(
                     }
                     if (page != session.page || memberIndex == null || roleIndex == null) {
                         return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val member = current.members.getOrNull(memberIndex)
+                    val role = current.roles.getOrNull(roleIndex)
+                    if (member == null || role == null ||
+                        AccountManagementWidgetIdentity.tag(member.id) != parts[7] ||
+                        AccountManagementWidgetIdentity.tag(role.id) != parts[8]
+                    ) {
+                        return responder.reply(context.queryId, "CONFLICT", "Учасник або роль змінилися. Оновіть")
                     }
                     val result = mutations.assignRole(
                         context.actorId,

@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.presentation.widget
 
 import com.mnemos.telegram.bot.application.widget.management.AccountManagementWidgetView
+import com.mnemos.telegram.bot.application.widget.management.AccountManagementWidgetIdentity
 import com.mnemos.telegram.bot.application.widget.model.TelegramWidgetButton
 import com.mnemos.telegram.bot.application.widget.model.TelegramWidgetMessage
 import org.springframework.stereotype.Component
@@ -28,6 +29,7 @@ class AccountManagementWidgetRenderer(
                 "members" to view.members.map { member ->
                     mapOf(
                         "n" to member.name,
+                        "t" to AccountManagementWidgetIdentity.tag(member.id),
                         "r" to member.role,
                         "o" to member.owner,
                         "s" to member.self,
@@ -37,6 +39,7 @@ class AccountManagementWidgetRenderer(
                 "roles" to view.roles.map {
                     mapOf(
                         "n" to it.name,
+                        "t" to AccountManagementWidgetIdentity.tag(it.id),
                         "rank" to it.rank,
                         "p" to it.permissionCount,
                         "c" to it.color,
@@ -124,7 +127,7 @@ class AccountManagementWidgetRenderer(
                       var confirm=s.confirm===index;
                       var kick=el('button',confirm?'primary':'',confirm?'Підтвердити виключення':'Виключити');
                       kick.addEventListener('click',function(){
-                        ask('w1:manage:'+(confirm?'kick-confirm':'kick')+':'+s.page+':'+index);
+                        ask('w1:manage:'+(confirm?'kick-confirm':'kick')+':'+s.page+':'+index+':'+entry.t);
                       });
                       actions.appendChild(kick);
                       if(confirm){
@@ -138,15 +141,15 @@ class AccountManagementWidgetRenderer(
                     var absoluteIndex=s.page*3+index;
                     var up=el('button','','Вище');
                     up.disabled=absoluteIndex===0;
-                    up.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':up');});
+                    up.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':up:'+entry.t+':'+entry.rank);});
                     var down=el('button','','Нижче');
                     down.disabled=absoluteIndex>=s.rolesCount-1;
-                    down.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':down');});
+                    down.addEventListener('click',function(){ask('w1:manage:move:'+s.page+':'+index+':down:'+entry.t+':'+entry.rank);});
                     actions.appendChild(up);actions.appendChild(down);
                   }
                   if(tab==='roles'&&s.canCreate){
                     var editRole=el('button','','Змінити назву/колір');
-                    editRole.addEventListener('click',function(){ask('w1:manage:edit:'+s.page+':'+index);});
+                    editRole.addEventListener('click',function(){ask('w1:manage:edit:'+s.page+':'+index+':'+entry.t);});
                     actions.appendChild(editRole);
                     var details=el('button',selectedRole===index?'active':'','Дозволи');
                     details.addEventListener('click',function(){selectedRole=selectedRole===index?null:index;draw(s);});
@@ -154,7 +157,7 @@ class AccountManagementWidgetRenderer(
                     var confirmRole=s.confirmRole===index;
                     var remove=el('button',confirmRole?'primary':'',confirmRole?'Підтвердити видалення':'Видалити роль');
                     remove.addEventListener('click',function(){
-                      ask('w1:manage:'+(confirmRole?'role-delete-confirm':'role-delete')+':'+s.page+':'+index);
+                      ask('w1:manage:'+(confirmRole?'role-delete-confirm':'role-delete')+':'+s.page+':'+index+':'+entry.t);
                     });
                     actions.appendChild(remove);
                     if(confirmRole){
@@ -167,7 +170,7 @@ class AccountManagementWidgetRenderer(
                     var active=s.members[selected].a.indexOf(index)>=0;
                     var toggle=el('button',active?'':'primary',active?'Зняти роль':'Призначити роль');
                     toggle.addEventListener('click',function(){
-                      ask('w1:manage:role:'+s.page+':'+selected+':'+index+':'+(active?'off':'on'));
+                      ask('w1:manage:role:'+s.page+':'+selected+':'+index+':'+(active?'off':'on')+':'+s.members[selected].t+':'+entry.t);
                     });
                     actions.appendChild(toggle);
                   }
@@ -179,7 +182,7 @@ class AccountManagementWidgetRenderer(
                       var button=el('button',enabled?'on':'',label+(enabled?' ✓':''));
                       button.disabled=!entry.e;
                       button.addEventListener('click',function(){
-                        ask('w1:manage:permission:'+s.page+':'+index+':'+permissionIndex+':'+(enabled?'off':'on'));
+                        ask('w1:manage:permission:'+s.page+':'+index+':'+permissionIndex+':'+(enabled?'off':'on')+':'+entry.t);
                       });
                       box.appendChild(button);
                     });
