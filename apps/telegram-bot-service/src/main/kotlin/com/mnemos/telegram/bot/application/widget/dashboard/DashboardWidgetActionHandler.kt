@@ -12,6 +12,7 @@ import com.mnemos.telegram.bot.application.widget.bets.OpenBetWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.wallet.OpenWalletWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -35,6 +36,7 @@ class DashboardWidgetActionHandler(
     private val online: OpenOnlineWidgetUseCase,
     private val responder: WidgetQueryResponder,
     private val settings: OpenSettingsWidgetUseCase? = null,
+    private val profiles: OpenProfileWidgetUseCase? = null,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.DASHBOARD
 
@@ -50,6 +52,16 @@ class DashboardWidgetActionHandler(
 
         if (loaded.view.accountId != session.accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Акаунт змінився. Відкрийте /widget")
+        }
+
+        if (context.data == "w1:prof:open-screen") {
+            val delivery = profiles?.takeIf { it.enabled }?.execute(telegramId)
+                ?: TelegramDeliveryResult.PermanentFailure("widgets-disabled")
+            return responder.reply(
+                context.queryId,
+                if (delivery == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (delivery == TelegramDeliveryResult.Delivered) "Пошук профілів відкрито" else "Профілі недоступні",
+            )
         }
 
         if (context.data == "w1:settings:open") {

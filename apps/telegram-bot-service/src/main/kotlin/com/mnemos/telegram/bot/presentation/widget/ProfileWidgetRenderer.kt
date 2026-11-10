@@ -18,9 +18,17 @@ class ProfileWidgetRenderer(
                 "page" to view.page,
                 "pages" to view.totalPages,
                 "total" to view.totalItems,
-                "profiles" to view.profiles.map { it.toPayload() },
+                "profiles" to view.profiles.map { it.toListPayload() },
                 "selected" to view.selected?.toPayload(),
             ),
+        )
+
+    private fun ProfileWidgetEntry.toListPayload(): Map<String, Any?> =
+        mapOf(
+            "id" to accountId.toString(),
+            "nickname" to nickname,
+            "likes" to likes,
+            "comments" to comments,
         )
 
     private fun ProfileWidgetEntry.toPayload(): Map<String, Any?> =

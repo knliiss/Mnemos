@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import com.mnemos.telegram.bot.application.widget.input.port.out.WidgetTextInputSessionRepository
 import com.mnemos.telegram.bot.application.widget.input.ApplyWidgetTextSearchUseCase
 import com.mnemos.telegram.bot.application.widget.notifications.CreateWidgetItemDropSubscriptionUseCase
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSearchQuery
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -39,6 +40,7 @@ class HandleWidgetTextReplyService(
                 WidgetTextInputPurpose.ITEM_DROP_PLAYER,
                 WidgetTextInputPurpose.ITEM_DROP_ITEM,
                 WidgetTextInputPurpose.ITEM_DROP_BOTH -> TelegramMenuScreen.NOTIFICATIONS
+                WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH -> TelegramMenuScreen.HOME
             }
         val result =
             when {
@@ -57,6 +59,7 @@ class HandleWidgetTextReplyService(
                         when (session.purpose) {
                             WidgetTextInputPurpose.EVENT_SEARCH -> EventHistorySearchQuery.normalize(text)
                             WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> SaoOnlineSearchQuery.normalize(text)
+                            WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH -> ProfileWidgetSearchQuery.normalize(text)
                             else -> null
                         }
 

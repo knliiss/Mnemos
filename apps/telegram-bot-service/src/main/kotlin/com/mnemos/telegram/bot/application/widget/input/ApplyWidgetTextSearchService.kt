@@ -8,6 +8,9 @@ import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPub
 import com.mnemos.telegram.bot.application.widget.online.OnlineWidgetSnapshotQuery
 import com.mnemos.telegram.bot.application.widget.online.OnlineWidgetSnapshotResult
 import com.mnemos.telegram.bot.application.widget.online.port.out.OnlineWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSnapshotQuery
+import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetSnapshotResult
+import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.application.widget.session.port.out.TelegramWidgetSessionRepository
@@ -22,6 +25,8 @@ class ApplyWidgetTextSearchService(
     private val eventPublisher: EventWidgetPublisher,
     private val onlineSnapshots: OnlineWidgetSnapshotQuery,
     private val onlinePublisher: OnlineWidgetPublisher,
+    private val profileSnapshots: ProfileWidgetSnapshotQuery,
+    private val profilePublisher: ProfileWidgetPublisher,
 ) : ApplyWidgetTextSearchUseCase {
     override fun apply(session: TelegramWidgetSession, search: String): TelegramDeliveryResult {
         if (search.isBlank() || search.length > 64 || search.toByteArray(Charsets.UTF_8).size > 256) {
@@ -44,11 +49,22 @@ class ApplyWidgetTextSearchService(
                             ?: return TelegramDeliveryResult.Retryable
                     onlinePublisher.update(session.telegramId, session.messageId, snapshot.view)
                 }
+                TelegramWidgetScreen.PROFILES -> {
+                    val snapshot =
+                        profileSnapshots.load(session.telegramId, search, 0, null) as? ProfileWidgetSnapshotResult.Available
+                            ?: return TelegramDeliveryResult.Retryable
+                    profilePublisher.update(session.telegramId, session.messageId, snapshot.view)
+                }
                 else -> return TelegramDeliveryResult.PermanentFailure("unsupported-widget-search")
             }
 
         if (result == TelegramDeliveryResult.Delivered) {
-            sessions.save(session.copy(page = if (session.screen == TelegramWidgetScreen.ONLINE) 0 else session.page, cursor = null, search = search))
+                        sessions.save(session.copy(
+                page = if (session.screen == TelegramWidgetScreen.ONLINE || session.screen == TelegramWidgetScreen.PROFILES) 0 else session.page,
+                cursor = null,
+                search = search,
+                selectedProfileId = null,
+            ))
         }
         return result
     }

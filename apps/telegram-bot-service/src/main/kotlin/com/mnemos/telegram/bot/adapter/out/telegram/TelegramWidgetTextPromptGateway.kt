@@ -52,6 +52,9 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.ITEM_DROP_BOTH ->
                     "Введіть нікнейм і назву предмета через крапку з комою: Kirito;Клинок. Для скасування — «скасувати»." to
                         "Гравець;Предмет"
+                WidgetTextInputPurpose.PUBLIC_PROFILE_SEARCH ->
+                    "Введіть нікнейм для пошуку публічного профілю (2–64 символи) або «скасувати»." to
+                        "Пошук профілю"
             }
 
         return try {
