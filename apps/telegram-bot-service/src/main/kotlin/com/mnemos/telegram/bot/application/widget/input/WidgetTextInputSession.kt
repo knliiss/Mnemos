@@ -9,6 +9,10 @@ data class WidgetTextInputSession(
     val accountId: UUID?,
     val purpose: WidgetTextInputPurpose,
     val targetRoleId: UUID? = null,
+    val targetProfileId: UUID? = null,
+    val targetCommentId: UUID? = null,
+    val expectedActorAccountId: UUID? = null,
+    val mutationId: UUID? = null,
 ) {
     init {
         require(telegramId > 0)

@@ -21,7 +21,10 @@ class RedisWidgetTextInputSessionRepository(
     override fun find(telegramId: Long, promptMessageId: Int): WidgetTextInputSession? {
         val value = redis.opsForValue().get(key(telegramId, promptMessageId)) ?: return null
         val parts = value.split('|')
-        if (!((parts.size == 4 && parts[0] == "v1") || (parts.size == 5 && parts[0] == "v2"))) return null
+        if (!((parts.size == 4 && parts[0] == "v1") ||
+            (parts.size == 5 && parts[0] == "v2") ||
+            (parts.size == 9 && parts[0] == "v3")
+        )) return null
         val widgetId = parts[1].toIntOrNull()?.takeIf { it > 0 } ?: return null
         val accountId = if (parts[2] == "-") null else runCatching { UUID.fromString(parts[2]) }.getOrNull()
         if (parts[2] != "-" && accountId == null) return null
@@ -30,17 +33,42 @@ class RedisWidgetTextInputSessionRepository(
             runCatching { UUID.fromString(parts[4]) }.getOrNull() ?: return null
         } else null
         if (purpose == WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT && targetRoleId == null) return null
-        return WidgetTextInputSession(telegramId, promptMessageId, widgetId, accountId, purpose, targetRoleId)
+        val commentPurpose = purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
+            purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+        if (commentPurpose && parts.size != 9) return null
+        fun optionalId(raw: String): UUID? =
+            if (raw == "-") null else runCatching { UUID.fromString(raw) }.getOrNull()
+        val profileId = parts.getOrNull(5)?.let(::optionalId)
+        val parentId = parts.getOrNull(6)?.let(::optionalId)
+        val actorId = parts.getOrNull(7)?.let(::optionalId)
+        val mutationId = parts.getOrNull(8)?.let(::optionalId)
+        if (commentPurpose && (profileId == null || actorId == null || mutationId == null ||
+            (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY && parentId == null) ||
+            (purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE && parentId != null)
+        )) return null
+        return WidgetTextInputSession(
+            telegramId, promptMessageId, widgetId, accountId, purpose,
+            targetRoleId, profileId, parentId, actorId, mutationId,
+        )
     }
 
     override fun save(session: WidgetTextInputSession) {
-        val value = listOf(
-            "v2",
-            session.widgetMessageId,
-            session.accountId ?: "-",
-            session.purpose.name,
-            session.targetRoleId ?: "-",
-        ).joinToString("|")
+        val commentPurpose = session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ||
+            session.purpose == WidgetTextInputPurpose.PROFILE_COMMENT_REPLY
+        val value = if (commentPurpose) {
+            require(session.targetProfileId != null &&
+                session.expectedActorAccountId != null && session.mutationId != null)
+            listOf(
+                "v3", session.widgetMessageId, session.accountId ?: "-",
+                session.purpose.name, "-", session.targetProfileId,
+                session.targetCommentId ?: "-", session.expectedActorAccountId, session.mutationId,
+            ).joinToString("|")
+        } else {
+            listOf(
+                "v2", session.widgetMessageId, session.accountId ?: "-",
+                session.purpose.name, session.targetRoleId ?: "-",
+            ).joinToString("|")
+        }
         val ttl = minOf(widgets.sessionTtl, Duration.ofMinutes(10))
         redis.opsForValue().set(key(session.telegramId, session.promptMessageId), value, ttl)
     }

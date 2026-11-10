@@ -61,6 +61,12 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.ACCOUNT_ROLE_EDIT ->
                     "Введіть назву й колір ролі у форматі «Назва #RRGGBB» або «скасувати»." to
                         "Назва #RRGGBB"
+                WidgetTextInputPurpose.PROFILE_COMMENT_CREATE ->
+                    "Напишіть коментар до профілю (до 500 символів) у відповідь на це повідомлення або «скасувати»." to
+                        "Ваш коментар"
+                WidgetTextInputPurpose.PROFILE_COMMENT_REPLY ->
+                    "Напишіть відповідь у гілці коментарів (до 500 символів) або «скасувати»." to
+                        "Ваша відповідь"
             }
 
         return try {

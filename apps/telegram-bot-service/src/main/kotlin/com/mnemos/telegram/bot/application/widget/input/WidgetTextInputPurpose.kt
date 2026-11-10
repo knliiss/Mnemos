@@ -13,4 +13,6 @@ enum class WidgetTextInputPurpose(val screen: TelegramWidgetScreen) {
     PUBLIC_PROFILE_SEARCH(TelegramWidgetScreen.PROFILES),
     ACCOUNT_ROLE_CREATE(TelegramWidgetScreen.ACCOUNT_MANAGEMENT),
     ACCOUNT_ROLE_EDIT(TelegramWidgetScreen.ACCOUNT_MANAGEMENT),
+    PROFILE_COMMENT_CREATE(TelegramWidgetScreen.PROFILE_COMMENTS),
+    PROFILE_COMMENT_REPLY(TelegramWidgetScreen.PROFILE_COMMENTS),
 }
