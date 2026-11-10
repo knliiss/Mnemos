@@ -26,6 +26,7 @@ class WidgetMenuShortcutHandler(
                 "w:open:bets" -> TelegramMenuScreen.BETS
                 "w:open:prime" -> TelegramMenuScreen.PRIME
                 "w:open:online" -> TelegramMenuScreen.ONLINE
+                "w:open:settings" -> TelegramMenuScreen.SETTINGS
                 else -> return TelegramDeliveryResult.Delivered
             }
 
