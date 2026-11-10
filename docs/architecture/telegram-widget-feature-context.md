@@ -50,7 +50,7 @@ Source of truth: `apps/mini-app/src/ui/navigation/routeRegistry.ts` (checked 202
 | --- | --- | --- |
 | Events | `bets`, `events`, `event-detail`, `subscriptions` | Widgets cover read-only bets, event feed and most Telegram subscription types (item drops, booster, dungeon, global, raid), but event detail, presence subscriptions and advanced rule editing remain |
 | Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selector, create/join, invitation listing/create/revoke, and read-only wallet have widget slices; leaderboards, guides, member/roles and account settings still absent |
-| People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online overview plus in-widget nickname search are partial; public profile search, profiles, activity and user-specific settings/wallet remain uncovered |
+| People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online, authenticated public-profile directory search/details and profile drop activity have widget slices; comments/voting, full activity, user settings/wallet remain incomplete |
 | Personalization | `personalization-store`, `personalization-store-category`, `personalization-owned`, `personalization-detail` | Not represented by dedicated widgets; purchase/ownership operations need typed permission and payment review |
 | Creator | `creator-studio`, `creator-revenue`, `personalization-editor` | Not ported; retain Mini App for complex editor work, audit studio and revenue display separately |
 | Staff | `moderation`, `administration`, `moderation-users`, `moderation-accounts`, `moderation-user`, `moderation-account`, `personalization-review`, `bet-admin`, `badge-admin`, `collector-admin`, `bot-agent-admin`, `wipe-admin` | No widget parity demonstrated; privileged operations must use explicit role checks and typed application commands |
@@ -90,6 +90,8 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Added widget control of booster/dungeon/global/raid and reply-bound item-drop creation | Unit tests committed; not executed |
 
 
+| 2026-11-10 | Privacy-aware internal public profile API, profile-search/detail widget, and drop-activity widget | Source and tests committed; compilation and client tests not run |
+
 ## Per-route migration checklist (not a completed-parity statement)
 
 These are *route-level* statuses derived from Mini App routing and selected UI source. Each route can contain multiple additional actions that still require individual review. **Partial** means the route has some widget coverage, not that all actions are equivalent.
@@ -111,9 +113,9 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 | `account-settings` | Missing | Account configuration and permission-gated settings |
 | `account-create` | Partial | Reply-bound creation available; onboarding polish and full error recovery missing |
 | `account-join` | Partial | Reply-bound join available; onboarding polish and full error recovery missing |
-| `search` | Partial | SAO nickname search is present; public profile directory search remains missing |
-| `public-profile` | Missing | Profile details, ratings/comments and public presentation |
-| `profile-activity` | Missing | User activity history and pagination |
+| `search` | Partial | Public profile directory search and SAO nickname search are available in widgets; broaden filter/refresh parity and verify Telegram client behavior |
+| `public-profile` | Partial | Basic profile, reaction counters and privacy-aware presence available; comment feed/actions and personalization visuals remain |
+| `profile-activity` | Partial | Public item-drop activity and cursor-based navigation present; other activity categories and full Mini App parity remain |
 | `sao-realms` | Partial | Live realm/player views exist; full lists and complete navigation missing |
 | `user-personalization` | Missing | User personalization configuration |
 | `user-wallet` | Missing | User PRIME wallet distinct from account wallet |
@@ -166,3 +168,20 @@ These are *route-level* statuses derived from Mini App routing and selected UI s
 - New source and adapter tests for authorization, confirmation, replay, parsing, toggling and snapshot mapping are committed, **but not executed**. No source changes have been deployed.
 - **Remaining in core notifications:** player-presence/offline subscription flows, richer drop-rule editing, cross-widget synchronization, durable business-level idempotency, actual Telegram client/sandbox and integration tests.
 - **Profiles security:** `profile-service` exposes `/api/v1/profiles` behind JWT while Telegram bot's service-to-service authentication uses `/internal/**` API keys. Do **not** bypass this by calling JWT endpoints without a user token. Any profile widget requires an explicit authenticated internal read contract, correctly provisioned service API keys, and privacy-aware mapping of hidden presence.
+
+## Continuation checkpoint — 2026-11-10 (public profiles)
+
+**Implemented in PR, but neither deployed nor runtime-verified:**
+
+- New `contracts/profile-contracts` internal DTOs for a deliberately limited public-profile read model. `profile-service` exposes `GET /internal/v1/telegram/profiles?q=...&page=...&size=...` and `GET /internal/v1/telegram/profiles/{accountId}`, reusing existing public profile search/get use cases. Existing JWT-protected APIs are untouched.
+- Internal routes use established service-key authentication. The Telegram service uses a typed Feign adapter with `X-Mnemos-Service` and `X-Mnemos-API-Key`. The deployment keys `PROFILE_SERVICE_TELEGRAM_BOT_API_KEY` and `TELEGRAM_BOT_SERVICE_PROFILE_API_KEY` **must match**; only templates and compose wiring were updated.
+- The profile projection contains public account identity, username, social counters, presence and join date. If presence is hidden, the profile-service mapper strips realm and last-seen, and the Telegram client adapter masks those fields again defensively.
+- `/profiles` or `/profile` plus a dashboard button opens the public profile widget. Reply-bound search reuses the profile gateway; widget pages open visible public profile details. `v5` Redis sessions store the selected profile ID, with backward reads for `v2/v3/v4`.
+- A separate public profile activity widget shows available item-drop history with cursor navigation, reusing event history queries. It is **not** the full Mini App activity screen.
+- Targeted tests have been committed for mapping, privacy boundaries, widget rendering, input and navigation, and old session compatibility. **No test was executed** in this session.
+
+**Remaining:** comments/likes/dislikes actions through social-service with proper authorization; detailed profile personalization, all activity types, full user wallet, leaderboards, account roles, creator and administrative actions, domain-level idempotency and integration/client testing. Do not enable widgets in production until these checks pass.
+
+### Architecture decision
+
+Do not reuse user JWTs inside service-to-service calls or query other services' databases. Profile read contracts remain separate from social mutations; future writes require explicitly permission-checked, idempotent use cases rather than generic transport proxies.
