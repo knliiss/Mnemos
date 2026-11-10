@@ -10,5 +10,6 @@ enum class TelegramWidgetScreen {
     WALLET,
     ONLINE,
     SETTINGS,
+    INVITES,
 }
 
