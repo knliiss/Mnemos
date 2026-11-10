@@ -129,3 +129,13 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - Notification widget supports `w1:sub:booster:<type>:<on|off>`, `w1:sub:dungeon:<type>:<on|off>`, `w1:sub:global:<type>:<on|off>` and `w1:sub:raid:<base36-mask>`; the latter encodes a 28-bit bitset of locations 1–28 and uses server-side validation. Desired states are rechecked using existing `NotificationSubscriptionGateway` before mutation.
 - Item-drop rule creation uses `w1:sub:drop:player`, `w1:sub:drop:item`, `w1:sub:drop:both` and reply-bound input. The combined input is `nickname;itemName`. Validation reuses existing notification domain validators.
 - All code remains behind `mnemos.telegram-bot.widgets.enabled` and must not be deployed without compilation, tests and real Telegram Widget Sandbox/device validation.
+
+## Secure public-profile migration (2026-11-10)
+
+- Public profile lookup uses a new internal read-only contract in `contracts/profile-contracts`. Existing user-facing `/api/v1/profiles` endpoints remain behind JWT; Telegram does not call them with fabricated user credentials.
+- `profile-service` serves `/internal/v1/telegram/profiles` and `/{accountId}` with its established service-key filter, calling the same public get/search application use cases. The API returns only public fields; hidden presence never includes realm or last-seen.
+- Telegram's typed `ProfileServiceClient` sends `X-Mnemos-Service` and `X-Mnemos-API-Key`. The `PROFILE_SERVICE_TELEGRAM_BOT_API_KEY` and `TELEGRAM_BOT_SERVICE_PROFILE_API_KEY` environment values must match; neither secret is committed. Provision secrets before any rollout.
+- `/profile` and `/profiles` open a widget with private-chat reply-bound search, paginated public results and a profile detail view. Selected profile IDs are stored in `v5` Redis sessions, with legacy `v2/v3/v4` reads preserved. Profile history has its own read-only item-drop activity widget and cursor pagination via existing event-service queries.
+- Widgets must never modify profile reactions, comments or privacy settings through read-only DTOs. All future social writes require social-service-backed authenticated commands, replay safety and permission checks.
+- Profile activity state uses compact serialized keys to respect Telegram's maximum 1,024-byte `chat_data`. The HTML, JSON and navigation tests are committed but not yet run in CI or a real Telegram client.
+- Not finished: user social interactions, full activity, personalized visuals, user wallet, marketplace, roles, leaderboards, privileged screens and comprehensive test coverage. The feature flag must remain disabled.
