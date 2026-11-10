@@ -35,7 +35,7 @@ class EventWidgetActionHandler(
         val filter = EventHistoryFilter.entries.getOrNull(session.page)
             ?: return responder.reply(context.queryId, "EXPIRED", "Відкрийте стрічку заново")
         if (context.data == "w1:evt:search") {
-            val answer = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            val answer = responder.reply(context.queryId, "INPUT", "Підказка буде в чаті. Якщо її немає, натисніть ще раз")
             if (answer == TelegramDeliveryResult.Delivered) {
                 runCatching { textInput.start(session, WidgetTextInputPurpose.EVENT_SEARCH) }
             }

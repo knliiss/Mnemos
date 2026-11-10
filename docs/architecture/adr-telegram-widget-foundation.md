@@ -1,5 +1,7 @@
 # ADR — Telegram Widget UI foundation
 
+Working context: [Telegram widget feature context](telegram-widget-feature-context.md). Review the living implementation ledger and route inventory before extending this feature.
+
 Status: **experimental, opt-in; dashboard, notifications, account selection, daily rewards, read-only bets, wallet, SAO Online and event-feed WidgetQuery implemented in draft PR, still unverified against a real client**. Owner: telegram-bot-service. Date: 2026-11-09.
 
 ## Decision

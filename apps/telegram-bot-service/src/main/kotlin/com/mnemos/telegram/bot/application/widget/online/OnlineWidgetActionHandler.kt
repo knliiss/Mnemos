@@ -29,7 +29,7 @@ class OnlineWidgetActionHandler(
         session: TelegramWidgetSession,
     ): TelegramDeliveryResult {
         if (context.data == "w1:on:search") {
-            val answer = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            val answer = responder.reply(context.queryId, "INPUT", "Підказка буде в чаті. Якщо її немає, натисніть ще раз")
             if (answer == TelegramDeliveryResult.Delivered) {
                 runCatching { textInput.start(session, WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH) }
             }

@@ -37,8 +37,23 @@ Expose **all feasible existing Mini App capabilities in the Telegram bot** with 
 - Latest fix before this context: commit `7e84ef5` treats Telegram's “message is not modified” response to `editMessageWidgetData` as an idempotent success.
 - Reply-bound chat input foundation: WidgetQuery acknowledges quickly, then Telegram `sendMessage` with `ForceReply` prompts the user; a separate 10-minute Redis key stores prompt ID, widget ID, owner, purpose and account context. Only a private user's reply to that specific prompt can be interpreted as a widget input; regular text and existing menu pending input retain their path.
 - Read-only event search and online-player search reuse their **existing legacy menu search** contracts after collecting the query. Search results currently open in the text menu, not inside the original widget. This is deliberately an incremental bridge, not full in-widget parity.
-- Known remaining concern: after a successful query acknowledgment, a failed prompt is not retried automatically. A new tap can request another prompt; ensure failures are surfaced in the next reliability slice.
+- Known remaining concern: after a successful query acknowledgment, a failed prompt is not retried automatically. A new tap can request another prompt; the widget now explains this recovery and the service logs prompt failures.
 - Last verified here: source inspection and new tests committed. Build/test/device compatibility have not been executed in this work session.
+
+## Mini App route inventory for parity planning
+
+Source of truth: `apps/mini-app/src/ui/navigation/routeRegistry.ts` (checked 2026-11-10). A route is **not** proof of a complete feature, and these are **widget coverage indicators**, not assertions that legacy chat lacks the capability. Audit the individual route's actions, roles, inputs, backend endpoints and error states before implementing parity.
+
+| Mini App area | Route IDs | Current widget coverage / remaining work |
+| --- | --- | --- |
+| Events | `bets`, `events`, `event-detail`, `subscriptions` | Widgets cover read-only bets, event feed, simple subscription listing/ping/deletion; detailed event and complete rule editing not ported |
+| Account | `account`, `leaderboards`, `guides`, `member`, `roles`, `role-editor`, `account-wallet`, `account-invites`, `account-settings`, `account-create`, `account-join` | Account selection and read-only wallet are partial; leadership, guide, member/role/invite/settings flows require a capability-by-capability audit |
+| People | `search`, `public-profile`, `profile-activity`, `sao-realms`, `user-personalization`, `user-wallet` | SAO Online overview widget and chat-based nickname search are partial; profiles, activity and user-specific screens remain to map |
+| Personalization | `personalization-store`, `personalization-store-category`, `personalization-owned`, `personalization-detail` | Not represented by dedicated widgets; purchase/ownership operations need typed permission and payment review |
+| Creator | `creator-studio`, `creator-revenue`, `personalization-editor` | Not ported; retain Mini App for complex editor work, audit studio and revenue display separately |
+| Staff | `moderation`, `administration`, `moderation-users`, `moderation-accounts`, `moderation-user`, `moderation-account`, `personalization-review`, `bet-admin`, `badge-admin`, `collector-admin`, `bot-agent-admin`, `wipe-admin` | No widget parity demonstrated; privileged operations must use explicit role checks and typed application commands |
+
+Prioritize user-facing gaps by workflow, not by counting routes. For every item record `implemented`, `partially implemented`, `chat input`, `Mini App retained` or `unverified`, plus tests and security constraints. Do not invent parity from a similarly named screen.
 
 ## Next implementation priorities
 
@@ -65,3 +80,4 @@ Expose **all feasible existing Mini App capabilities in the Telegram bot** with 
 | 2026-11-10 | Created this living feature context and continuation checklist | File committed in the feature branch |
 | 2026-11-10 | Added reply-bound ForceReply input for event search; event widget can start search (`56e6558`) | Source reviewed; client/CI unverified |
 | 2026-11-10 | Reused pending input for SAO Online player search; added use-case/inbound tests | Tests committed; execution still pending |
+| 2026-11-10 | Added mini-app route inventory from routeRegistry; hardened prompt failure behavior and tests | Static source review; no CI/device test run |

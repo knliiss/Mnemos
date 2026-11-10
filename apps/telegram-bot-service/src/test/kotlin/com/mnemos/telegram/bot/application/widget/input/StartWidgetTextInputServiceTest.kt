@@ -39,6 +39,15 @@ class StartWidgetTextInputServiceTest {
     }
 
     @Test
+    fun unexpectedPromptFailureReturnsRetryableWithoutCrashingPolling() {
+        whenever(prompts.prompt(11L, 8, WidgetTextInputPurpose.EVENT_SEARCH))
+            .thenThrow(IllegalStateException("transport unavailable"))
+
+        assertEquals(TelegramDeliveryResult.Retryable, service.start(widget, WidgetTextInputPurpose.EVENT_SEARCH))
+        verifyNoInteractions(sessions)
+    }
+
+    @Test
     fun mismatchedPurposeIsRejectedBeforeNetworkRequest() {
         assertEquals(
             TelegramDeliveryResult.PermanentFailure("widget-input-unavailable"),

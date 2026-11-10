@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetSession
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import org.slf4j.LoggerFactory
 
 @Service
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
@@ -21,21 +22,35 @@ class StartWidgetTextInputService(
             return TelegramDeliveryResult.PermanentFailure("widget-input-unavailable")
         }
 
-        return when (val sent = prompts.prompt(session.telegramId, session.messageId, purpose)) {
-            is TelegramMessageSendResult.Delivered -> {
-                sessions.save(
-                    WidgetTextInputSession(
-                        telegramId = session.telegramId,
-                        promptMessageId = sent.messageId,
-                        widgetMessageId = session.messageId,
-                        accountId = session.accountId,
-                        purpose = purpose,
-                    ),
-                )
-                TelegramDeliveryResult.Delivered
+        return try {
+            val result =
+                when (val sent = prompts.prompt(session.telegramId, session.messageId, purpose)) {
+                    is TelegramMessageSendResult.Delivered -> {
+                        sessions.save(
+                            WidgetTextInputSession(
+                                telegramId = session.telegramId,
+                                promptMessageId = sent.messageId,
+                                widgetMessageId = session.messageId,
+                                accountId = session.accountId,
+                                purpose = purpose,
+                            ),
+                        )
+                        TelegramDeliveryResult.Delivered
+                    }
+                    TelegramMessageSendResult.Retryable -> TelegramDeliveryResult.Retryable
+                    is TelegramMessageSendResult.PermanentFailure -> TelegramDeliveryResult.PermanentFailure(sent.reason)
+                }
+            if (result != TelegramDeliveryResult.Delivered) {
+                log.warn("Widget input prompt unavailable: purpose={}, outcome={}", purpose, result.javaClass.simpleName)
             }
-            TelegramMessageSendResult.Retryable -> TelegramDeliveryResult.Retryable
-            is TelegramMessageSendResult.PermanentFailure -> TelegramDeliveryResult.PermanentFailure(sent.reason)
+            result
+        } catch (exception: Exception) {
+            log.warn("Widget input prompt failed: purpose={}", purpose, exception)
+            TelegramDeliveryResult.Retryable
         }
+    }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(StartWidgetTextInputService::class.java)
     }
 }
