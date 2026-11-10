@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.profilecomments
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import org.slf4j.LoggerFactory
 import com.mnemos.telegram.bot.application.widget.profilecomments.port.out.ProfileCommentsWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
@@ -19,6 +20,7 @@ class ProfileCommentsWidgetActionHandler(
     private val publisher: ProfileCommentsWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val composer: StartProfileCommentInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.PROFILE_COMMENTS
 
@@ -31,6 +33,14 @@ class ProfileCommentsWidgetActionHandler(
                 return responder.reply(context.queryId, "NOT_FOUND", "Коментарі або профіль не знайдено")
             ProfileCommentsWidgetSnapshotResult.Unavailable ->
                 return responder.reply(context.queryId, "UNAVAILABLE", "Коментарі тимчасово недоступні")
+        }
+        if (context.data == "w1:comments:compose") {
+            val response = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            if (response == TelegramDeliveryResult.Delivered) {
+                runCatching { composer.execute(session) }
+                    .onFailure { log.warn("Cannot start comment input for Telegram user {}", context.actorId, it) }
+            }
+            return response
         }
         val page: Int
         val root: UUID?
@@ -85,5 +95,9 @@ class ProfileCommentsWidgetActionHandler(
             publisher.update(context.actorId, context.messageId, fresh)
         }
         return answer
+    }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(ProfileCommentsWidgetActionHandler::class.java)
     }
 }

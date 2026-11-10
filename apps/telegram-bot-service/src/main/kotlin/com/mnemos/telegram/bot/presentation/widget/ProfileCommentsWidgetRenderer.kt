@@ -18,6 +18,7 @@ class ProfileCommentsWidgetRenderer(
                 "pages" to view.totalPages,
                 "total" to view.totalItems,
                 "thread" to (view.rootCommentId != null),
+                "feedback" to view.feedback,
                 "comments" to view.comments.map {
                     mapOf(
                         "a" to it.author,
@@ -52,6 +53,7 @@ class ProfileCommentsWidgetRenderer(
             <div id="subtitle" class="hint"></div>
             <div id="list"></div>
             <div class="actions">
+              <button id="compose" class="primary">Написати коментар</button>
               <button id="back">До коментарів</button>
               <button id="prev">Назад</button>
               <button id="next">Далі</button>
@@ -69,6 +71,8 @@ class ProfileCommentsWidgetRenderer(
               function draw(s){
                 if(!s)return;
                 state=s;
+                document.getElementById('compose').textContent=s.thread?'Відповісти':'Написати коментар';
+                if(s.feedback)document.getElementById('feedback').textContent=s.feedback;
                 document.getElementById('subtitle').textContent=
                   (s.thread?'Відповіді · ':'Коментарі · ')+s.n+' · '+s.total+
                   ' · '+(s.page+1)+'/'+Math.max(1,s.pages);
@@ -112,6 +116,7 @@ class ProfileCommentsWidgetRenderer(
                   busy=false;
                 },function(){busy=false;feedback.textContent='Не вдалося виконати запит';});
               }
+              document.getElementById('compose').addEventListener('click',function(){ask('w1:comments:compose');});
               document.getElementById('back').addEventListener('click',function(){ask('w1:comments:back');});
               document.getElementById('prev').addEventListener('click',function(){ask('w1:comments:prev:'+state.page);});
               document.getElementById('next').addEventListener('click',function(){ask('w1:comments:next:'+state.page);});

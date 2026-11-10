@@ -10,4 +10,5 @@ data class ProfileCommentsWidgetView(
     val totalItems: Long,
     val rootCommentId: UUID?,
     val comments: List<ProfileCommentWidgetItem>,
+    val feedback: String? = null,
 )
