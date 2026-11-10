@@ -37,6 +37,12 @@ class TelegramWidgetTextPromptGateway(
                 WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH ->
                     "Введіть нікнейм гравця. Відповідайте на це повідомлення або напишіть «скасувати»." to
                         "Нікнейм гравця"
+                WidgetTextInputPurpose.ACCOUNT_CREATE ->
+                    "Введіть нікнейм Cristalix для створення акаунта. Відповідайте на це повідомлення або напишіть «скасувати»." to
+                        "Нікнейм Cristalix"
+                WidgetTextInputPurpose.ACCOUNT_JOIN ->
+                    "Введіть код запрошення до акаунта. Відповідайте на це повідомлення або напишіть «скасувати»." to
+                        "Код запрошення"
             }
 
         return try {

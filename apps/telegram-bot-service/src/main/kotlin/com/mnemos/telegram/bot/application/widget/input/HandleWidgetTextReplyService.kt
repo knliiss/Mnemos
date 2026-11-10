@@ -22,6 +22,7 @@ class HandleWidgetTextReplyService(
     private val widgets: TelegramWidgetSessionRepository,
     private val menu: TelegramMenuService,
     private val search: ApplyWidgetTextSearchUseCase,
+    private val accountInput: ApplyWidgetAccountInputUseCase,
 ) : HandleWidgetTextReplyUseCase {
     override fun handle(telegramId: Long, promptMessageId: Int, text: String): TelegramDeliveryResult? {
         if (!properties.enabled) return null
@@ -32,30 +33,37 @@ class HandleWidgetTextReplyService(
             when (session.purpose) {
                 WidgetTextInputPurpose.EVENT_SEARCH -> TelegramMenuScreen.EVENTS
                 WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> TelegramMenuScreen.ONLINE
+                WidgetTextInputPurpose.ACCOUNT_CREATE, WidgetTextInputPurpose.ACCOUNT_JOIN -> TelegramMenuScreen.ACCOUNT
             }
         val result =
-            if (widget == null || widget.screen != session.purpose.screen || widget.accountId != session.accountId ||
-                text.trim().equals("скасувати", ignoreCase = true)
-            ) {
-                menu.open(telegramId, screen)
-            } else {
-                val normalized =
-                    when (session.purpose) {
-                        WidgetTextInputPurpose.EVENT_SEARCH -> EventHistorySearchQuery.normalize(text)
-                        WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> SaoOnlineSearchQuery.normalize(text)
-                    }
-
-                if (normalized == null) {
-                    val context =
+            when {
+                text.trim().equals("скасувати", ignoreCase = true) -> TelegramDeliveryResult.Delivered
+                widget == null || widget.screen != session.purpose.screen || widget.accountId != session.accountId ->
+                    menu.open(telegramId, screen)
+                session.purpose == WidgetTextInputPurpose.ACCOUNT_CREATE ||
+                    session.purpose == WidgetTextInputPurpose.ACCOUNT_JOIN ->
+                    accountInput.apply(session, widget, text.trim())
+                else -> {
+                    val normalized =
                         when (session.purpose) {
-                            WidgetTextInputPurpose.EVENT_SEARCH ->
-                                EventHistoryMenuContext.withSearchError(emptyMap(), EventHistorySearchQuery.INVALID_MESSAGE)
-                            WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH ->
-                                mapOf(SaoOnlineMenuContext.SEARCH_ERROR_KEY to SaoOnlineSearchQuery.INVALID_MESSAGE)
+                            WidgetTextInputPurpose.EVENT_SEARCH -> EventHistorySearchQuery.normalize(text)
+                            WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH -> SaoOnlineSearchQuery.normalize(text)
+                            else -> null
                         }
-                    menu.open(telegramId, screen, screenContext = context)
-                } else {
-                    search.apply(widget, normalized)
+
+                    if (normalized == null) {
+                        val context =
+                            when (session.purpose) {
+                                WidgetTextInputPurpose.EVENT_SEARCH ->
+                                    EventHistoryMenuContext.withSearchError(emptyMap(), EventHistorySearchQuery.INVALID_MESSAGE)
+                                WidgetTextInputPurpose.ONLINE_PLAYER_SEARCH ->
+                                    mapOf(SaoOnlineMenuContext.SEARCH_ERROR_KEY to SaoOnlineSearchQuery.INVALID_MESSAGE)
+                                else -> emptyMap()
+                            }
+                        menu.open(telegramId, screen, screenContext = context)
+                    } else {
+                        search.apply(widget, normalized)
+                    }
                 }
             }
 

@@ -7,5 +7,7 @@ interface WidgetTextInputSessionRepository {
 
     fun save(session: WidgetTextInputSession)
 
+    fun claimMutation(telegramId: Long, promptMessageId: Int): Boolean
+
     fun delete(telegramId: Long, promptMessageId: Int)
 }

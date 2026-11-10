@@ -4,6 +4,8 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchRe
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.accounts.port.out.AccountWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -22,6 +24,7 @@ class AccountWidgetActionHandler(
     private val publisher: AccountWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val input: StartWidgetTextInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.ACCOUNTS
 
@@ -38,6 +41,20 @@ class AccountWidgetActionHandler(
         val current = loaded.view
         if (current.activeAccountId != session.accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Активний акаунт змінився. Відкрийте /account")
+        }
+
+        val purpose =
+            when (context.data) {
+                "w1:acct:create" -> WidgetTextInputPurpose.ACCOUNT_CREATE
+                "w1:acct:join" -> WidgetTextInputPurpose.ACCOUNT_JOIN
+                else -> null
+            }
+        if (purpose != null) {
+            val response = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            if (response == TelegramDeliveryResult.Delivered) {
+                runCatching { input.start(session, purpose) }
+            }
+            return response
         }
 
         var page = session.page

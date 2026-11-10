@@ -19,6 +19,7 @@ class AccountWidgetRenderer(
                 "pages" to view.totalPages,
                 "coin" to view.coin,
                 "prime" to view.prime,
+                "feedback" to view.feedback,
                 "accounts" to
                     view.accounts.map { account ->
                         mapOf(
@@ -65,6 +66,7 @@ class AccountWidgetRenderer(
               <button id="next" class="secondary">Далі</button>
               <button id="refresh">Оновити</button>
             </div>
+            <div class="actions"><button id="create">Створити</button><button id="join" class="secondary">Приєднатися</button></div>
             <div id="status" aria-live="polite"></div>
             <script>
             (function(){
@@ -72,6 +74,7 @@ class AccountWidgetRenderer(
               function draw(s){
                 if(!s)return;
                 state=s;
+                if(s.feedback)document.getElementById('status').textContent=s.feedback;
                 document.getElementById('count').textContent=String(s.count)+' · '+String(s.page+1)+'/'+String(Math.max(1,s.pages));
                 document.getElementById('coin').textContent=s.coin==null?'—':String(s.coin);
                 document.getElementById('prime').textContent=s.prime==null?'—':String(s.prime);
@@ -120,6 +123,8 @@ class AccountWidgetRenderer(
               document.getElementById('prev').addEventListener('click',function(){ask('w1:acct:prev:'+state.page);});
               document.getElementById('next').addEventListener('click',function(){ask('w1:acct:next:'+state.page);});
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:acct:refresh');});
+              document.getElementById('create').addEventListener('click',function(){ask('w1:acct:create');});
+              document.getElementById('join').addEventListener('click',function(){ask('w1:acct:join');});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}
             })();
             </script>
@@ -133,7 +138,7 @@ class AccountWidgetRenderer(
             actionRows =
                 listOf(
                     listOf(
-                        TelegramWidgetButton("Створити / приєднатися", "w:open:account"),
+                        TelegramWidgetButton("Розширені дії", "w:open:account"),
                         TelegramWidgetButton("Керування", "w:open:account-manage"),
                     ),
                 ),

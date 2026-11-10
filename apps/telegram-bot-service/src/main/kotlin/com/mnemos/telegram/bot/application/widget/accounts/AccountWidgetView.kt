@@ -10,4 +10,5 @@ data class AccountWidgetView(
     val totalPages: Int,
     val coin: Long?,
     val prime: Long?,
+    val feedback: String? = null,
 )

@@ -35,6 +35,13 @@ class RedisWidgetTextInputSessionRepository(
         redis.opsForValue().set(key(session.telegramId, session.promptMessageId), value, ttl)
     }
 
+    override fun claimMutation(telegramId: Long, promptMessageId: Int): Boolean =
+        redis.opsForValue().setIfAbsent(
+            key(telegramId, promptMessageId) + ":claimed",
+            "1",
+            minOf(widgets.sessionTtl, Duration.ofMinutes(10)),
+        ) == true
+
     override fun delete(telegramId: Long, promptMessageId: Int) {
         redis.delete(key(telegramId, promptMessageId))
     }
