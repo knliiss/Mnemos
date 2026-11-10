@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.profile.model.PublicProfileDetailResu
 import com.mnemos.telegram.bot.application.profile.model.PublicProfileSearchResult
 import com.mnemos.telegram.bot.application.profile.model.PublicProfileSummary
 import com.mnemos.telegram.bot.application.profile.port.out.PublicProfileGateway
+import com.mnemos.telegram.bot.application.profilereaction.port.out.ProfileReactionGateway
 import com.mnemos.telegram.bot.application.widget.model.WidgetTextLimiter
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
@@ -18,6 +19,7 @@ class OpenProfileWidgetService(
     private val properties: TelegramWidgetProperties,
     private val profiles: PublicProfileGateway,
     private val publisher: ProfileWidgetPublisher,
+    private val reactions: ProfileReactionGateway,
 ) : OpenProfileWidgetUseCase, ProfileWidgetSnapshotQuery {
     override val enabled: Boolean get() = properties.enabled
 
@@ -50,6 +52,7 @@ class OpenProfileWidgetService(
                             totalItems = 1,
                             profiles = emptyList(),
                             selected = result.profile.toEntry(),
+                            reaction = reactions.get(telegramId, selectedProfileId),
                         ),
                     )
                 PublicProfileDetailResult.NotFound -> ProfileWidgetSnapshotResult.NotFound

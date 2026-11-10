@@ -28,8 +28,8 @@ class ChangeProfileReactionService(
                 ProfileReactionChangeResult.ACCOUNT_REQUIRED
             } else ProfileReactionChangeResult.UNAVAILABLE
         }
-        if (current.type == desired) return ProfileReactionChangeResult.APPLIED
         if (!guard.claim(telegramId, queryId)) return ProfileReactionChangeResult.INVALID
+        if (current.type == desired) return ProfileReactionChangeResult.APPLIED
         return reactions.set(telegramId, profileId, desired)
     }
 }

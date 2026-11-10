@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.widget.model.TelegramWidgetButton
 import com.mnemos.telegram.bot.application.widget.model.TelegramWidgetMessage
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetEntry
 import com.mnemos.telegram.bot.application.widget.profiles.ProfileWidgetView
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionState
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 
@@ -20,6 +21,8 @@ class ProfileWidgetRenderer(
                 "total" to view.totalItems,
                 "profiles" to view.profiles.map { it.toListPayload() },
                 "selected" to view.selected?.toPayload(),
+                "reaction" to (view.reaction as? ProfileReactionState.Available)?.type?.name,
+                "canReact" to (view.reaction is ProfileReactionState.Available),
             ),
         )
 
@@ -106,6 +109,19 @@ class ProfileWidgetRenderer(
                   details.appendChild(row(label+(selected.realm?' · '+selected.realm:''),true));
                   if(selected.lastSeen)details.appendChild(row('Останній онлайн: '+selected.lastSeen,true));
                   details.appendChild(row('У Mnemos із '+selected.joined,true));
+                  if(s.canReact){
+                    var reactionRow=document.createElement('div');reactionRow.className='actions';
+                    [['like','👍'],['dislike','👎'],['remove','Прибрати реакцію']].forEach(function(option){
+                      var button=document.createElement('button');
+                      button.textContent=option[1]+(
+                        (s.reaction&&s.reaction.toLowerCase()===option[0])?' ✓':''
+                      );
+                      button.className=s.reaction&&s.reaction.toLowerCase()===option[0]?'primary':'';
+                      button.addEventListener('click',function(){ask('w1:prof:react:'+option[0]);});
+                      reactionRow.appendChild(button);
+                    });
+                    details.appendChild(reactionRow);
+                  }
                   var activity=document.createElement('button');activity.textContent='Історія дропів';
                   activity.className='primary';
                   activity.addEventListener('click',function(){ask('w1:prof:activity');});

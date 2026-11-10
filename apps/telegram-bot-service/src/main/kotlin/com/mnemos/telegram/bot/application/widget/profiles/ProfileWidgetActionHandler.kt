@@ -1,6 +1,9 @@
 package com.mnemos.telegram.bot.application.widget.profiles
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionChangeResult
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionState
+import com.mnemos.telegram.bot.application.profilereaction.ProfileReactionType
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
@@ -26,6 +29,7 @@ class ProfileWidgetActionHandler(
     private val input: StartWidgetTextInputUseCase,
     private val activity: OpenProfileActivityWidgetUseCase,
     private val comments: OpenProfileCommentsWidgetUseCase,
+    private val changeReaction: ChangeProfileReactionUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.PROFILES
 
@@ -41,6 +45,38 @@ class ProfileWidgetActionHandler(
         val current = (snapshots.load(context.actorId, session.search, session.page, session.selectedProfileId)
             as? ProfileWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Профілі зараз недоступні")
+        if (context.data.startsWith("w1:prof:react:")) {
+            val profileId = session.selectedProfileId
+                ?: return responder.reply(context.queryId, "CONFLICT", "Спочатку відкрийте профіль")
+            if (current.selected?.accountId != profileId || current.reaction !is ProfileReactionState.Available) {
+                return responder.reply(context.queryId, "UNAVAILABLE", "Реакції зараз недоступні")
+            }
+            val desired = when (context.data.removePrefix("w1:prof:react:")) {
+                "like" -> ProfileReactionType.LIKE
+                "dislike" -> ProfileReactionType.DISLIKE
+                "remove" -> null
+                else -> return responder.reply(context.queryId, "INVALID", "Невірна реакція")
+            }
+            val changed = changeReaction.execute(context.actorId, profileId, desired, context.queryId)
+            if (changed != ProfileReactionChangeResult.APPLIED) {
+                val message = when (changed) {
+                    ProfileReactionChangeResult.ACCOUNT_REQUIRED -> "Спочатку оберіть активний акаунт"
+                    ProfileReactionChangeResult.FORBIDDEN -> "Операцію заборонено"
+                    ProfileReactionChangeResult.INVALID -> "Запит уже оброблено або дані змінилися"
+                    ProfileReactionChangeResult.UNAVAILABLE -> "Реакції тимчасово недоступні"
+                    ProfileReactionChangeResult.APPLIED -> "Готово"
+                }
+                return responder.reply(context.queryId, changed.name, message)
+            }
+            val fresh = (snapshots.load(context.actorId, session.search, session.page, profileId)
+                as? ProfileWidgetSnapshotResult.Available)?.view
+                ?: return responder.reply(context.queryId, "UNAVAILABLE", "Реакцію змінено, оновіть профіль")
+            val reply = responder.reply(context.queryId, "OK", "Реакцію оновлено", publisher.state(fresh))
+            if (reply == TelegramDeliveryResult.Delivered) {
+                publisher.update(context.actorId, context.messageId, fresh)
+            }
+            return reply
+        }
         if (context.data == "w1:prof:comments") {
             val profileId = session.selectedProfileId
                 ?: return responder.reply(context.queryId, "CONFLICT", "Спочатку відкрийте профіль")
