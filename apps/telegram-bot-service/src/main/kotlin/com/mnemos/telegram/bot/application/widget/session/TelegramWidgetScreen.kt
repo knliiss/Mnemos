@@ -13,6 +13,7 @@ enum class TelegramWidgetScreen {
     INVITES,
     PROFILES,
     PROFILE_ACTIVITY,
+    PROFILE_COMMENTS,
     ACCOUNT_MANAGEMENT,
 }
 
