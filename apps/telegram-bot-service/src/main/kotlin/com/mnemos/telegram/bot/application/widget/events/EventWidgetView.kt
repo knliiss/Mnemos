@@ -8,4 +8,5 @@ data class EventWidgetView(
     val after: UUID?,
     val nextCursor: UUID?,
     val items: List<EventWidgetItem>,
+    val search: String? = null,
 )

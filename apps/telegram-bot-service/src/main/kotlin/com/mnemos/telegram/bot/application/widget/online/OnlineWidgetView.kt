@@ -9,4 +9,5 @@ data class OnlineWidgetView(
     val generatedAt: String,
     val realms: List<OnlineWidgetRealm>,
     val players: List<OnlineWidgetPlayer>,
+    val search: String? = null,
 )

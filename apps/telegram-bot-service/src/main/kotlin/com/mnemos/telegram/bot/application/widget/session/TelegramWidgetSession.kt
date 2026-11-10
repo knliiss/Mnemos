@@ -9,10 +9,12 @@ data class TelegramWidgetSession(
     val accountId: UUID?,
     val page: Int = 0,
     val cursor: UUID? = null,
+    val search: String? = null,
 ) {
     init {
         require(telegramId > 0)
         require(messageId > 0)
         require(page in 0..1_000)
+        require(search == null || (search.isNotBlank() && search.length <= 64 && search.toByteArray(Charsets.UTF_8).size <= 256))
     }
 }
