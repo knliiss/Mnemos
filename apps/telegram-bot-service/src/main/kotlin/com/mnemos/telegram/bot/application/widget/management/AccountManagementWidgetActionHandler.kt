@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.management
 
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetMutationGuard
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
@@ -18,14 +19,86 @@ class AccountManagementWidgetActionHandler(
     private val publisher: AccountManagementWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val guard: AccountManagementWidgetMutationGuard,
+    private val mutations: ChangeAccountManagementWidgetUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.ACCOUNT_MANAGEMENT
 
     override fun handle(context: TelegramWidgetQueryContext, session: TelegramWidgetSession): TelegramDeliveryResult {
-        val current = (snapshots.load(context.actorId, session.page) as? AccountManagementWidgetSnapshotResult.Available)?.view
-            ?: return responder.reply(context.queryId, "UNAVAILABLE", "Керування акаунтом недоступне")
+        val current = when (val loaded = snapshots.load(context.actorId, session.page)) {
+            is AccountManagementWidgetSnapshotResult.Available -> loaded.view
+            AccountManagementWidgetSnapshotResult.AccountRequired ->
+                return responder.reply(context.queryId, "ACCOUNT_REQUIRED", "Спочатку виберіть акаунт")
+            AccountManagementWidgetSnapshotResult.Forbidden ->
+                return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу на керування акаунтом")
+            AccountManagementWidgetSnapshotResult.Unavailable ->
+                return responder.reply(context.queryId, "UNAVAILABLE", "Керування акаунтом недоступне")
+        }
         if (session.accountId != current.accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Активний акаунт змінився")
+        }
+
+        val parts = context.data.split(':')
+        if (parts.size >= 3 && parts[0] == "w1" && parts[1] == "manage") {
+            when (parts[2]) {
+                "kick", "kick-confirm" -> {
+                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val index = parts[4].toIntOrNull()
+                    if (page != session.page || index == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val member = current.members.getOrNull(index)
+                        ?: return responder.reply(context.queryId, "CONFLICT", "Учасника вже немає")
+                    if (!current.canRemoveMembers || member.owner || member.self) {
+                        return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу виключити учасника")
+                    }
+                    if (parts[2] == "kick") {
+                        guard.requestKick(context.actorId, context.messageId, current.accountId, member.id)
+                        return responder.reply(
+                            context.queryId,
+                            "CONFIRM",
+                            "Підтвердьте виключення учасника",
+                            publisher.state(current.copy(pendingKickIndex = index)),
+                        )
+                    }
+                    if (!guard.consumeKick(context.actorId, context.messageId, current.accountId, member.id)) {
+                        return responder.reply(context.queryId, "CONFIRM_REQUIRED", "Підтвердьте виключення ще раз")
+                    }
+                    val result = mutations.kickMember(context.actorId, context.queryId, current, index)
+                    if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
+                    return refresh(context, session, current.accountId, 0, "Учасника виключено")
+                }
+                "cancel" -> {
+                    if (parts.size != 3) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    guard.cancelKick(context.actorId, context.messageId)
+                    return responder.reply(context.queryId, "OK", "Виключення скасовано", publisher.state(current))
+                }
+                "role" -> {
+                    if (parts.size != 7) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val memberIndex = parts[4].toIntOrNull()
+                    val roleIndex = parts[5].toIntOrNull()
+                    val enabled = when (parts[6]) {
+                        "on" -> true
+                        "off" -> false
+                        else -> return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    }
+                    if (page != session.page || memberIndex == null || roleIndex == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val result = mutations.assignRole(
+                        context.actorId,
+                        context.queryId,
+                        current,
+                        memberIndex,
+                        roleIndex,
+                        enabled,
+                    )
+                    if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
+                    return refresh(context, session, current.accountId, session.page, "Ролі оновлено")
+                }
+            }
         }
 
         val targetPage =
@@ -41,16 +114,43 @@ class AccountManagementWidgetActionHandler(
                 }
                 else -> return responder.reply(context.queryId, "UNSUPPORTED", "Невідома дія")
             }
+        guard.cancelKick(context.actorId, context.messageId)
+        return refresh(context, session, current.accountId, targetPage, "Дані оновлено")
+    }
+
+    private fun refresh(
+        context: TelegramWidgetQueryContext,
+        session: TelegramWidgetSession,
+        accountId: java.util.UUID,
+        targetPage: Int,
+        message: String,
+    ): TelegramDeliveryResult {
         val fresh = (snapshots.load(context.actorId, targetPage) as? AccountManagementWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Дані зараз недоступні")
-        if (fresh.accountId != session.accountId) {
+        if (fresh.accountId != accountId) {
             return responder.reply(context.queryId, "CONTEXT_CHANGED", "Активний акаунт змінився")
         }
-        val answer = responder.reply(context.queryId, "OK", "Дані оновлено", publisher.state(fresh))
+        val answer = responder.reply(context.queryId, "OK", message, publisher.state(fresh))
         if (answer == TelegramDeliveryResult.Delivered) {
             sessions.save(session.copy(page = fresh.page))
             publisher.update(context.actorId, context.messageId, fresh)
         }
         return answer
+    }
+
+    private fun failure(
+        context: TelegramWidgetQueryContext,
+        result: AccountManagementWidgetMutationResult,
+    ): TelegramDeliveryResult {
+        val message = when (result) {
+            AccountManagementWidgetMutationResult.APPLIED -> "Готово"
+            AccountManagementWidgetMutationResult.ALREADY -> "Запит уже оброблено. Оновіть список"
+            AccountManagementWidgetMutationResult.INVALID -> "Операцію відхилено. Оновіть список"
+            AccountManagementWidgetMutationResult.FORBIDDEN -> "Недостатньо дозволів"
+            AccountManagementWidgetMutationResult.ACCOUNT_REQUIRED -> "Виберіть активний акаунт"
+            AccountManagementWidgetMutationResult.CONFLICT -> "Дані змінилися. Оновіть список"
+            AccountManagementWidgetMutationResult.UNAVAILABLE -> "Стан операції невідомий. Перевірте список"
+        }
+        return responder.reply(context.queryId, result.name, message)
     }
 }
