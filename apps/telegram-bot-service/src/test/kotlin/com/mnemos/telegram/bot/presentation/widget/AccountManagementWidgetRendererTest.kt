@@ -81,6 +81,9 @@ class AccountManagementWidgetRendererTest {
         assertTrue(rendered.html.contains("textContent"))
         assertTrue(rendered.html.contains("kick-confirm"))
         assertTrue(rendered.html.contains("role-delete-confirm"))
+        assertTrue(rendered.html.contains("w1:manage:permission:"))
+        assertTrue(rendered.html.contains("w1:manage:move:"))
+        assertTrue(rendered.html.contains("w1:manage:edit:"))
         assertTrue(rendered.html.contains("w1:manage:"))
     }
 }

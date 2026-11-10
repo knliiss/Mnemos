@@ -36,6 +36,48 @@ class AccountManagementWidgetActionHandlerTest {
     private val session = TelegramWidgetSession(11L, 8, TelegramWidgetScreen.ACCOUNT_MANAGEMENT, accountId)
 
     @Test
+    fun editingRoleNameAndColorUsesRoleIdentityFromCurrentServerPage() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),
+        )
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:edit:0:0"), session))
+        verify(textInput).startForRole(session, roleId)
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
+    fun permissionToggleForwardsOnlyVisibleRoleAndEnumOrdinal() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),
+        )
+        whenever(mutations.setRolePermission(11L, "q", view().copy(canManageRoles = true), 0, 2, true))
+            .thenReturn(AccountManagementWidgetMutationResult.APPLIED)
+        whenever(publisher.state(any())).thenReturn("{}")
+        whenever(responder.reply(eq("q"), eq("OK"), any(), any()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(
+            TelegramDeliveryResult.Delivered,
+            handler.handle(query("w1:manage:permission:0:0:2:on"), session),
+        )
+        verify(mutations).setRolePermission(11L, "q", view().copy(canManageRoles = true), 0, 2, true)
+    }
+
+    @Test
+    fun roleMoveRequiresFreshSessionPage() {
+        whenever(snapshots.load(11L, 0)).thenReturn(
+            AccountManagementWidgetSnapshotResult.Available(view().copy(canManageHierarchy = true)),
+        )
+        whenever(responder.reply(eq("q"), eq("CONFLICT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:manage:move:1:0:up"), session))
+        verifyNoInteractions(mutations)
+    }
+
+    @Test
     fun createRoleRequestOpensChatPromptOnlyWithManageRolesPermission() {
         whenever(snapshots.load(11L, 0)).thenReturn(
             AccountManagementWidgetSnapshotResult.Available(view().copy(canManageRoles = true)),

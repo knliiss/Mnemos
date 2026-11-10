@@ -58,7 +58,7 @@ class OpenAccountManagementWidgetServiceTest {
         assertEquals(2, result.view.pages)
         assertEquals(1, result.view.page)
         assertEquals(members.drop(3).map { it.id }, result.view.members.map { it.id })
-        assertEquals(roles.sortedByDescending { it.hierarchyRank }.drop(3).map { it.id }, result.view.roles.map { it.id })
+        assertEquals(roles.sortedBy { it.hierarchyRank }.drop(3).map { it.id }, result.view.roles.map { it.id })
         assertEquals(true, result.view.canRemoveMembers)
         assertEquals(true, result.view.canAssignRoles)
     }
