@@ -110,6 +110,10 @@ class ProfileWidgetRenderer(
                   activity.className='primary';
                   activity.addEventListener('click',function(){ask('w1:prof:activity');});
                   details.appendChild(activity);
+                  var comments=document.createElement('button');comments.textContent='Коментарі';
+                  comments.className='primary';
+                  comments.addEventListener('click',function(){ask('w1:prof:comments');});
+                  details.appendChild(comments);
                 }else{
                   summary.textContent=s.query?'«'+s.query+'» · '+s.total+' результатів · '+(s.page+1)+'/'+Math.max(1,s.pages):'Знайдіть користувача за нікнеймом';
                   if(!s.profiles||!s.profiles.length){

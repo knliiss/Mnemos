@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseC
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.profiles.port.out.ProfileWidgetPublisher
 import com.mnemos.telegram.bot.application.widget.profileactivity.OpenProfileActivityWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.profilecomments.OpenProfileCommentsWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -24,6 +25,7 @@ class ProfileWidgetActionHandler(
     private val responder: WidgetQueryResponder,
     private val input: StartWidgetTextInputUseCase,
     private val activity: OpenProfileActivityWidgetUseCase,
+    private val comments: OpenProfileCommentsWidgetUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.PROFILES
 
@@ -39,6 +41,16 @@ class ProfileWidgetActionHandler(
         val current = (snapshots.load(context.actorId, session.search, session.page, session.selectedProfileId)
             as? ProfileWidgetSnapshotResult.Available)?.view
             ?: return responder.reply(context.queryId, "UNAVAILABLE", "Профілі зараз недоступні")
+        if (context.data == "w1:prof:comments") {
+            val profileId = session.selectedProfileId
+                ?: return responder.reply(context.queryId, "CONFLICT", "Спочатку відкрийте профіль")
+            val result = comments.execute(context.actorId, profileId)
+            return responder.reply(
+                context.queryId,
+                if (result == TelegramDeliveryResult.Delivered) "OK" else "UNAVAILABLE",
+                if (result == TelegramDeliveryResult.Delivered) "Коментарі відкрито" else "Коментарі недоступні",
+            )
+        }
         if (context.data == "w1:prof:activity") {
             val profileId = session.selectedProfileId
                 ?: return responder.reply(context.queryId, "CONFLICT", "Спочатку відкрийте профіль")

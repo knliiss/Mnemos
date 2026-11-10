@@ -53,7 +53,7 @@ class ProfileCommentsWidgetActionHandler(
                 val target = context.data.removePrefix("w1:comments:thread:").split(':')
                 if (target.size != 2) return responder.reply(context.queryId, "INVALID", "Невірний коментар")
                 val index = target[0].toIntOrNull()
-                val item = index?.let(current.comments::getOrNull)
+                val item = index?.let { current.comments.getOrNull(it) }
                     ?: return responder.reply(context.queryId, "CONFLICT", "Оновіть список коментарів")
                 if (item.deleted || item.replies <= 0 || item.id.toString().replace("-", "").take(12) != target[1]) {
                     return responder.reply(context.queryId, "CONFLICT", "Коментар змінився. Оновіть")
