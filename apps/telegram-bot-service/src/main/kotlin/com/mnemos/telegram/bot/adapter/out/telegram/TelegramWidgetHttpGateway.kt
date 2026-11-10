@@ -85,10 +85,14 @@ class TelegramWidgetHttpGateway(
                 TelegramDeliveryResult.Retryable
             }
         } catch (exception: RestClientResponseException) {
-            if (exception.statusCode.value() in 400..499 && exception.statusCode.value() != 429) {
-                TelegramDeliveryResult.PermanentFailure("telegram-widget-rejected")
-            } else {
-                TelegramDeliveryResult.Retryable
+            when {
+                method == "editMessageWidgetData" &&
+                    exception.statusCode.value() == 400 &&
+                    exception.responseBodyAsString.contains("message is not modified", ignoreCase = true) ->
+                    TelegramDeliveryResult.Delivered
+                exception.statusCode.value() in 400..499 && exception.statusCode.value() != 429 ->
+                    TelegramDeliveryResult.PermanentFailure("telegram-widget-rejected")
+                else -> TelegramDeliveryResult.Retryable
             }
         } catch (_: Exception) {
             TelegramDeliveryResult.Retryable
