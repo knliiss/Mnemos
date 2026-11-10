@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.widget.management
 
 import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementResult
+import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementPermission
 import com.mnemos.telegram.bot.application.account.management.port.out.AccountManagementGateway
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetPublisher
@@ -50,19 +51,27 @@ class OpenAccountManagementWidgetService(
                         totalRoles = data.roles.size,
                         members = data.members.drop(currentPage * PAGE_SIZE).take(PAGE_SIZE).map {
                             AccountManagementWidgetMember(
+                                id = it.id,
                                 name = WidgetTextLimiter.truncateUtf8(it.name, 34),
                                 role = it.highestRoleName?.let { name -> WidgetTextLimiter.truncateUtf8(name, 26) },
                                 owner = it.owner,
+                                self = it.id == data.actorMemberId,
+                                roleIds = it.roleIds,
                             )
                         },
                         roles = data.roles.sortedByDescending { it.hierarchyRank }
                             .drop(currentPage * PAGE_SIZE).take(PAGE_SIZE).map {
                                 AccountManagementWidgetRole(
+                                    id = it.id,
                                     name = WidgetTextLimiter.truncateUtf8(it.name, 34),
                                     rank = it.hierarchyRank,
                                     permissionCount = it.permissions.size,
                                 )
                             },
+                        canRemoveMembers =
+                            TelegramAccountManagementPermission.MANAGE_MEMBERS in data.actorPermissions,
+                        canAssignRoles =
+                            TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES in data.actorPermissions,
                     ),
                 )
             }
