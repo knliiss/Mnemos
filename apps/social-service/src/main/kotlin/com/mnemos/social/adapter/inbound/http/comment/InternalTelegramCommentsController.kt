@@ -1,19 +1,18 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
-import com.mnemos.social.application.comment.usecase.list.ListCommentsUseCase
 import com.mnemos.social.application.comment.model.CommentView
-import com.mnemos.social.application.common.pagination.PageResult
-import com.mnemos.social.application.comment.usecase.list.ListRootCommentsQuery
-import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
 import com.mnemos.social.application.comment.usecase.get.GetCommentUseCase
-import com.mnemos.social.domain.comment.model.CommentId
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
+import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
+import com.mnemos.social.application.comment.usecase.list.ListCommentsUseCase
+import com.mnemos.social.application.comment.usecase.list.ListRootCommentsQuery
 import com.mnemos.social.application.common.pagination.PageQuery
+import com.mnemos.social.application.common.pagination.PageResult
 import com.mnemos.social.contracts.internal.v1.InternalTelegramComment
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCommentPage
+import com.mnemos.social.domain.comment.model.CommentId
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController

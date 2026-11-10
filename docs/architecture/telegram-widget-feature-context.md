@@ -94,6 +94,7 @@ Prioritize user-facing gaps by workflow, not by counting routes. For every item 
 | 2026-11-10 | Added account-management widget for authorized member/role lists with paged state, account-context checks and `/manage` entrypoint | Unit tests committed; not executed on JVM or Telegram client |
 | 2026-11-10 | Added member role assignment, kick confirmation, reply-bound role creation and confirmed role deletion, with Redis replay guards and compact-payload tests | Tests committed but JVM/CI/real client not run |
 | 2026-11-10 | Added role name/color editing with role-bound v2 reply sessions, permission toggles, hierarchy moves, and stale member/role identity checks | Targeted unit tests written; no Gradle build or real Telegram-client validation |
+| 2026-11-10 | Added authorized Telegram social comments/root-reply gateway and widget, account-service-backed user identity resolution, and explicit-actor like/dislike/removal actions | Unit tests committed; Gradle and real Telegram client not tested |
 
 
 | 2026-11-10 | Privacy-aware internal public profile API, profile-search/detail widget, and drop-activity widget | Source and tests committed; compilation and client tests not run |
@@ -242,8 +243,6 @@ This checkpoint **supersedes the earlier read-only / missing-role-editor notes**
 - `RoleAccessGuard.requireCanChangeRoleAssignment` authorizes account owners before the non-owner self/owner restrictions. To avoid reducing Mini App parity, the widget carries an actor-owner flag from the authorized management snapshot. A non-owner still cannot assign roles to themselves or the owner, but an account owner may manage their own role assignments as permitted by account-service.
 - **This exception does not authorize self-kick or owner removal**: those remain forbidden. Editing permissions on a role assigned to the acting user is still subject to the domain's `RolePermissionMutationGuard`; the widget disables those toggles.
 - Source-level tests were added for the owner exception. No JVM or real-client test has been executed.
-
-| 2026-11-10 | Added authorized Telegram social comments/root-reply gateway and widget, account-service-backed user identity resolution, and explicit-actor like/dislike/removal actions | Unit tests committed; Gradle and real Telegram client not tested |
 
 ## Social profile widget checkpoint (2026-11-10)
 

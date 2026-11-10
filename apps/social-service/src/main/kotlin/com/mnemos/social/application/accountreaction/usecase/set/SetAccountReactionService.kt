@@ -31,7 +31,6 @@ class SetAccountReactionService(
     }
 
     private fun change(command: SetAccountReactionCommand, actor: SocialActor) {
-
         if (actor.accountId == command.targetAccountId) {
             throw SelfAccountReactionException(command.targetAccountId)
         }

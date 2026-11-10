@@ -25,7 +25,6 @@ class GetAccountReactionService(
         read(targetAccountId, actor)
 
     private fun read(targetAccountId: UUID, actor: SocialActor): AccountReactionType? {
-
         if (!accountAccessPort.isActiveAccount(targetAccountId)) {
             throw SocialAccountNotFoundException(targetAccountId)
         }

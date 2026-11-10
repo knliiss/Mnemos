@@ -30,7 +30,6 @@ class RemoveAccountReactionService(
     }
 
     private fun remove(targetAccountId: UUID, actor: SocialActor) {
-
         if (!accountAccessPort.isActiveAccount(targetAccountId)) {
             throw SocialAccountNotFoundException(targetAccountId)
         }
