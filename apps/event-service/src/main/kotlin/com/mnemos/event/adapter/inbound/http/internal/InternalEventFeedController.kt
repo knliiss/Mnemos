@@ -38,9 +38,6 @@ class InternalEventFeedController(
         @Size(max = 64)
         search: String?,
         @RequestParam(required = false)
-        @Size(max = 64)
-        droppedFor: String?,
-        @RequestParam(required = false)
         itemRarity: ContractItemRarity?,
         @RequestParam(required = false)
         itemType: ContractItemType?,
@@ -60,6 +57,9 @@ class InternalEventFeedController(
         @Min(1)
         @Max(100)
         limit: Int,
+        @RequestParam(required = false)
+        @Size(max = 64)
+        droppedFor: String? = null,
     ): InternalEventFeedResponse =
         listEventFeedService
             .execute(

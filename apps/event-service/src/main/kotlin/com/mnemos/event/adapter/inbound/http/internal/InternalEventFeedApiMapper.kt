@@ -30,7 +30,6 @@ object InternalEventFeedApiMapper {
         after: UUID?,
         type: InternalEventFeedType?,
         search: String?,
-        droppedFor: String? = null,
         itemRarity: ContractItemRarity?,
         itemType: ContractItemType?,
         boosterType: ContractBoosterType?,
@@ -39,6 +38,7 @@ object InternalEventFeedApiMapper {
         wipeId: UUID?,
         sort: InternalEventFeedSort,
         limit: Int,
+        droppedFor: String? = null,
     ): EventFeedQuery =
         EventFeedQuery(
             after = after?.let(::EventId),
