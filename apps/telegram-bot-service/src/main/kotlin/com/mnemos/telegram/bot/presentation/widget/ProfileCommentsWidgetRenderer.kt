@@ -28,6 +28,8 @@ class ProfileCommentsWidgetRenderer(
                         "l" to it.likes,
                         "r" to it.replies,
                         "at" to it.createdAt,
+                        "e" to it.canEdit,
+                        "x" to it.canDelete,
                     )
                 },
             ),

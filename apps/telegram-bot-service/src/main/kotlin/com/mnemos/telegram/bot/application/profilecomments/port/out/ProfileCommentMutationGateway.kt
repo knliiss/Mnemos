@@ -3,7 +3,7 @@ package com.mnemos.telegram.bot.application.profilecomments.port.out
 import com.mnemos.telegram.bot.application.profilecomments.ProfileCommentCreationResult
 import java.util.UUID
 
-fun interface ProfileCommentMutationGateway {
+interface ProfileCommentMutationGateway {
     fun create(
         telegramId: Long,
         targetAccountId: UUID,
@@ -11,5 +11,20 @@ fun interface ProfileCommentMutationGateway {
         operationId: UUID,
         parentCommentId: UUID?,
         content: String,
+    ): ProfileCommentCreationResult
+
+    fun edit(
+        telegramId: Long,
+        targetAccountId: UUID,
+        commentId: UUID,
+        expectedActorAccountId: UUID,
+        content: String,
+    ): ProfileCommentCreationResult
+
+    fun delete(
+        telegramId: Long,
+        targetAccountId: UUID,
+        commentId: UUID,
+        expectedActorAccountId: UUID,
     ): ProfileCommentCreationResult
 }

@@ -4,7 +4,7 @@ import com.mnemos.telegram.bot.application.profilecomments.ProfileCommentsPageRe
 import java.util.UUID
 
 interface ProfileCommentsGateway {
-    fun list(accountId: UUID, page: Int): ProfileCommentsPageResult
+    fun list(telegramId: Long, accountId: UUID, page: Int): ProfileCommentsPageResult
 
-    fun replies(accountId: UUID, rootCommentId: UUID, page: Int): ProfileCommentsPageResult
+    fun replies(telegramId: Long, accountId: UUID, rootCommentId: UUID, page: Int): ProfileCommentsPageResult
 }

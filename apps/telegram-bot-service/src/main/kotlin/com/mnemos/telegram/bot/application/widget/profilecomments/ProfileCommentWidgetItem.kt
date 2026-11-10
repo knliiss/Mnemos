@@ -10,4 +10,6 @@ data class ProfileCommentWidgetItem(
     val likes: Long,
     val replies: Long,
     val createdAt: String,
+    val canEdit: Boolean = false,
+    val canDelete: Boolean = false,
 )

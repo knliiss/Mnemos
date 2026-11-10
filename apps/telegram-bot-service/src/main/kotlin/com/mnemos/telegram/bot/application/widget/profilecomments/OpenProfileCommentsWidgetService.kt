@@ -42,9 +42,9 @@ class OpenProfileCommentsWidgetService(
             PublicProfileDetailResult.Unavailable -> return ProfileCommentsWidgetSnapshotResult.Unavailable
         }
         val result = if (rootCommentId == null) {
-            comments.list(profileId, page)
+            comments.list(telegramId, profileId, page)
         } else {
-            comments.replies(profileId, rootCommentId, page)
+            comments.replies(telegramId, profileId, rootCommentId, page)
         }
         val data = when (result) {
             is ProfileCommentsPageResult.Available -> result.page
@@ -66,6 +66,8 @@ class OpenProfileCommentsWidgetService(
                 likes = entry.likes,
                 replies = entry.replies,
                 createdAt = entry.createdAt.toString().take(16).replace('T', ' '),
+                canEdit = entry.canEdit,
+                canDelete = entry.canDelete,
             )
         }
         return ProfileCommentsWidgetSnapshotResult.Available(

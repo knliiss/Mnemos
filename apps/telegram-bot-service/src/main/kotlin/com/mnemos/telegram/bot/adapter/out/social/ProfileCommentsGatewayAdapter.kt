@@ -11,16 +11,16 @@ import java.util.UUID
 class ProfileCommentsGatewayAdapter(
     private val client: SocialServiceClient,
 ) : ProfileCommentsGateway {
-    override fun list(accountId: UUID, page: Int): ProfileCommentsPageResult =
+    override fun list(telegramId: Long, accountId: UUID, page: Int): ProfileCommentsPageResult =
         try {
-            client.listComments(accountId, page, PAGE_SIZE).toResult()
+            client.listComments(accountId, page, PAGE_SIZE, telegramId).toResult()
         } catch (_: RuntimeException) {
             ProfileCommentsPageResult.Unavailable
         }
 
-    override fun replies(accountId: UUID, rootCommentId: UUID, page: Int): ProfileCommentsPageResult =
+    override fun replies(telegramId: Long, accountId: UUID, rootCommentId: UUID, page: Int): ProfileCommentsPageResult =
         try {
-            client.listReplies(accountId, rootCommentId, page, PAGE_SIZE).toResult()
+            client.listReplies(accountId, rootCommentId, page, PAGE_SIZE, telegramId).toResult()
         } catch (exception: feign.FeignException) {
             if (exception.status() == 404) ProfileCommentsPageResult.NotFound
             else ProfileCommentsPageResult.Unavailable
@@ -40,6 +40,8 @@ class ProfileCommentsGatewayAdapter(
                         likes = it.likes,
                         replies = it.replies,
                         createdAt = it.createdAt,
+                        canEdit = it.canEdit,
+                        canDelete = it.canDelete,
                     )
                 },
                 page = page,

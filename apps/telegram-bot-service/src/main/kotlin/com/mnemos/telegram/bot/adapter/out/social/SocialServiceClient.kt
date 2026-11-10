@@ -3,6 +3,9 @@ package com.mnemos.telegram.bot.adapter.out.social
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCommentPage
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentRequest
 import com.mnemos.social.contracts.internal.v1.InternalTelegramCreateCommentResponse
+import com.mnemos.social.contracts.internal.v1.InternalTelegramEditCommentRequest
+import com.mnemos.social.contracts.internal.v1.InternalTelegramDeleteCommentRequest
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import com.mnemos.social.contracts.internal.v1.InternalTelegramReactionRequest
 import com.mnemos.social.contracts.internal.v1.InternalTelegramReactionState
@@ -21,6 +24,22 @@ import java.util.UUID
     configuration = [SocialServiceFeignConfiguration::class],
 )
 interface SocialServiceClient {
+    @PatchMapping("/internal/v1/telegram/social/users/{telegramId}/profiles/{accountId}/comments/{commentId}")
+    fun editComment(
+        @PathVariable telegramId: Long,
+        @PathVariable accountId: UUID,
+        @PathVariable commentId: UUID,
+        @RequestBody request: InternalTelegramEditCommentRequest,
+    ): InternalTelegramCreateCommentResponse
+
+    @DeleteMapping("/internal/v1/telegram/social/users/{telegramId}/profiles/{accountId}/comments/{commentId}")
+    fun deleteComment(
+        @PathVariable telegramId: Long,
+        @PathVariable accountId: UUID,
+        @PathVariable commentId: UUID,
+        @RequestBody request: InternalTelegramDeleteCommentRequest,
+    )
+
     @PostMapping("/internal/v1/telegram/social/users/{telegramId}/profiles/{accountId}/comments")
     fun createComment(
         @PathVariable telegramId: Long,
@@ -46,6 +65,7 @@ interface SocialServiceClient {
         @PathVariable accountId: UUID,
         @RequestParam page: Int,
         @RequestParam size: Int,
+        @RequestParam telegramId: Long,
     ): InternalTelegramCommentPage
 
     @GetMapping("/internal/v1/telegram/social/profiles/{accountId}/comments/{rootId}/replies")
@@ -54,5 +74,6 @@ interface SocialServiceClient {
         @PathVariable rootId: UUID,
         @RequestParam page: Int,
         @RequestParam size: Int,
+        @RequestParam telegramId: Long,
     ): InternalTelegramCommentPage
 }
