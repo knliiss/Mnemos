@@ -10,6 +10,23 @@ interface ChangeAccountManagementWidgetUseCase {
         assigned: Boolean,
     ): AccountManagementWidgetMutationResult
 
+    fun setRolePermission(
+        telegramId: Long,
+        queryId: String,
+        view: AccountManagementWidgetView,
+        roleIndex: Int,
+        permissionIndex: Int,
+        enabled: Boolean,
+    ): AccountManagementWidgetMutationResult
+
+    fun moveRole(
+        telegramId: Long,
+        queryId: String,
+        view: AccountManagementWidgetView,
+        roleIndex: Int,
+        offset: Int,
+    ): AccountManagementWidgetMutationResult
+
     fun deleteRole(
         telegramId: Long,
         queryId: String,

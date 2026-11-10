@@ -1,6 +1,8 @@
 package com.mnemos.telegram.bot.application.widget.management
 
 import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementMutationResult
+import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementPermission
+import com.mnemos.telegram.bot.application.account.management.model.TelegramAccountManagementResult
 import com.mnemos.telegram.bot.application.account.management.port.out.AccountManagementGateway
 import com.mnemos.telegram.bot.application.widget.management.port.out.AccountManagementWidgetMutationGuard
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -27,6 +29,49 @@ class ChangeAccountManagementWidgetService(
         if ((role.id in member.roleIds) == assigned) return AccountManagementWidgetMutationResult.APPLIED
         if (!guard.claimQuery(telegramId, queryId)) return AccountManagementWidgetMutationResult.ALREADY
         return gateway.setMemberRole(telegramId, member.id, role.id, assigned).toWidgetResult()
+    }
+
+    override fun setRolePermission(
+        telegramId: Long,
+        queryId: String,
+        view: AccountManagementWidgetView,
+        roleIndex: Int,
+        permissionIndex: Int,
+        enabled: Boolean,
+    ): AccountManagementWidgetMutationResult {
+        if (!view.canManageRoles) return AccountManagementWidgetMutationResult.FORBIDDEN
+        val role = view.roles.getOrNull(roleIndex) ?: return AccountManagementWidgetMutationResult.CONFLICT
+        val permission = TelegramAccountManagementPermission.entries.getOrNull(permissionIndex)
+            ?: return AccountManagementWidgetMutationResult.INVALID
+        if (!role.canEditPermissions) return AccountManagementWidgetMutationResult.FORBIDDEN
+        if ((permission in role.permissions) == enabled) return AccountManagementWidgetMutationResult.APPLIED
+        if (!guard.claimQuery(telegramId, queryId)) return AccountManagementWidgetMutationResult.ALREADY
+        return gateway.setRolePermission(telegramId, role.id, permission, enabled).toWidgetResult()
+    }
+
+    override fun moveRole(
+        telegramId: Long,
+        queryId: String,
+        view: AccountManagementWidgetView,
+        roleIndex: Int,
+        offset: Int,
+    ): AccountManagementWidgetMutationResult {
+        if (!view.canManageHierarchy) return AccountManagementWidgetMutationResult.FORBIDDEN
+        if (offset !in listOf(-1, 1)) return AccountManagementWidgetMutationResult.INVALID
+        val role = view.roles.getOrNull(roleIndex) ?: return AccountManagementWidgetMutationResult.CONFLICT
+        val snapshot = (gateway.getManagement(telegramId) as? TelegramAccountManagementResult.Available)?.snapshot
+            ?: return AccountManagementWidgetMutationResult.UNAVAILABLE
+        if (snapshot.accountId != view.accountId) return AccountManagementWidgetMutationResult.CONFLICT
+        if (TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY !in snapshot.actorPermissions) {
+            return AccountManagementWidgetMutationResult.FORBIDDEN
+        }
+        val ordered = snapshot.roles.sortedBy { it.hierarchyRank }
+        val index = ordered.indexOfFirst { it.id == role.id && it.hierarchyRank == role.rank }
+        if (index < 0) return AccountManagementWidgetMutationResult.CONFLICT
+        val targetIndex = index + offset
+        if (targetIndex !in ordered.indices) return AccountManagementWidgetMutationResult.INVALID
+        if (!guard.claimQuery(telegramId, queryId)) return AccountManagementWidgetMutationResult.ALREADY
+        return gateway.moveRole(telegramId, role.id, targetIndex).toWidgetResult()
     }
 
     override fun deleteRole(

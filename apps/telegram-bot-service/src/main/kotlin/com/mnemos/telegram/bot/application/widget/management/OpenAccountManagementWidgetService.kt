@@ -59,13 +59,19 @@ class OpenAccountManagementWidgetService(
                                 roleIds = it.roleIds,
                             )
                         },
-                        roles = data.roles.sortedByDescending { it.hierarchyRank }
+                        roles = data.roles.sortedBy { it.hierarchyRank }
                             .drop(currentPage * PAGE_SIZE).take(PAGE_SIZE).map {
                                 AccountManagementWidgetRole(
                                     id = it.id,
                                     name = WidgetTextLimiter.truncateUtf8(it.name, 34),
                                     rank = it.hierarchyRank,
                                     permissionCount = it.permissions.size,
+                                    color = it.color,
+                                    permissions = it.permissions,
+                                    canEditPermissions = it.id !in (
+                                        data.members.firstOrNull { member -> member.id == data.actorMemberId }?.roleIds
+                                            ?: emptySet()
+                                        ),
                                 )
                             },
                         canRemoveMembers =
@@ -74,6 +80,8 @@ class OpenAccountManagementWidgetService(
                             TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES in data.actorPermissions,
                         canManageRoles =
                             TelegramAccountManagementPermission.MANAGE_ROLES in data.actorPermissions,
+                        canManageHierarchy =
+                            TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY in data.actorPermissions,
                     ),
                 )
             }
