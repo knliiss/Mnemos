@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.application.input.TelegramTextInputContext
 import com.mnemos.telegram.bot.application.input.TelegramTextInputRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.payment.HandleTelegramStarPaymentUpdateService
+import com.mnemos.telegram.bot.application.widget.input.HandleWidgetTextReplyUseCase
 import com.mnemos.telegram.bot.configuration.widget.TelegramWidgetProperties
 import com.pengrad.telegrambot.ExceptionHandler
 import com.pengrad.telegrambot.TelegramBot
@@ -35,6 +36,7 @@ class TelegramLongPollingConsumer(
     private val callbackRouter: TelegramCallbackRouter,
     private val starPaymentService: HandleTelegramStarPaymentUpdateService,
     private val widgetProperties: TelegramWidgetProperties = TelegramWidgetProperties(),
+    private val widgetTextReply: HandleWidgetTextReplyUseCase? = null,
 ) : ApplicationRunner,
     DisposableBean {
     override fun run(args: ApplicationArguments) {
@@ -142,6 +144,12 @@ class TelegramLongPollingConsumer(
                     username = message.from()?.username(),
                 ),
             )
+        }
+
+        val repliedTo = message.replyToMessage()?.messageId()
+        if (repliedTo != null) {
+            val handled = widgetTextReply?.handle(telegramId, repliedTo, text)
+            if (handled != null) return handled
         }
 
         return textInputRouter.route(

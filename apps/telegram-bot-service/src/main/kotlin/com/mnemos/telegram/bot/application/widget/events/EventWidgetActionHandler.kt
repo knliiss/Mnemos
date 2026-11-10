@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.application.widget.events
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetActionHandler
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
@@ -21,6 +23,7 @@ class EventWidgetActionHandler(
     private val publisher: EventWidgetPublisher,
     private val sessions: TelegramWidgetSessionRepository,
     private val responder: WidgetQueryResponder,
+    private val textInput: StartWidgetTextInputUseCase,
 ) : TelegramWidgetActionHandler {
     override val screen = TelegramWidgetScreen.EVENTS
 
@@ -34,6 +37,14 @@ class EventWidgetActionHandler(
         val old =
             (snapshots.load(telegramId, filter, session.cursor) as? EventWidgetSnapshotResult.Available)?.view
                 ?: return responder.reply(context.queryId, "UNAVAILABLE", "Стрічка недоступна")
+
+        if (context.data == "w1:evt:search") {
+            val answer = responder.reply(context.queryId, "INPUT", "Відповідайте на підказку в чаті")
+            if (answer == TelegramDeliveryResult.Delivered) {
+                textInput.start(session, WidgetTextInputPurpose.EVENT_SEARCH)
+            }
+            return answer
+        }
 
         if (context.data.startsWith("w1:evt:next:")) {
             val cursor =

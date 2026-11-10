@@ -46,7 +46,7 @@ class EventWidgetRenderer(
               <button data-filter="RAID">Рейди</button>
             </div>
             <div id="events"></div>
-            <div class="actions"><button id="next">Наступні</button><button id="refresh">Оновити</button></div>
+            <div class="actions"><button id="search">Пошук</button><button id="next">Наступні</button><button id="refresh">Оновити</button></div>
             <div id="status" aria-live="polite"></div>
             <script>
             (function(){
@@ -94,6 +94,7 @@ class EventWidgetRenderer(
               for(var i=0;i<buttons.length;i++){
                 buttons[i].addEventListener('click',function(){ask('w1:evt:filter:'+this.getAttribute('data-filter'));});
               }
+              document.getElementById('search').addEventListener('click',function(){ask('w1:evt:search');});
               document.getElementById('refresh').addEventListener('click',function(){ask('w1:evt:refresh');});
               document.getElementById('next').addEventListener('click',function(){if(state.cursor)ask('w1:evt:next:'+state.cursor);});
               if(window.TelegramWidget){TelegramWidget.onEvent('chatDataChanged',hydrate);hydrate();TelegramWidget.ready();}
@@ -109,7 +110,7 @@ class EventWidgetRenderer(
             actionRows =
                 listOf(
                     listOf(
-                        TelegramWidgetButton("Пошук", "w:open:events"),
+                        TelegramWidgetButton("Розширений пошук", "w:open:events"),
                         TelegramWidgetButton("Підписки", "w:open:notifications"),
                     ),
                 ),

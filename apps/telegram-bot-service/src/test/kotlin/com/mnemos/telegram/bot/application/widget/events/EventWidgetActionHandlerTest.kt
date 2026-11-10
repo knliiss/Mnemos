@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.application.widget.events
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.widget.events.port.out.EventWidgetPublisher
+import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
+import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -25,7 +27,8 @@ class EventWidgetActionHandlerTest {
     private val publisher = mock<EventWidgetPublisher>()
     private val sessions = mock<TelegramWidgetSessionRepository>()
     private val responder = mock<WidgetQueryResponder>()
-    private val handler = EventWidgetActionHandler(snapshots, opener, publisher, sessions, responder)
+    private val input = mock<StartWidgetTextInputUseCase>()
+    private val handler = EventWidgetActionHandler(snapshots, opener, publisher, sessions, responder, input)
 
     @Test
     fun refusesCursorNotInCurrentPage() {
@@ -70,6 +73,30 @@ class EventWidgetActionHandlerTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:evt:next:$current"), session()))
         verify(opener).execute(11L, EventHistoryFilter.ALL, current)
+    }
+
+
+    @Test
+    fun textSearchAcknowledgesBeforeCreatingAReplyBoundPrompt() {
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+            .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:evt:search"), session()))
+        verify(input).start(session(), WidgetTextInputPurpose.EVENT_SEARCH)
+        verifyNoInteractions(publisher)
+    }
+
+    @Test
+    fun failedAcknowledgementNeverStartsTextInput() {
+        whenever(snapshots.load(11L, EventHistoryFilter.ALL, null))
+            .thenReturn(EventWidgetSnapshotResult.Available(view(null)))
+        whenever(responder.reply(eq("q"), eq("INPUT"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Retryable)
+
+        assertEquals(TelegramDeliveryResult.Retryable, handler.handle(query("w1:evt:search"), session()))
+        verifyNoInteractions(input)
     }
 
     private fun query(data: String) =
