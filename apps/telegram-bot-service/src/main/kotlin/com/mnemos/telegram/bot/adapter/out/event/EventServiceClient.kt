@@ -45,6 +45,8 @@ interface EventServiceClient {
         sort: InternalEventFeedSort,
         @RequestParam
         limit: Int,
+        @RequestParam(required = false)
+        droppedFor: String? = null,
     ): InternalEventFeedResponse
 
     @GetMapping("/internal/v1/events/localizations/sao/{locale}")
