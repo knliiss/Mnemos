@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.widget.accounts.port.out.AccountWidge
 import com.mnemos.telegram.bot.application.widget.input.StartWidgetTextInputUseCase
 import com.mnemos.telegram.bot.application.widget.input.WidgetTextInputPurpose
 import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.query.TelegramWidgetQueryContext
 import com.mnemos.telegram.bot.application.widget.query.port.out.WidgetQueryResponder
 import com.mnemos.telegram.bot.application.widget.session.TelegramWidgetScreen
@@ -31,9 +32,22 @@ class AccountWidgetActionHandlerTest {
     private val responder = mock<WidgetQueryResponder>()
     private val input = mock<StartWidgetTextInputUseCase>()
     private val invites = mock<OpenInviteWidgetUseCase>()
-    private val handler = AccountWidgetActionHandler(snapshots, accounts, publisher, sessions, responder, input, invites)
+    private val management = mock<OpenAccountManagementWidgetUseCase>()
+    private val handler = AccountWidgetActionHandler(snapshots, accounts, publisher, sessions, responder, input, invites, management)
     private val currentId = UUID.randomUUID()
     private val otherId = UUID.randomUUID()
+
+    @Test
+    fun accountWidgetOpensAuthorizedMemberOverview() {
+        whenever(snapshots.load(11L, 0)).thenReturn(AccountWidgetSnapshotResult.Available(view(currentId)))
+        whenever(management.enabled).thenReturn(true)
+        whenever(management.execute(11L, 0)).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(responder.reply(eq("q"), eq("OK"), any(), isNull()))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, handler.handle(query("w1:acct:manage"), session(currentId)))
+        verify(management).execute(11L, 0)
+    }
 
     @Test
     fun accountWidgetOpensInviteWidgetOnlyForCurrentAccount() {

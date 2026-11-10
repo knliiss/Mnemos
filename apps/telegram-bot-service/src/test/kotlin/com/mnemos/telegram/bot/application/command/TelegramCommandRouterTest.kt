@@ -21,6 +21,7 @@ import com.mnemos.telegram.bot.application.widget.online.OpenOnlineWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.settings.OpenSettingsWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.invites.OpenInviteWidgetUseCase
 import com.mnemos.telegram.bot.application.widget.profiles.OpenProfileWidgetUseCase
+import com.mnemos.telegram.bot.application.widget.management.OpenAccountManagementWidgetUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -46,6 +47,7 @@ class TelegramCommandRouterTest {
     private val settingsWidget = mock<OpenSettingsWidgetUseCase>()
     private val inviteWidget = mock<OpenInviteWidgetUseCase>()
     private val profileWidget = mock<OpenProfileWidgetUseCase>()
+    private val managementWidget = mock<OpenAccountManagementWidgetUseCase>()
     private val router =
         TelegramCommandRouter(
             startService = startService,
@@ -62,6 +64,7 @@ class TelegramCommandRouterTest {
             settingsWidget = settingsWidget,
             inviteWidget = inviteWidget,
             profileWidget = profileWidget,
+            managementWidget = managementWidget,
         )
 
     @Test
@@ -321,6 +324,17 @@ class TelegramCommandRouterTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/profiles")))
         verify(profileWidget).execute(TELEGRAM_ID)
+        verifyNoInteractions(menuService)
+    }
+
+    @Test
+    fun `manage command uses account management widget when enabled`() {
+        whenever(managementWidget.enabled).thenReturn(true)
+        whenever(managementWidget.execute(TELEGRAM_ID, 0))
+            .thenReturn(TelegramDeliveryResult.Delivered)
+
+        assertEquals(TelegramDeliveryResult.Delivered, router.route(commandContext("/manage")))
+        verify(managementWidget).execute(TELEGRAM_ID, 0)
         verifyNoInteractions(menuService)
     }
 
