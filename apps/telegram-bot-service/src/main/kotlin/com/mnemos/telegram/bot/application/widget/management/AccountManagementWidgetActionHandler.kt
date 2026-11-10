@@ -83,6 +83,39 @@ class AccountManagementWidgetActionHandler(
                     if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
                     return refresh(context, session, current.accountId, 0, "Учасника виключено")
                 }
+                "role-delete", "role-delete-confirm" -> {
+                    if (parts.size != 5) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    val page = parts[3].toIntOrNull()
+                    val index = parts[4].toIntOrNull()
+                    if (page != session.page || index == null) {
+                        return responder.reply(context.queryId, "CONFLICT", "Оновіть сторінку")
+                    }
+                    val role = current.roles.getOrNull(index)
+                        ?: return responder.reply(context.queryId, "CONFLICT", "Роль більше недоступна")
+                    if (!current.canManageRoles) {
+                        return responder.reply(context.queryId, "FORBIDDEN", "Немає дозволу видаляти ролі")
+                    }
+                    if (parts[2] == "role-delete") {
+                        guard.requestRoleDeletion(context.actorId, context.messageId, current.accountId, role.id)
+                        return responder.reply(
+                            context.queryId,
+                            "CONFIRM",
+                            "Підтвердьте видалення ролі",
+                            publisher.state(current.copy(pendingRoleDeletionIndex = index)),
+                        )
+                    }
+                    if (!guard.consumeRoleDeletion(context.actorId, context.messageId, current.accountId, role.id)) {
+                        return responder.reply(context.queryId, "CONFIRM_REQUIRED", "Підтвердьте видалення ролі ще раз")
+                    }
+                    val result = mutations.deleteRole(context.actorId, context.queryId, current, index)
+                    if (result != AccountManagementWidgetMutationResult.APPLIED) return failure(context, result)
+                    return refresh(context, session, current.accountId, session.page, "Роль видалено")
+                }
+                "role-delete-cancel" -> {
+                    if (parts.size != 3) return responder.reply(context.queryId, "INVALID", "Невірна дія")
+                    guard.cancelRoleDeletion(context.actorId, context.messageId)
+                    return responder.reply(context.queryId, "OK", "Видалення скасовано", publisher.state(current))
+                }
                 "cancel" -> {
                     if (parts.size != 3) return responder.reply(context.queryId, "INVALID", "Невірна дія")
                     guard.cancelKick(context.actorId, context.messageId)
@@ -129,6 +162,7 @@ class AccountManagementWidgetActionHandler(
                 else -> return responder.reply(context.queryId, "UNSUPPORTED", "Невідома дія")
             }
         guard.cancelKick(context.actorId, context.messageId)
+        guard.cancelRoleDeletion(context.actorId, context.messageId)
         return refresh(context, session, current.accountId, targetPage, "Дані оновлено")
     }
 

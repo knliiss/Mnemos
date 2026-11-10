@@ -29,6 +29,18 @@ class ChangeAccountManagementWidgetService(
         return gateway.setMemberRole(telegramId, member.id, role.id, assigned).toWidgetResult()
     }
 
+    override fun deleteRole(
+        telegramId: Long,
+        queryId: String,
+        view: AccountManagementWidgetView,
+        roleIndex: Int,
+    ): AccountManagementWidgetMutationResult {
+        if (!view.canManageRoles) return AccountManagementWidgetMutationResult.FORBIDDEN
+        val role = view.roles.getOrNull(roleIndex) ?: return AccountManagementWidgetMutationResult.CONFLICT
+        if (!guard.claimQuery(telegramId, queryId)) return AccountManagementWidgetMutationResult.ALREADY
+        return gateway.deleteRole(telegramId, role.id).toWidgetResult()
+    }
+
     override fun kickMember(
         telegramId: Long,
         queryId: String,

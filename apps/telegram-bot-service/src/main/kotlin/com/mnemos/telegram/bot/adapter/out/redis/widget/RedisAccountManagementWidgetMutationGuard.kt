@@ -44,6 +44,24 @@ class RedisAccountManagementWidgetMutationGuard(
         redis.delete(kickKey(telegramId, messageId))
     }
 
+    override fun requestRoleDeletion(telegramId: Long, messageId: Int, accountId: UUID, roleId: UUID) {
+        redis.opsForValue().set(
+            roleKey(telegramId, messageId),
+            "$accountId:$roleId",
+            Duration.ofMinutes(3),
+        )
+    }
+
+    override fun consumeRoleDeletion(telegramId: Long, messageId: Int, accountId: UUID, roleId: UUID): Boolean =
+        redis.opsForValue().getAndDelete(roleKey(telegramId, messageId)) == "$accountId:$roleId"
+
+    override fun cancelRoleDeletion(telegramId: Long, messageId: Int) {
+        redis.delete(roleKey(telegramId, messageId))
+    }
+
+    private fun roleKey(telegramId: Long, messageId: Int): String =
+        "telegram-bot:widget-management-role-confirm:" + bot.token.substringBefore(':') + ":" + telegramId + ":" + messageId
+
     private fun kickKey(telegramId: Long, messageId: Int): String =
         "telegram-bot:widget-management-confirm:" + bot.token.substringBefore(':') + ":" + telegramId + ":" + messageId
 }

@@ -7,4 +7,8 @@ interface AccountManagementWidgetMutationGuard {
     fun requestKick(telegramId: Long, messageId: Int, accountId: UUID, memberId: UUID)
     fun consumeKick(telegramId: Long, messageId: Int, accountId: UUID, memberId: UUID): Boolean
     fun cancelKick(telegramId: Long, messageId: Int)
+
+    fun requestRoleDeletion(telegramId: Long, messageId: Int, accountId: UUID, roleId: UUID)
+    fun consumeRoleDeletion(telegramId: Long, messageId: Int, accountId: UUID, roleId: UUID): Boolean
+    fun cancelRoleDeletion(telegramId: Long, messageId: Int)
 }

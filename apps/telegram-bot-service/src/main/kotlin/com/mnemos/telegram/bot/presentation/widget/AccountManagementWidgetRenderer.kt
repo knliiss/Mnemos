@@ -23,6 +23,7 @@ class AccountManagementWidgetRenderer(
                 "canCreate" to view.canManageRoles,
                 "feedback" to view.feedback,
                 "confirm" to view.pendingKickIndex,
+                "confirmRole" to view.pendingRoleDeletionIndex,
                 "members" to view.members.map { member ->
                     mapOf(
                         "n" to member.name,
@@ -116,7 +117,21 @@ class AccountManagementWidgetRenderer(
                         actions.appendChild(cancel);
                       }
                     }
-                  }else if(s.canAssign&&selected!==null&&s.members[selected]&&!s.members[selected].o&&!s.members[selected].s){
+                  }
+                  if(tab==='roles'&&s.canCreate){
+                    var confirmRole=s.confirmRole===index;
+                    var remove=el('button',confirmRole?'primary':'',confirmRole?'Підтвердити видалення':'Видалити роль');
+                    remove.addEventListener('click',function(){
+                      ask('w1:manage:'+(confirmRole?'role-delete-confirm':'role-delete')+':'+s.page+':'+index);
+                    });
+                    actions.appendChild(remove);
+                    if(confirmRole){
+                      var cancelRole=el('button','','Скасувати');
+                      cancelRole.addEventListener('click',function(){ask('w1:manage:role-delete-cancel');});
+                      actions.appendChild(cancelRole);
+                    }
+                  }
+                  if(tab==='roles'&&s.canAssign&&selected!==null&&s.members[selected]&&!s.members[selected].o&&!s.members[selected].s){
                     var active=s.members[selected].a.indexOf(index)>=0;
                     var toggle=el('button',active?'':'primary',active?'Зняти роль':'Призначити роль');
                     toggle.addEventListener('click',function(){
