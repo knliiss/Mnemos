@@ -167,3 +167,12 @@ The widget route is only used for the argument-free `/online` command. Realm-num
 - `w1:manage:create` starts a ForceReply prompt for a role name; only a matching user/account/message reply can call the typed `createRole` use case. Input claim is at most once per prompt.
 - A per-query Redis key is not domain-level exactly-once execution. Domain-level idempotency and an expected-active-account/version precondition remain necessary to protect against timeout ambiguity and cross-account races. Financial mutations must not rely on current guards.
 - Tests were committed, but JVM builds and Telegram client tests were not executed. Leave widgets disabled for production.
+
+## Role editor migration and stale-index safeguards (2026-11-10)
+
+- The previously read-only management widget now supports existing `AccountManagementGateway.updateRoleDetails`, `setRolePermission` and `moveRole` operations through typed application use cases. Authoritative permission, hierarchy, base-role and actor-role policies stay in account-service.
+- Editing role name/color uses a selected server-owned role ID stored in a versioned v2 private ForceReply input session; v1 sessions remain compatible for old input purposes. A role-edit reply requires matching prompt, widget, active account, role visibility and current permissions.
+- Permission toggles pass only an enum index and desired state. The role's allowed permissions are encoded in a compact bitmask; the UI labels follow the documented `TelegramAccountManagementPermission` enum ordering.
+- Hierarchy edits require `MANAGE_ROLE_HIERARCHY` and compare current rank against the originally rendered rank before invoking the gateway.
+- All member/role writes now validate a short stable identity tag alongside the original page-local index. The identity tag is for stale-list detection and is not a bearer credential. No privileged command relies on client-provided IDs without a refreshed authorized snapshot.
+- Remaining risks: account-switch race without expected-account precondition at the backend and nontransactional per-query replay claims. Do not declare full parity or enable widgets by default before builds, tests and real Telegram-client verification.
