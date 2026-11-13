@@ -22,48 +22,47 @@ The frontend is a React + TypeScript mini-app designed as a real product surface
 
 ## Product
 
+Mnemos combines Cristalix/SAO event tracking, player activity, account management and the in-app economy in a mobile interface.
+
 <p align="center">
-  <img src="docs/assets/readme/home.webp" width="430" alt="Mnemos account home" />
+  <img src="docs/assets/readme/home.webp" width="355" alt="Mnemos home: active account, events, wallet and team" />
 </p>
-
-The account home brings together the current account, daily reward, wallet, team management and recent activity.
+<p align="center"><sub>Home · account, events, rewards and team</sub></p>
 
 <table>
 <tr>
-<td width="50%" valign="top">
-<img src="docs/assets/readme/events.webp" width="100%" alt="Mnemos event feed" />
-</td>
-<td width="50%" valign="top">
-<img src="docs/assets/readme/event-detail.webp" width="100%" alt="Mnemos event detail" />
-</td>
+<td width="50%"><img src="docs/assets/readme/events-global.webp" width="100%" alt="Global events feed showing active events, search and filters" /></td>
+<td width="50%"><img src="docs/assets/readme/events-drops.webp" width="100%" alt="Item drop feed with player activity and rarity categories" /></td>
 </tr>
 <tr>
-<td align="center"><b>Realtime event feed</b><br/>Drops, boosters, global events and raids with search, filters and ordering.</td>
-<td align="center"><b>Event details</b><br/>Localized metadata, related-feed navigation and notification rules.</td>
+<td align="center"><b>Global events</b><br/>Current server events, wipe selection and filtering.</td>
+<td align="center"><b>Drops</b><br/>Recent item drops, player names and event search.</td>
 </tr>
 </table>
 
 <table>
 <tr>
-<td width="50%" valign="top">
-<img src="docs/assets/readme/profile.webp" width="100%" alt="Mnemos player profile" />
-</td>
-<td width="50%" valign="top">
-<img src="docs/assets/readme/wallet.webp" width="100%" alt="Mnemos wallet" />
-</td>
+<td width="50%"><img src="docs/assets/readme/rankings.webp" width="100%" alt="Rankings for the active wipe, with top coin balances" /></td>
+<td width="50%"><img src="docs/assets/readme/profile.webp" width="100%" alt="Player profile with online presence, realm, items and comments" /></td>
 </tr>
 <tr>
-<td align="center"><b>Player profiles & presence</b><br/>Online state, realm, activity, recent drops, reactions and social data.</td>
-<td align="center"><b>Wallet & economy</b><br/>Balances, PRIME / COIN exchange and transaction-oriented flows.</td>
+<td align="center"><b>Rankings</b><br/>Wipe-scoped leaderboards for coins, drops and boosters.</td>
+<td align="center"><b>Player profiles</b><br/>Presence, SAO realm and recent activity.</td>
 </tr>
 </table>
+
+<p align="center">
+  <img src="docs/assets/readme/wallet.webp" width="355" alt="Wallet with coin balance, PRIME exchange and transaction history" />
+</p>
+<p align="center"><sub>Wallet · balances, coin exchange and transaction history</sub></p>
 
 <details>
-<summary><b>More UI: bets</b></summary>
+<summary><b>More screens: event details and bets</b></summary>
 <br/>
-<p align="center">
-  <img src="docs/assets/readme/bets.webp" width="430" alt="Mnemos betting interface" />
-</p>
+<table><tr>
+<td width="50%"><img src="docs/assets/readme/event-detail.webp" width="100%" alt="Event details" /></td>
+<td width="50%"><img src="docs/assets/readme/bets.webp" width="100%" alt="Bets interface" /></td>
+</tr></table>
 </details>
 
 ---
